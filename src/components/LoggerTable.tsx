@@ -4,42 +4,9 @@ import { ArrowDownIcon, ArrowUpIcon, BatteryChargingIcon, CalendarClockIcon, Gau
 import { Button } from "./ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { useEffect, useState } from "react"
-import axios, { AxiosResponse } from 'axios'
+import axios from 'axios'
+import { Datalogger, FlowLog } from "./Types"
 
-type Datalogger = {
-  LoggerId: number,
-  Name: string,
-  Model: string,
-  FwVersion: string,
-  Latitude: number,
-  Longitude: number,
-  VoltageLimit: string,
-  FlowLimit: string,
-  Imei: number,
-  Sim: number
-}
-
-type FlowLog = {
-  LogId: number,
-  Timestamp: Date,
-  LoggerModel: string,
-  LoggerId: number,
-  LogTime: Date,
-  AverageVoltage: number,
-  CurrentFlow: number,
-  TotalFlowPositive: number,
-  TotalFlowNegative: number,
-}
-
-type PressureLog = {
-  LogId: number,
-  Timestamp: Date,
-  LoggerModel: string,
-  LoggerId: number,
-  LogTime: Date,
-  AverageVoltage: number,
-  CurrentPressure: number,
-}
 
 const dataloggerLatestColumns: ColumnDef<Datalogger>[] = [
   {
@@ -579,10 +546,12 @@ function LoggerTable() {
 
   useEffect(() => {
     async function fetchData() {
-      
       axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`).then(response => {
         console.log(response.data)
         setLoggerData(response.data)
+      }, error => {
+        console.log(error.toString())
+      }).finally(() => {
         setLoading(false)
       })
     }

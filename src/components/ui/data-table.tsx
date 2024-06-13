@@ -4,14 +4,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "
 import { Skeleton } from "./skeleton"
 import { Button } from "./button"
 
-interface DataTableProps<TData, TValue, TInitState, T> {
+
+interface DataTableProps<TData, TValue, TInitState, TLoading> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   initialState: TInitState
-  loading: T
+  loading: TLoading
 }
 
-export function DataTable<TData, TValue, TInitState, T>({ columns, data, initialState, loading }: DataTableProps<TData, TValue, TInitState, T>) {
+export function DataTable<TData, TValue, TInitState, TLoading>({ columns, data, initialState, loading }: DataTableProps<TData, TValue, TInitState, TLoading>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const test = {
     pagination: {
@@ -57,7 +58,6 @@ export function DataTable<TData, TValue, TInitState, T>({ columns, data, initial
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <>
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
@@ -68,26 +68,30 @@ export function DataTable<TData, TValue, TInitState, T>({ columns, data, initial
                       </TableCell>
                     ))}
                   </TableRow>
-                </>
               ))
             )
               : (
-                <></>
-                // <TableRow>
-                //   <TableCell colSpan={columns.length} className="h-24 text-center">
-                //     No results.
-                //   </TableCell>
-                // </TableRow>
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    No results.
+                  </TableCell>
+                </TableRow>
               )}
             {loading ? Array(5).fill(null).map((item, index) => (
-              <TableRow>
+              <TableRow key={index}>
                 <TableCell className="font-medium"><Skeleton className="w-[80px] h-[20px] rounded-full" /></TableCell>
                 <TableCell className="font-medium"><Skeleton className="w-[80px] h-[20px] rounded-full" /></TableCell>
                 <TableCell className="font-medium"><Skeleton className="w-[80px] h-[20px] rounded-full" /></TableCell>
                 <TableCell className="font-medium"><Skeleton className="w-[50px] h-[20px] rounded-full" /></TableCell>
                 <TableCell className="font-medium"><Skeleton className="w-[50px] h-[20px] rounded-full" /></TableCell>
               </TableRow>)
-            ) : <></>}
+            ) : 
+                // TableRow>
+                //   <TableCell colSpan={columns.length} className="h-24 text-center">
+                //     No results.
+                //   </TableCell>
+                // </TableRow>
+            <></>}
           </TableBody>
         </Table>
       </div>

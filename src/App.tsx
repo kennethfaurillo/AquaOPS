@@ -3,6 +3,7 @@ import { BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon } from 'lucide-react'
 import './App.css'
 import { CardDemo } from './components/CardDemo'
 import LoggerTable from './components/LoggerTable'
+import LatestLogTable from './components/LatestLogTable'
 import Map from './components/Map'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "./components/ui/sheet"
@@ -69,7 +70,7 @@ function App() {
           {/* Table Card */}
           <Card className='col-span-full xl:col-span-3 '>
             <CardHeader className='rounded-t-lg bg-piwad-lightblue'>
-              <CardTitle className='text-slate-50'>
+              <CardTitle className='text-slate-950'>
                 Data Logger List
               </CardTitle>
               <CardDescription className='text-slate-200'>
@@ -79,39 +80,14 @@ function App() {
 
             <Separator />
             <CardContent>
-              <LoggerTable></LoggerTable>
+              {/* <LoggerTable></LoggerTable> */}
+              <LatestLogTable />
             </CardContent>
           </Card>
           {/* Map Card */}
-          <Card className='col-span-full xl:col-span-9 z-0' >
-            <CardHeader className='rounded-t-lg bg-piwad-lightblue'>
-              <CardTitle className='text-slate-50'>
-                Data Logger Map
-              </CardTitle>
-              {/* <CardDescription>
-
-              </CardDescription> */}
-            </CardHeader>
-            <Separator className='mb-4' />
-            <CardContent>
-              <div className="flex items-center space-x-4 rounded-md border p-4 mb-2 bg-piwad-lightyellow">
-                <div className="grid grid-cols-9 flex-1 space-y-1 ">
-                  <div className="text-base font-medium leading-none col-span-full justify-center sm:justify-normal sm:col-span-2 flex items-center">
-                    Logger Status:</div>
-                  <div className="text-lg font-medium leading-none col-span-3 justify-center sm:justify-normal sm:col-span-2 flex items-center">
-                    {5}&nbsp;<BadgeCheckIcon color='green' />&nbsp;Active</div>
-                  <div className="text-lg font-medium leading-none col-span-3 justify-center sm:justify-normal sm:col-span-2 flex items-center">
-                    {0}&nbsp;<BadgeMinusIcon color='red' />&nbsp;Disabled</div>
-                  <div className="text-lg font-medium leading-none col-span-3 justify-center sm:justify-normal sm:col-span-2 flex items-center">
-                    {2}&nbsp;<BadgeHelpIcon color='black' />&nbsp;Unknown</div>
-                  {/* <p className="text-sm text-muted-foreground">
-                    Send notifications to device.
-                  </p> */}
-                </div>
-              </div>
-              <div id='map'><Map /></div>
-            </CardContent>
-          </Card>
+          <div className="col-span-full xl:col-span-9 z-0">
+            <Map/>
+          </div>
         </div>
 
         <div className='grid sm:grid md:grid-cols-2 xl:grid-cols-3 gap-4 mt-2 mx-4'>
