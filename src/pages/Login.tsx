@@ -17,7 +17,7 @@ export const LoginPage = () => {
             username: username,
             password: password
         })
-        if (authResponse.data == "true"){
+        if (authResponse.data.pass){
             await login({ username })
         } else {
             console.log(authResponse.data)
