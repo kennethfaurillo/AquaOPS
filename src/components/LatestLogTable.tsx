@@ -38,6 +38,7 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
     },
     cell: ({ row }) => {
       //@ts-ignore
+      // console.log(row)
       const nameSplit = row.getValue("Name").split('_')
       const name = nameSplit.slice(2).toString().replaceAll('-',' ')
       const type = nameSplit.slice(1,2)
@@ -89,7 +90,9 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
     },
     cell: ({ row }) => {
       // if (row.getValue("LogTime")) return <>{(new Date(row.getValue("LogTime").slice(0,-1))).toString()}</>
-      if (row.getValue("LogTime")) return <>{(moment(row.getValue("LogTime").slice(0,-1), true).format("MMM D, YYYY H:mm:ss"))}</>
+      // if (row.getValue("LogTime")) return <>{(moment(row.getValue("LogTime").slice(0,-1), true).format("MMM D, YYYY H:mm:ss"))}</>
+      // console.log(row.getValue("LogTime"))
+      if (row.getValue("LogTime")) return <>{(moment(row.getValue("LogTime"), true).format("MMM D, YYYY H:mm:ss"))}</>
       return (<div className="text-gray-300 font-semibold">NA</div>)
     }
   },
