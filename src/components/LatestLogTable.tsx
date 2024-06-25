@@ -1,12 +1,12 @@
 import { ColumnDef } from "@tanstack/react-table"
-import { DataTable } from "./ui/data-table"
-import { ArrowDownIcon, ArrowUpIcon, BatteryChargingIcon, CalendarClockIcon, GaugeIcon, MoreHorizontal, RouterIcon, SquareMinusIcon, SquarePlusIcon, WavesIcon } from "lucide-react"
-import { Button } from "./ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
-import { useEffect, useState } from "react"
 import axios from 'axios'
-import { Datalogger,} from "./Types"
+import { ArrowDownIcon, ArrowUpIcon, CircleGaugeIcon, Clock4Icon, MoreHorizontal, RouterIcon, WavesIcon } from "lucide-react"
 import moment from "moment"
+import { useEffect, useState } from "react"
+import { Datalogger, } from "./Types"
+import { Button } from "./ui/button"
+import { DataTable } from "./ui/data-table"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
 
 const latestLogsColumns: ColumnDef<Datalogger>[] = [
   {
@@ -42,7 +42,8 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
       const nameSplit = row.getValue("Name").split('_')
       const name = nameSplit.slice(2).toString().replaceAll('-',' ')
       const type = nameSplit.slice(1,2)
-      return (<><p className="font-bold">{name}</p><p className="text-muted-foreground">{row.getValue("LoggerId")}</p></>)
+      // return (<><p className="font-bold">{name}</p><p className="text-muted-foreground">{row.getValue("LoggerId")}</p></>)
+      return (<Button variant={"link"} className="p-0 block text-left"><p className="font-bold">{name}</p><p className="text-muted-foreground">{row.getValue("LoggerId")}</p></Button>)
     }
   },
   {
@@ -80,19 +81,18 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
     accessorKey: "LogTime",
     header: ({ column }) => {
       return (
-        <Button variant="ghost" className="px-4" onClick={() => {
+        <Button variant="ghost" className="px-1" onClick={() => {
           column.toggleSorting(column.getIsSorted() === "asc")
         }}>
-          LogTime
+          <Clock4Icon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
+          Time
           {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-2 h-4 w-4" /> : <ArrowDownIcon className="ml-2 h-4 w-4" />) : <></>}
         </Button>
       )
     },
     cell: ({ row }) => {
-      // if (row.getValue("LogTime")) return <>{(new Date(row.getValue("LogTime").slice(0,-1))).toString()}</>
-      // if (row.getValue("LogTime")) return <>{(moment(row.getValue("LogTime").slice(0,-1), true).format("MMM D, YYYY H:mm:ss"))}</>
-      // console.log(row.getValue("LogTime"))
-      if (row.getValue("LogTime")) return <>{(moment(row.getValue("LogTime"), true).format("MMM D, YYYY H:mm:ss"))}</>
+      // if (row.getValue("LogTime")) return <>{(moment(row.getValue("LogTime"), true).format("MMM D, YYYY H:mm:ss"))}</>
+      if (row.getValue("LogTime")) return <>{(moment(row.getValue("LogTime"), true).format("M/D/YYYY H:mm:ss"))}</>
       return (<div className="text-gray-300 font-semibold">NA</div>)
     }
   },
@@ -100,17 +100,17 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
     accessorKey: "CurrentPressure",
     header: ({ column }) => {
       return (
-        <Button variant="ghost" className="px-2" onClick={() => {
+        <Button variant="ghost" className="px-0" onClick={() => {
           column.toggleSorting(column.getIsSorted() === "asc")
         }}>
-          <GaugeIcon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
+          <CircleGaugeIcon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
           Pressure
           {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-2 h-4 w-4" /> : <ArrowDownIcon className="ml-2 h-4 w-4" />) : <></>}
         </Button>
       )
     },
     cell: ({ row }) => {
-      if (parseFloat(row.getValue("CurrentPressure"))) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentPressure"))} psi</div>
+      if (parseFloat(row.getValue("CurrentPressure"))) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentPressure"))} <em>psi</em></div>
       return (<div className="text-gray-300 font-semibold text-right">NA</div>)
     }
   },
@@ -118,7 +118,7 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
     accessorKey: "CurrentFlow",
     header: ({ column }) => {
       return (
-        <Button variant="ghost" className="px-2" onClick={() => {
+        <Button variant="ghost" className="px-0" onClick={() => {
           column.toggleSorting(column.getIsSorted() === "asc")
         }}>
           <WavesIcon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
@@ -128,7 +128,7 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
       )
     },
     cell: ({ row }) => {
-      if (parseFloat(row.getValue("CurrentFlow"))) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentFlow"))} lps</div>
+      if (parseFloat(row.getValue("CurrentFlow"))) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentFlow"))} <em>lps</em></div>
       return (<div className="text-gray-300 font-semibold text-right">NA</div>)
     }
   },

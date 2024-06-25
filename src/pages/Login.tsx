@@ -1,23 +1,25 @@
-import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
 import axios from "axios";
-import { AlertDialog } from "@/components/ui/alert-dialog";
+import { useState } from "react";
+import { Navigate } from "react-router-dom";
 
 export const LoginPage = () => {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
-    const { login } = useAuth()
+    const { user, login } = useAuth()
+
+    if (user) return <Navigate to={"/"} />
     const handleLogin = async (event) => {
         event.preventDefault()
-        const authResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/login/`,{
+        const authResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/login/`, {
             username: username,
             password: password
         })
-        if (authResponse.data.pass){
+        if (authResponse.data.pass) {
             await login({ username })
         } else {
             console.log(authResponse.data)
@@ -31,7 +33,7 @@ export const LoginPage = () => {
             <div className="w-full h-screen">
                 <div className="grid grid-cols-12 border-red-200">
                     <div className="col-span-12 py-8 justify-center">
-                        <div className="mx-auto w-fit border-4 border-slate-500 rounded-lg p-5 space-y-2">
+                        <div className="mx-auto w-fit border-4 border-piwad-yellow-400 rounded-lg p-5 space-y-2">
                             <div className="text-center">
                                 <h1 className="text-3xl font-bold">Login</h1>
                                 <p className="text-balance text-muted-foreground">Enter your account details below to login to your account</p>
@@ -57,7 +59,7 @@ export const LoginPage = () => {
                                         />
                                     </div>
                                     <Button type="submit" className="bg-piwad-lightyellow" variant={"outline"}>Login</Button>
-                                </form> 
+                                </form>
                             </div>
                         </div>
                     </div>

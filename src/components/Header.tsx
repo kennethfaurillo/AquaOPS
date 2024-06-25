@@ -10,7 +10,7 @@ function Header(props) {
 
     return (
         <>
-            <div className='flex gap-4 sticky top-0 max-w-dvw bg-piwad-lightblue/100 backdrop-blur drop-shadow-lg z-10 max-h-12 sm:max-h-20 overflow-hidden'>
+            <div className='flex gap-4 sticky top-0 max-w-dvw bg-piwad-lightblue-700/100 backdrop-blur drop-shadow-lg z-10 max-h-12 sm:max-h-20 overflow-hidden'>
                 <div className="flex gap-4 p-1 items-center">
                     <a href="/">
                         <Avatar className='m-1 ml-2 size-9 sm:size-14'>
@@ -52,10 +52,10 @@ function Header(props) {
                                 </SheetHeader>
                                 <SheetFooter>
                                     <div className="absolute bottom-10 space-x-3">
-                                    <Button onClick={async() => {await logout()}}>Log Out</Button>
-                                    <SheetClose asChild >
-                                        <Button>Close</Button>
-                                    </SheetClose>
+                                        <Button onClick={async () => { await logout() }}>Log Out</Button>
+                                        <SheetClose asChild >
+                                            <Button>Close</Button>
+                                        </SheetClose>
                                     </div>
                                 </SheetFooter>
                             </SheetContent>

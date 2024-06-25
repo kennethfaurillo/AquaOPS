@@ -1,12 +1,12 @@
-import { LayerGroup, MapContainer, Marker, TileLayer, Tooltip } from 'react-leaflet'
-import { DivIcon, Icon, divIcon } from 'leaflet';
-import axios, { AxiosResponse } from 'axios'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, Loader2Icon, SatelliteDishIcon, } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Separator } from './ui/separator'
-import './Map.css'
+import axios from 'axios';
+import { DivIcon, Icon } from 'leaflet';
+import { BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { LayerGroup, MapContainer, Marker, TileLayer, Tooltip } from 'react-leaflet';
+import './Map.css';
 import { DataLog, Datalogger } from './Types';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Separator } from './ui/separator';
 
 let loggerIcon = new Icon({
   iconUrl: "src/assets/meter.png",
@@ -40,7 +40,7 @@ async function getLatestLogById(loggerId) {
   const latestLogResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
 }
 
-function LoggerMap() {
+function LoggerMapCard() {
   const [loading, setLoading] = useState(true)
   const [loggersInfo, setLoggersInfo] = useState([])
   const [latestLogs, setLatestLogs] = useState([])
@@ -136,24 +136,24 @@ function LoggerMap() {
   return (
     <>
       <Card className='col-span-full xl:col-span-9 z-0' >
-        <CardHeader className='rounded-t-lg bg-piwad-lightblue'>
+        <CardHeader className='rounded-t-lg bg-piwad-lightblue-600'>
           <CardTitle className='text-slate-950'>
             <div className="grid grid-cols-6">
               <div className="col-span-6 md:col-span-2">
-                <p className="mb-1">Data Logger Map</p>
+                <p className="mb-1 text-piwad-lightyellow-300">Data Logger Map</p>
                 <Separator className='mt-2 w-11/12' />
                 <p className="text-base text-slate-200 mb-2">{map ? <DisplayPosition map={map} /> : null}</p>
               </div>
-              <div className="col-span-6  lg:col-span-4 flex items-center space-x-4 rounded-md border p-3 mb-0 bg-piwad-lightyellow">
+              <div className="col-span-6  lg:col-span-4 flex items-center space-x-4 rounded-md border-2 border-piwad-yellow-0 p-3 mb-0 ">
                 <div className="grid grid-cols-9 flex-1 space-y-1 ">
-                  <div className="text-lg md:text-xl font-medium leading-none col-span-full justify-center sm:justify-normal sm:col-span-2 flex items-center">
+                  <div className="text-piwad-yellow-50 text-lg md:text-xl font-medium co leading-none col-span-full justify-center sm:justify-normal sm:col-span-2 flex items-center">
                     Logger Status:</div>
-                  <div className="text-base md:text-xl font-medium leading-none col-span-3 justify-center sm:justify-normal sm:col-span-2 flex items-center">
-                    {5}&nbsp;<BadgeCheckIcon color='green' />&nbsp;Active</div>
-                  <div className="text-base md:text-xl font-medium leading-none col-span-3 justify-center sm:justify-normal sm:col-span-2 flex items-center">
+                  <div className="text-white text-base md:text-xl font-medium leading-none col-span-3 justify-center sm:justify-normal sm:col-span-2 flex items-center">
+                    {5}&nbsp;<BadgeCheckIcon color='lightgreen' />&nbsp;Active</div>
+                  <div className="text-white text-base md:text-xl font-medium leading-none col-span-3 justify-center sm:justify-normal sm:col-span-2 flex items-center">
                     {0}&nbsp;<BadgeMinusIcon color='red' />&nbsp;Disabled</div>
-                  <div className="text-base md:text-xl font-medium leading-none col-span-3 justify-center sm:justify-normal sm:col-span-2 flex items-center">
-                    {2}&nbsp;<BadgeHelpIcon color='black' />&nbsp;Unknown</div>
+                  <div className="text-white text-base md:text-xl font-medium leading-none col-span-3 justify-center sm:justify-normal sm:col-span-2 flex items-center">
+                    {2}&nbsp;<BadgeHelpIcon color='yellow' />&nbsp;Unknown</div>
                   {/* <p className="text-sm text-muted-foreground">
                     Send notifications to device.
                   </p> */}
@@ -183,4 +183,4 @@ function LoggerMap() {
   )
 }
 
-export default LoggerMap;
+export default LoggerMapCard;
