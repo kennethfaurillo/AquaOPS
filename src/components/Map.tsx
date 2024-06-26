@@ -36,10 +36,6 @@ function DisplayPosition({ map }) {
   )
 }
 
-async function getLatestLogById(loggerId) {
-  const latestLogResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
-}
-
 function LoggerMapCard() {
   const [loading, setLoading] = useState(true)
   const [loggersInfo, setLoggersInfo] = useState([])

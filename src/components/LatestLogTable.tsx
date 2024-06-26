@@ -17,7 +17,7 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
           column.toggleSorting(column.getIsSorted() === "asc")
         }}>
           Log ID
-          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-2 h-4 w-4" /> : <ArrowDownIcon className="ml-2 h-4 w-4" />) : <></>}
+          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
         </Button>
       )
     },
@@ -32,7 +32,7 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
           <RouterIcon className="mr-1 h-5 w-5" />
           Logger
           {/* <ArrowUpDownIcon className="ml-2 h-4 w-4" /> */}
-          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-2 h-4 w-4" /> : <ArrowDownIcon className="ml-2 h-4 w-4" />) : <></>}
+          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
         </Button>
       )
     },
@@ -56,7 +56,7 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
           <RouterIcon className="mr-1 h-5 w-5" />
           Logger ID
           {/* <ArrowUpDownIcon className="ml-2 h-4 w-4" /> */}
-          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-2 h-4 w-4" /> : <ArrowDownIcon className="ml-2 h-4 w-4" />) : <></>}
+          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
         </Button>
       )
     },
@@ -72,7 +72,7 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
           column.toggleSorting(column.getIsSorted() === "asc")
         }}>
           Timestamp
-          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-2 h-4 w-4" /> : <ArrowDownIcon className="ml-2 h-4 w-4" />) : <></>}
+          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
         </Button>
       )
     },
@@ -86,13 +86,13 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
         }}>
           <Clock4Icon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
           Time
-          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-2 h-4 w-4" /> : <ArrowDownIcon className="ml-2 h-4 w-4" />) : <></>}
+          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
         </Button>
       )
     },
     cell: ({ row }) => {
       // if (row.getValue("LogTime")) return <>{(moment(row.getValue("LogTime"), true).format("MMM D, YYYY H:mm:ss"))}</>
-      if (row.getValue("LogTime")) return <>{(moment(row.getValue("LogTime"), true).format("M/D/YYYY H:mm:ss"))}</>
+      if (row.getValue("LogTime")) return <div className="text-center">{(moment(row.getValue("LogTime"), true).format("M/D/YY H:mm:ss"))}</div>
       return (<div className="text-gray-300 font-semibold">NA</div>)
     }
   },
@@ -105,7 +105,7 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
         }}>
           <CircleGaugeIcon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
           Pressure
-          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-2 h-4 w-4" /> : <ArrowDownIcon className="ml-2 h-4 w-4" />) : <></>}
+          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
         </Button>
       )
     },
@@ -123,7 +123,7 @@ const latestLogsColumns: ColumnDef<Datalogger>[] = [
         }}>
           <WavesIcon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
           Flow
-          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-2 h-4 w-4" /> : <ArrowDownIcon className="ml-2 h-4 w-4" />) : <></>}
+          {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
         </Button>
       )
     },
@@ -166,7 +166,7 @@ function LoggerTable() {
   useEffect(() => {
     async function fetchData() {
       axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`).then(response => {
-        console.log(response.data)
+        // console.log(response.data)
         setLoggerData(response.data)
       }, error => {
         console.log(error.toString())

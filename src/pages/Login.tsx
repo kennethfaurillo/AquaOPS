@@ -4,15 +4,41 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 
 export const LoginPage = () => {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
-    const { user, login } = useAuth()
+    const [loading, setLoading] = useState(false)
+    const { user, token, login, logout } = useAuth()
 
-    if (user) return <Navigate to={"/"} />
+    const validateToken = async (_user, _token) => {
+            console.log("valid token")
+            // console.log(_user, _token)
+        const validateTokenResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/validate-token/`, {
+            user: _user,
+            token: _token
+        })
+        if (validateTokenResponse.data.pass) {
+            console.log("valid token")
+            await login(validateTokenResponse.data.user, validateTokenResponse.data.Token)
+        } else {
+            console.log("Token invalid/expired")
+            await logout()
+        }
+    }
+
+    useEffect(() => {
+        (async () => {
+            if (token && user) {
+                // console.log(user.Username, token)
+                await validateToken(user, token)
+            }
+        })()
+        return (setLoading(false))
+    }, [])
+
     const handleLogin = async (event) => {
         event.preventDefault()
         const authResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/login/`, {
@@ -20,7 +46,8 @@ export const LoginPage = () => {
             password: password
         })
         if (authResponse.data.pass) {
-            await login({ username })
+            await login(authResponse.data.user, authResponse.data.Token)
+            // console.log(authResponse.data.Token)
         } else {
             console.log(authResponse.data)
             alert("Invalid username or password!")
@@ -28,7 +55,7 @@ export const LoginPage = () => {
     }
 
     return (
-        <>
+        <>{!loading ? <>
             <Header />
             <div className="w-full h-screen">
                 <div className="grid grid-cols-12 border-red-200">
@@ -64,31 +91,8 @@ export const LoginPage = () => {
                         </div>
                     </div>
                 </div>
-
-
             </div>
-            {/* 
-        <form onSubmit={handleLogin}>
-            <div>
-                <label htmlFor="username">Username:</label>
-                <input
-                    type="username"
-                    id="username"
-                    value={username}
-                    onChange={(event) => setUsername(event.target.value)}
-                />
-            </div>
-            <div>
-                <label htmlFor="password">Password:</label>
-                <input
-                    type="password"
-                    id="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                />
-            </div>
-            <button type="submit">Login</button>
-        </form> */}
+        </> : <></>}
         </>
     )
 }

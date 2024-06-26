@@ -5,21 +5,27 @@ const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useLocalStorage("user", null)
+    const [token, setToken] = useLocalStorage("token", null)
     const navigate = useNavigate()
 
-    const login = async (data) => {
-        setUser(data)
-        navigate("/")
+    const login = async (user, token) => {
+        setUser(user)
+        setToken(token)
+        console.log("redirected /")
+        navigate("/", { replace: true})
     }
 
     const logout = () => {
         setUser(null)
+        setToken(null)
+        localStorage.removeItem("user")
+        localStorage.removeItem("token")
         navigate("/", { replace: true })
     }
 
     const value = useMemo(() => ({
-        user, login, logout
-    }), [user])
+        user, token, login, logout
+    }), [user, token])
     
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
