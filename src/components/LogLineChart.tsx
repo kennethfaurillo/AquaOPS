@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { Loader2Icon } from 'lucide-react'
+import moment from 'moment'
 import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -15,16 +16,16 @@ const colorMap = {
 const CustomCombinedLineTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="p-2 bg-slate-700/60 flex flex-col gap-0 rounded-md backdrop-blur-sm">
-                <p className="text-white text-lg">{label}</p>
-                {payload.map((val) => (
-                    <>
-                        {console.log(val, colorMap[val.dataKey])}
+            <div className="p-2 bg-slate-700/60 flex flex-col gap-0 rounded-md backdrop-blur-sm" key={label}>
+                <p className="text-white text-lg">{(new Date(payload[0]?.payload?.LogTime)).toLocaleString()}</p>
+                {payload.map((val, index) => (
+                    <div key={index}>
+                        {/* {console.log(val, colorMap[val.dataKey])} */}
                         <p className={`text-sm ${colorMap[val.dataKey]}`}>
                             {val.dataKey}:
                             <span className="ml-2">{val.value} <em>{val.unit}</em></span>
                         </p>
-                    </>
+                    </div>
                 ))}
             </div>
         )
@@ -34,16 +35,16 @@ const CustomCombinedLineTooltip = ({ active, payload, label }) => {
 const CustomTotalizerBarTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="p-2 bg-slate-700/60 flex flex-col gap-0 rounded-md backdrop-blur-sm">
+            <div className="p-2 bg-slate-700/60 flex flex-col gap-0 rounded-md backdrop-blur-sm" key={label}>
                 <p className="text-white text-lg">{label}</p>
-                {payload.map((val) => (
-                    <>
-                        {console.log(val, colorMap[val.dataKey])}
+                {payload.map((val, index) => (
+                    <div key={index}>
+                        {/* {console.log(val, colorMap[val.dataKey])} */}
                         <p className={`text-sm ${colorMap[val.dataKey]}`}>
                             {val.dataKey}:
                             <span className="ml-2">{val.value} <em>{val.unit}</em></span>
                         </p>
-                    </>
+                    </div>
                 ))}
             </div>
         )
@@ -158,7 +159,8 @@ function LogLineChart(props) {
                 console.log(JSON.stringify(props.logger))
             }
             if (logResponse.data.length) {
-                setLogData(logResponse.data.slice(-250))
+                // console.log(logResponse?.headers['content-length'])
+                setLogData(logResponse.data.slice(-2016))
             } else {
                 setLogData([])
                 console.log("NO LOGS")
@@ -170,7 +172,8 @@ function LogLineChart(props) {
     }, [])
     return (
         <> {!loading ? <>
-            {props.logger.CurrentFlow ?
+            {/* {props.logger.CurrentFlow ? */}
+            {0 ?
                 <ResponsiveContainer width={"95%"} height={150} className={"mx-auto mb-4"}>
                     <BarChart data={logData}>
                         <XAxis />
@@ -194,7 +197,7 @@ function LogLineChart(props) {
             }
             <ResponsiveContainer width={"95%"} height={!props.logger.CurrentFlow ? 550 : 400} className={"self-center "}>
                 <LineChart height={200} data={logData}  >
-                    <XAxis domain={[0, 'datamax']} />
+                    <XAxis dataKey={'LogTime'} tickFormatter={timeStr => moment(timeStr).format('H:mm')} />
                     <YAxis width={30} />
                     <CartesianGrid strokeDasharray={"5 10"} />
                     <Legend />
@@ -207,15 +210,15 @@ function LogLineChart(props) {
                             type={'monotone'}
                             unit={'psi'}
                             dot={false}
-                        /> :
-                        <Line data={samplePressureData}
-                            dataKey={'CurrentPressure'}
-                            name={"Pressure"}
-                            label={"test"}
-                            stroke='#73d25f'
-                            type={'monotone'}
-                            unit={'psi'}
-                            dot={false} />
+                        /> : null
+                        // <Line data={samplePressureData}
+                        //     dataKey={'CurrentPressure'}
+                        //     name={"Pressure"}
+                        //     label={"test"}
+                        //     stroke='#73d25f'
+                        //     type={'monotone'}
+                        //     unit={'psi'}
+                        //     dot={false} />
                     }
                     {props.logger.CurrentFlow ?
                         <Line dataKey={'CurrentFlow'}
@@ -224,14 +227,14 @@ function LogLineChart(props) {
                             type={'monotone'}
                             unit={'lps'}
                             dot={false}
-                        /> :
-                        <Line data={sampleFlowData}
-                            name={"Flow"}
-                            stroke='#3B82F6'
-                            dataKey={'CurrentFlow'}
-                            type={'monotone'}
-                            unit={'lps'}
-                            dot={false} />
+                        /> : null
+                        // <Line data={sampleFlowData}
+                        //     name={"Flow"}
+                        //     stroke='#3B82F6'
+                        //     dataKey={'CurrentFlow'}
+                        //     type={'monotone'}
+                        //     unit={'lps'}
+                        //     dot={false} />
                     }
                     <Line dataKey={'AverageVoltage'}
                         name={"Voltage"}

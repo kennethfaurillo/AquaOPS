@@ -6,13 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import axios from "axios";
+import { Loader2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const LoginPage = () => {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const [alertOpen, setAlertOpen] = useState(false)
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
     const { user, token, login, logout } = useAuth()
 
     const validateToken = async (_user, _token) => {
@@ -36,9 +37,12 @@ export const LoginPage = () => {
             if (token && user) {
                 // console.log(user.Username, token)
                 await validateToken(user, token)
+                // console.log("validated")
             }
+            setLoading(false)
         })()
-        return (setLoading(false))
+        // console.log("returned")
+        // return (setLoading(false))
     }, [])
 
     const handleLogin = async (event) => {
@@ -63,7 +67,7 @@ export const LoginPage = () => {
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Invalid Username or Password</AlertDialogTitle>
-                        <Separator className="bg-piwad-blue-500"/>
+                        <Separator className="bg-piwad-blue-500" />
                         <AlertDialogDescription>
                             Please check your username and password and try again.
                         </AlertDialogDescription>
@@ -83,7 +87,7 @@ export const LoginPage = () => {
                             <div className="text-center">
                                 <h1 className="text-3xl font-bold">Login</h1>
                                 <p className="text-balance text-muted-foreground">Enter your account details below to login to your account</p>
-                                <Separator className="my-2 bg-piwad-blue-400/60"/>
+                                <Separator className="my-2 bg-piwad-blue-400/60" />
                             </div>
                             <div className="col-span-4">
                                 <form onSubmit={handleLogin} className="space-y-2">
@@ -112,7 +116,7 @@ export const LoginPage = () => {
                     </div>
                 </div>
             </div>
-        </> : <></>}
+        </> : <Loader2Icon className="animate-spin size-24 mx-auto mt-24"/>}
         </>
     )
 }

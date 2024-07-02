@@ -1,4 +1,3 @@
-import { cn } from '@/lib/utils';
 import ResetViewControl from '@20tab/react-leaflet-resetview';
 import axios from 'axios';
 import { DivIcon, Icon } from 'leaflet';
@@ -6,7 +5,7 @@ import { BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, LucideIcon, MoonIcon, Su
 import { useCallback, useEffect, useState } from 'react';
 import { GeoJSON, MapContainer, Marker, TileLayer, Tooltip } from 'react-leaflet';
 import { toast } from 'sonner';
-import { pipelines } from '../pipelines';
+import { pipelines } from '../assets/pipelines';
 import './Map.css';
 import { DataLog, Datalogger } from './Types';
 import { Button } from './ui/button';
@@ -62,6 +61,7 @@ function LoggerMapCard() {
   const [hoverPipeline, setHoverPipeline] = useState(null)
   const [weight, setWeight] = useState(5); // Initial weight
   const [basemap, setBasemap] = useState(basemaps.at(0))
+  const [mapTheme, setMapTheme] = useState("light")
 
 
   useEffect(() => {
@@ -144,19 +144,13 @@ function LoggerMapCard() {
                   <CommandItem
                     key={bmap.name}
                     value={bmap.name}
+                    className={`${bmap.name === basemap?.name ? "bg-piwad-yellow-100" : "bg-none"} gap-2`}
                     onSelect={(name) => {
                       setBasemap(basemaps.find((priority) => priority.name === name) || null)
                       setOpenPopover(false)
                     }}
                   >
-                    <bmap.icon
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        bmap.name === basemap?.name
-                          ? "opacity-100"
-                          : "opacity-40"
-                      )}
-                    />
+                    <bmap.icon/>
                     <span>{bmap.label}</span>
                   </CommandItem>
                 ))}
@@ -200,7 +194,7 @@ function LoggerMapCard() {
   }
 
   const onEachPipeline = (feature, layer) => {
-    console.log(feature.properties)
+    // console.log(feature.properties)
     if (feature.properties && feature.properties.ogr_fid) {
       // layer.bindTooltip(feature.properties.ogr_fid)
       // layer.bindTooltip(<Tooltip permanent>{feature.properties.ogr_fid}</Tooltip>)
@@ -239,7 +233,7 @@ function LoggerMapCard() {
   const displayMap = (() => (
     <MapContainer // @ts-ignore
       center={[13.58438280013, 123.2738403740]} ref={setMap} style={{ height: '71vh' }}
-      scrollWheelZoom={true} zoom={13.5} maxZoom={21} minZoom={13} doubleClickZoom={false} zoomSnap={0.1}
+      scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={13} doubleClickZoom={false} zoomSnap={0.1}
       maxBounds={[[13.676173, 123.111745], [13.516072, 123.456730]]}>
       <ResetViewControl title="Reset View" icon={"🔍"} />
       <TileLayer
@@ -273,8 +267,11 @@ function LoggerMapCard() {
                 </Tooltip>
               </Marker>
               <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
-                <Tooltip permanent direction='bottom' className={`${basemap.name == "stdDark" ? "logger-label-dark" : null}`}>{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip>
-                {/* <Tooltip permanent direction='bottom' className='logger-label-dark'>{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip> */}
+                {basemap?.name == "stdDark" ? 
+                // fix
+                <Tooltip permanent direction='bottom' className={"logger-label-dark"}>{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip> :
+                <Tooltip permanent direction='bottom' > {loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip> 
+                }
               </Marker>
             </div>
           ))}
@@ -293,7 +290,7 @@ function LoggerMapCard() {
               <div className="col-span-6 md:col-span-2">
                 <p className="mb-1 text-piwad-lightyellow-300">Data Logger Map</p>
                 <Separator className='mt-2 w-11/12' />
-                <p className="text-base text-slate-200 mb-2">{map ? <DisplayPosition map={map} /> : null}</p>
+                <div className="text-base text-slate-200 mb-2">{map ? <DisplayPosition map={map} /> : null}</div>
               </div>
               <div className="col-span-6  lg:col-span-4 flex items-center space-x-4 rounded-md border-2 border-piwad-yellow-0 -my-2 py-2">
                 <div className="grid grid-cols-9 flex-1 space-y-1 mx-4">
