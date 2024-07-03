@@ -12,7 +12,6 @@ function Header(props) {
     const [alertOpen, setAlertOpen] = useState(false)
     const [sheetOpen, setSheetOpen] = useState(false)
 
-
     return (
         <>
             <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>

@@ -7,6 +7,7 @@ import '../App.css';
 import Header from "../components/Header";
 import LoggerMapCard from "../components/Map";
 import '../index.css';
+import { DrawerDialogProvider } from "@/components/useDrawerDialogContext";
 
 
 function DashboardPage() {
@@ -43,12 +44,14 @@ function DashboardPage() {
                 <div className='m-auto h-dvh bg-slate-100'>
                     <Header user={{ "FirstName": "Kenneth", "LastName": "Faurillo" }} />
                     <div className='grid grid-cols-12 gap-2 mt-2 mx-4 '>
+                        <DrawerDialogProvider>
                         <div className="col-span-full xl:col-span-3">
                             <LatestLogsCard />
                         </div>
                         <div className="col-span-full xl:col-span-9 z-0">
                             <LoggerMapCard />
                         </div>
+                        </DrawerDialogProvider>
                     </div>
                 </div >
             </>

@@ -1,7 +1,7 @@
 import ResetViewControl from '@20tab/react-leaflet-resetview';
 import axios from 'axios';
 import { DivIcon, Icon } from 'leaflet';
-import { BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, Loader2Icon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
+import { BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { GeoJSON, MapContainer, Marker, TileLayer, Tooltip } from 'react-leaflet';
 import { toast } from 'sonner';
@@ -13,8 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from './ui/drawer';
-import LogLineChart from './LogLineChart';
+import { useDrawerDialogContext } from './useDrawerDialogContext';
 
 let loggerIcon = new Icon({
   iconUrl: "src/assets/meter.png",
@@ -55,19 +54,13 @@ const basemaps: Basemap[] = [
 ]
 
 function LoggerMapCard() {
-  const [chartDrawerOpen, setChartDrawerOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [loggersInfo, setLoggersInfo] = useState([])
-  const [loggerInfo, setLoggerInfo] = useState([])
-  const [latestLogs, setLatestLogs] = useState([])
   const [loggersLatest, setLoggersLatest] = useState(new Map())
   const [map, setMap] = useState(null)
-  const [hoverPipeline, setHoverPipeline] = useState(null)
   const [weight, setWeight] = useState(5); // Initial weight
   const [basemap, setBasemap] = useState(basemaps.at(0))
-  const [mapTheme, setMapTheme] = useState("light")
-  const [loadingDrawer, setLoadingDrawer] = useState(true)
+  // const [mapTheme, setMapTheme] = useState("light")
 
+  const {setLogger, setChartDrawerOpen,} = useDrawerDialogContext()
 
   useEffect(() => {
     if (!map) return
@@ -75,7 +68,7 @@ function LoggerMapCard() {
       const zoom = map.getZoom();
       // Adjust weight based on zoom level
       const newWeight = Math.max(2, 1 + (zoom - 13) / 1); // Example calculation
-      console.log(newWeight)
+      // console.log(newWeight)
       setWeight(newWeight);
     };
 
@@ -94,8 +87,8 @@ function LoggerMapCard() {
       try {
         const loggersInfoResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
         const latestLogsResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`)
-        setLoggersInfo(loggersInfoResponse.data)
-        setLatestLogs(latestLogsResponse.data)
+        // setLoggersInfo(loggersInfoResponse.data)
+        // setLatestLogs(latestLogsResponse.data)
         //@ts-ignore
         let tempLoggersLatest = new Map()
         loggersInfoResponse.data.map((logger: Datalogger) => {
@@ -112,9 +105,9 @@ function LoggerMapCard() {
         //@ts-ignore
         console.log(error)
       }
-      finally {
-        setLoading(false)
-      }
+      // finally {
+      //   setLoading(false)
+      // }
     }
     fetchData()
   }, [])
@@ -255,19 +248,17 @@ function LoggerMapCard() {
       })}
         onEachFeature={onEachPipeline}
       >
-
       </GeoJSON>
-      {/* Marker(Label) Layer */}
       {loggersLatest.size ?
         <>
           {Array.from(loggersLatest, ([loggerId, loggerData]) => (
             <div key={loggerId}>
               {/* {console.log(loggerData)} */}
               <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={loggerIcon} eventHandlers={{
-                click: (e) => {
-                  console.log('click', e)
-                  setLoggerInfo(loggerData)
+                click: (event) => {
+                  // console.log('click', event)
                   setChartDrawerOpen(true)
+                  setLogger(loggerData)
                 },
               }}>
                 <Tooltip permanent direction={'top'}>
@@ -281,7 +272,7 @@ function LoggerMapCard() {
               </Marker>
               <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
                 {basemap?.name == "stdDark" ?
-                  // fix
+                  // fix text color not changing
                   <Tooltip permanent direction='bottom' className={"logger-label-dark"}>{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip> :
                   <Tooltip permanent direction='bottom' > {loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip>
                 }
@@ -291,7 +282,6 @@ function LoggerMapCard() {
         </>
         : null
       }
-
     </MapContainer>
   ))
 
@@ -323,43 +313,11 @@ function LoggerMapCard() {
           <CardDescription>
           </CardDescription>
         </CardHeader>
-        {/* <Separator className='mb-4' /> */}
         <CardContent className='p-0'>
           {displayMap()}
-
         </CardContent>
       </Card>
-      <Drawer open={chartDrawerOpen} onOpenChange={setChartDrawerOpen}>
-        <DrawerContent>
-          {loadingDrawer ?
-            <>
-              <DrawerHeader>
-                <DrawerTitle className="text-piwad-lightblue-500 text-3xl">{loggerInfo.Name?.replaceAll('-', ' ').split('_').slice(2) ?? "Unnamed"} LOGGER</DrawerTitle>
-                <DrawerDescription >
-                  Logger ID: {loggerInfo.LoggerId ?? "#########"} | Latest Log: {`${new Date(loggerInfo?.LogTime)}`}
-                </DrawerDescription>
-              </DrawerHeader>
-              {loggerInfo ? <LogLineChart logger={loggerInfo} /> : <Loader2Icon className="animate-spin self-center size-12 my-5" />}
-              <DrawerFooter className="flex-row justify-center">
-                {/* <Button>Submit</Button> */}
-                <Button className="bg-piwad-lightyellow-500 text-black" onClick={async () => {
-                  // if (logger) {
-                  //   await fetchLoggerInfo(logger.LoggerId).then((response) => {
-                  //     console.log(JSON.stringify(response))
-                  //     // setLoggerInfo(response[0])
-                  //     setLoggerInfoLoading(false)
-                  //     setInfoDialogOpen(true)
-                  //   })
-                  // }
-                }}>Config</Button>
-                <DrawerClose asChild>
-                  <Button>Close</Button>
-                </DrawerClose>
-              </DrawerFooter>
-            </> :
-            <Loader2Icon className='animate-spin m-auto size-24' />}
-        </DrawerContent>
-      </Drawer>
+
     </>
   )
 }
