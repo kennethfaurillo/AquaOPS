@@ -1,7 +1,7 @@
 import ResetViewControl from '@20tab/react-leaflet-resetview';
 import axios from 'axios';
 import { DivIcon, Icon } from 'leaflet';
-import { BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
+import { BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, Loader2Icon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { GeoJSON, MapContainer, Marker, TileLayer, Tooltip } from 'react-leaflet';
 import { toast } from 'sonner';
@@ -13,6 +13,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from './ui/drawer';
+import LogLineChart from './LogLineChart';
 
 let loggerIcon = new Icon({
   iconUrl: "src/assets/meter.png",
@@ -53,8 +55,10 @@ const basemaps: Basemap[] = [
 ]
 
 function LoggerMapCard() {
+  const [chartDrawerOpen, setChartDrawerOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loggersInfo, setLoggersInfo] = useState([])
+  const [loggerInfo, setLoggerInfo] = useState([])
   const [latestLogs, setLatestLogs] = useState([])
   const [loggersLatest, setLoggersLatest] = useState(new Map())
   const [map, setMap] = useState(null)
@@ -62,6 +66,7 @@ function LoggerMapCard() {
   const [weight, setWeight] = useState(5); // Initial weight
   const [basemap, setBasemap] = useState(basemaps.at(0))
   const [mapTheme, setMapTheme] = useState("light")
+  const [loadingDrawer, setLoadingDrawer] = useState(true)
 
 
   useEffect(() => {
@@ -150,7 +155,7 @@ function LoggerMapCard() {
                       setOpenPopover(false)
                     }}
                   >
-                    <bmap.icon/>
+                    <bmap.icon />
                     <span>{bmap.label}</span>
                   </CommandItem>
                 ))}
@@ -187,7 +192,7 @@ function LoggerMapCard() {
           Coordinates: {position.lat.toFixed('6')}°, {position.lng.toFixed('6')}°
         </div>
         <div className='mb-3 sm:-mb-6 sm:mt-2 sm:space-x-4'>
-        {DisplaySelectors(map)}
+          {DisplaySelectors(map)}
         </div>
       </>
     )
@@ -242,6 +247,7 @@ function LoggerMapCard() {
         url={basemap ? basemap.url : "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"}
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         className='z-0'
+
       />
       <GeoJSON data={pipelines} style={(feature) => ({
         color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",//"#6792A0",
@@ -256,7 +262,14 @@ function LoggerMapCard() {
         <>
           {Array.from(loggersLatest, ([loggerId, loggerData]) => (
             <div key={loggerId}>
-              <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={loggerIcon}>
+              {/* {console.log(loggerData)} */}
+              <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={loggerIcon} eventHandlers={{
+                click: (e) => {
+                  console.log('click', e)
+                  setLoggerInfo(loggerData)
+                  setChartDrawerOpen(true)
+                },
+              }}>
                 <Tooltip permanent direction={'top'}>
                   <div className='text-piwad-blue-400 font-bold drop-shadow-xl'>
                     {loggerData.CurrentPressure ? <>{loggerData.CurrentPressure}<em> psi</em><br /></> : null}
@@ -267,10 +280,10 @@ function LoggerMapCard() {
                 </Tooltip>
               </Marker>
               <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
-                {basemap?.name == "stdDark" ? 
-                // fix
-                <Tooltip permanent direction='bottom' className={"logger-label-dark"}>{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip> :
-                <Tooltip permanent direction='bottom' > {loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip> 
+                {basemap?.name == "stdDark" ?
+                  // fix
+                  <Tooltip permanent direction='bottom' className={"logger-label-dark"}>{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip> :
+                  <Tooltip permanent direction='bottom' > {loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip>
                 }
               </Marker>
             </div>
@@ -278,6 +291,7 @@ function LoggerMapCard() {
         </>
         : null
       }
+
     </MapContainer>
   ))
 
@@ -311,19 +325,41 @@ function LoggerMapCard() {
         </CardHeader>
         {/* <Separator className='mb-4' /> */}
         <CardContent className='p-0'>
-          {/* <MapContainer // @ts-ignore
-            center={[13.58438280013, 123.2738403740]} ref={setMap} scrollWheelZoom={false} zoom={13.5} maxZoom={17} minZoom={13} style={{ height: '70vh' }} maxBounds={[[13.649076, 123.167956], [13.494945, 123.387211]]}>
-            <TileLayer
-              // url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" // @ts-ignore
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
-          </MapContainer> */}
           {displayMap()}
 
         </CardContent>
       </Card>
-
+      <Drawer open={chartDrawerOpen} onOpenChange={setChartDrawerOpen}>
+        <DrawerContent>
+          {loadingDrawer ?
+            <>
+              <DrawerHeader>
+                <DrawerTitle className="text-piwad-lightblue-500 text-3xl">{loggerInfo.Name?.replaceAll('-', ' ').split('_').slice(2) ?? "Unnamed"} LOGGER</DrawerTitle>
+                <DrawerDescription >
+                  Logger ID: {loggerInfo.LoggerId ?? "#########"} | Latest Log: {`${new Date(loggerInfo?.LogTime)}`}
+                </DrawerDescription>
+              </DrawerHeader>
+              {loggerInfo ? <LogLineChart logger={loggerInfo} /> : <Loader2Icon className="animate-spin self-center size-12 my-5" />}
+              <DrawerFooter className="flex-row justify-center">
+                {/* <Button>Submit</Button> */}
+                <Button className="bg-piwad-lightyellow-500 text-black" onClick={async () => {
+                  // if (logger) {
+                  //   await fetchLoggerInfo(logger.LoggerId).then((response) => {
+                  //     console.log(JSON.stringify(response))
+                  //     // setLoggerInfo(response[0])
+                  //     setLoggerInfoLoading(false)
+                  //     setInfoDialogOpen(true)
+                  //   })
+                  // }
+                }}>Config</Button>
+                <DrawerClose asChild>
+                  <Button>Close</Button>
+                </DrawerClose>
+              </DrawerFooter>
+            </> :
+            <Loader2Icon className='animate-spin m-auto size-24' />}
+        </DrawerContent>
+      </Drawer>
     </>
   )
 }

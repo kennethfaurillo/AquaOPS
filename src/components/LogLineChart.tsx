@@ -148,7 +148,7 @@ function LogLineChart(props) {
     useEffect(() => {
         // console.log(logger)
         const fetchData = async () => {
-            { console.log(window.innerWidth) }
+            // { console.log(window.innerWidth) }
             let logResponse = null
             if (props.logger.Name.toLowerCase().includes("pressure")) {
                 logResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/pressure_log/${props.logger.LoggerId}`)

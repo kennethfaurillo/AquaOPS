@@ -21,8 +21,6 @@ function LoggerTable(props) {
   const [loading, setLoading] = useState(true)
   const [logger, setLogger] = useState(null)
   const [loggerInfo, setLoggerInfo] = useState(null)
-  const [loggerInfoLoading, setLoggerInfoLoading] = useState(true)
-  const [hoverOpen, setHoverOpen] = useState(false)
   const setLatestLogTime = props?.setLatestLogTime
 
 
@@ -176,10 +174,10 @@ function LoggerTable(props) {
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               {/* <DropdownMenuItem onClick={() => navigator.clipboard.writeText(datalogger.LoggerId.toString())}><SettingsIcon className="size-1/6 mr-1"/>Edit Logger Info</DropdownMenuItem> */}
               <DropdownMenuItem onClick={async () => {
-                const newLogger = await (fetchLoggerInfo(row.original.LoggerId))
-                setLoggerInfo(newLogger[0])
+                const newLogger = await (fetchLoggerInfo(row.original.LoggerId))[0]
+                setLoggerInfo(newLogger)
+                {console.log(newLogger)}
                 setInfoDialogOpen(true)
-                setLoggerInfoLoading(false)
               }}><SettingsIcon className="size-1/6 mr-1" />Edit Logger Info</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => {
@@ -232,6 +230,7 @@ function LoggerTable(props) {
               Logger ID: {logger?.LoggerId ?? "#########"} | Latest Log: {`${new Date(logger?.LogTime)}`}
             </DrawerDescription>
           </DrawerHeader>
+          {/* {console.log(JSON.stringify(logger))} */}
           {logger ? <LogLineChart logger={logger} /> : <Loader2Icon className="animate-spin self-center size-12 my-5" />}
           <DrawerFooter className="flex-row justify-center">
             {/* <Button>Submit</Button> */}
@@ -240,7 +239,6 @@ function LoggerTable(props) {
                 await fetchLoggerInfo(logger.LoggerId).then((response) => {
                   console.log(JSON.stringify(response))
                   setLoggerInfo(response[0])
-                  setLoggerInfoLoading(false)
                   setInfoDialogOpen(true)
                 })
               }
@@ -258,7 +256,7 @@ function LoggerTable(props) {
             <DialogDescription>Only Admins can modify logger configuration and information</DialogDescription>
             {/* <DialogDescription>{loggerInfo?.Name.replaceAll('-', ' ').split('_').slice(2)} | #{loggerInfo?.LoggerId} | {loggerInfo?.Latitude}°N, {loggerInfo?.Longitude}°E</DialogDescription> */}
           </DialogHeader>
-          {!loggerInfoLoading ?
+          {loggerInfo ?
             <div className="text-center">
               <p className="text-lg text-left font-semibold">Logger Info</p>
               <Label htmlFor="loggerName" >Logger Name</Label>
