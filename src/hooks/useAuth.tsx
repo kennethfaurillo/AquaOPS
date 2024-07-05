@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocalStorage } from "./useLocalStorage";
+import axios from "axios";
 const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
@@ -12,7 +13,7 @@ export const AuthProvider = ({ children }) => {
         setUser(user)
         setToken(token)
         console.log("redirected /")
-        navigate("/", { replace: true})
+        navigate("/", { replace: true })
     }
 
     const logout = () => {
@@ -23,10 +24,26 @@ export const AuthProvider = ({ children }) => {
         navigate("/", { replace: true })
     }
 
+    const validateToken = async (_user, _token) => {
+        console.log("valid token")
+        // console.log(_user, _token)
+        const validateTokenResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/validate-token/`, {
+            user: _user,
+            token: _token
+        })
+        if (validateTokenResponse.data.pass) {
+            console.log("valid token")
+            await login(validateTokenResponse.data.user, validateTokenResponse.data.Token)
+        } else {
+            console.log("Token invalid/expired")
+            await logout()
+        }
+    }
+
     const value = useMemo(() => ({
-        user, token, login, logout
+        user, token, login, logout, validateToken
     }), [user, token])
-    
+
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

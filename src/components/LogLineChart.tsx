@@ -17,7 +17,7 @@ const CustomCombinedLineTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
             <div className="p-2 bg-slate-700/60 flex flex-col gap-0 rounded-md backdrop-blur-sm" key={label}>
-                <p className="text-white text-lg">{(new Date(payload[0]?.payload?.LogTime)).toLocaleString()}</p>
+                <p className="text-white text-lg">{(new Date(payload[0]?.payload?.LogTime.slice(0,-1))).toLocaleString()}</p>
                 {payload.map((val, index) => (
                     <div key={index}>
                         {/* {console.log(val, colorMap[val.dataKey])} */}
@@ -143,7 +143,16 @@ const sampleFlowData = [
 
 function LogLineChart(props) {
     const [logData, setLogData] = useState([])
+    const [filteredLogData, setFilteredLogData] = useState([])
     const [loading, setLoading] = useState(true)
+    const [hideLine, setHideLine] = useState({
+        CurrentPressure: false,
+        CurrentFlow: false,
+        AverageVoltage: false,
+        totalizerPositive: false,
+        totalizerNegative: false,
+    })
+    const timeRange = props.timeRange
 
     useEffect(() => {
         // console.log(logger)
@@ -159,8 +168,9 @@ function LogLineChart(props) {
                 console.log(JSON.stringify(props.logger))
             }
             if (logResponse.data.length) {
-                // console.log(logResponse?.headers['content-length'])
-                setLogData(logResponse.data.slice(-2016))
+                // Filter logs here
+                setLogData(logResponse.data)
+                setFilteredLogData(logResponse.data.slice(-timeRange*6))
             } else {
                 setLogData([])
                 console.log("NO LOGS")
@@ -170,17 +180,26 @@ function LogLineChart(props) {
         }
         fetchData()
     }, [])
+
+    // update filtered data when selected timerange changes
+    useEffect(() => {
+        if(logData){
+            setFilteredLogData(logData.slice(-timeRange*6))
+            console.log(logData.slice(-timeRange*6))
+        }
+    }, [timeRange])
+    
     return (
         <> {!loading ? <>
             {/* {props.logger.CurrentFlow ? */}
             {0 ?
                 <ResponsiveContainer width={"95%"} height={150} className={"mx-auto mb-4"}>
-                    <BarChart data={logData}>
-                        <XAxis />
-                        <YAxis width={45} />
+                    <BarChart data={filteredLogData}>
+                    <XAxis dataKey={'LogTime'} tick={{fontSize: 12}} tickFormatter={timeStr => moment(timeStr).format('H:mm')} />
+                    <YAxis width={30} tick={{fontSize: 10}} domain={[-10, 'dataMax + 10']} allowDataOverflow/>
                         <CartesianGrid strokeDasharray={"5 10"} />
                         <Legend />
-                        <Tooltip content={<CustomTotalizerBarTooltip />} />
+                        <Tooltip content={<CustomTotalizerBarTooltip />} /> 
                         <Bar dataKey={'TotalFlowPositive'}
                             name={"Totalizer Positive"}
                             fill='#4ADE80'
@@ -196,11 +215,16 @@ function LogLineChart(props) {
                 : <></>
             }
             <ResponsiveContainer width={"95%"} height={!props.logger.CurrentFlow ? 550 : 400} className={"self-center "}>
-                <LineChart height={200} data={logData}  >
-                    <XAxis dataKey={'LogTime'} tickFormatter={timeStr => moment(timeStr).format('H:mm')} />
-                    <YAxis width={30} />
-                    <CartesianGrid strokeDasharray={"5 10"} />
-                    <Legend />
+                <LineChart height={200} data={filteredLogData}  >
+                    <XAxis dataKey={'LogTime'} tick={{fontSize: 12}} tickFormatter={timeStr => moment(timeStr).format('H:mm')} />
+                    <YAxis width={30} tick={{fontSize: 10}} domain={[-10, 'dataMax + 10']} allowDataOverflow/>
+                    <CartesianGrid strokeDasharray={"5 10"}/>
+                    <Legend onClick={(e) => 
+                        setHideLine({
+                            ...hideLine,
+                            [e.dataKey]: !hideLine[e.dataKey]
+                        })
+                    }/>
                     <Tooltip content={<CustomCombinedLineTooltip />} />
                     <div className='text-blue-500' />
                     {props.logger.CurrentPressure ?
@@ -210,15 +234,8 @@ function LogLineChart(props) {
                             type={'monotone'}
                             unit={'psi'}
                             dot={false}
+                            hide={hideLine['CurrentPressure']}
                         /> : null
-                        // <Line data={samplePressureData}
-                        //     dataKey={'CurrentPressure'}
-                        //     name={"Pressure"}
-                        //     label={"test"}
-                        //     stroke='#73d25f'
-                        //     type={'monotone'}
-                        //     unit={'psi'}
-                        //     dot={false} />
                     }
                     {props.logger.CurrentFlow ?
                         <Line dataKey={'CurrentFlow'}
@@ -227,21 +244,16 @@ function LogLineChart(props) {
                             type={'monotone'}
                             unit={'lps'}
                             dot={false}
-                        /> : null
-                        // <Line data={sampleFlowData}
-                        //     name={"Flow"}
-                        //     stroke='#3B82F6'
-                        //     dataKey={'CurrentFlow'}
-                        //     type={'monotone'}
-                        //     unit={'lps'}
-                        //     dot={false} />
+                            hide={hideLine['CurrentFlow']}
+                            /> : null
                     }
                     <Line dataKey={'AverageVoltage'}
                         name={"Voltage"}
                         stroke='red'
                         type={'monotone'}
                         unit={'V'}
-                        dot={false} />
+                        dot={false} 
+                        hide={hideLine['AverageVoltage']}/>
                 </LineChart>
             </ResponsiveContainer>
         </> : <Loader2Icon className="animate-spin self-center size-12 my-5" />}

@@ -14,35 +14,15 @@ export const LoginPage = () => {
     const [password, setPassword] = useState("")
     const [alertOpen, setAlertOpen] = useState(false)
     const [loading, setLoading] = useState(true)
-    const { user, token, login, logout } = useAuth()
-
-    const validateToken = async (_user, _token) => {
-        console.log("valid token")
-        // console.log(_user, _token)
-        const validateTokenResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/validate-token/`, {
-            user: _user,
-            token: _token
-        })
-        if (validateTokenResponse.data.pass) {
-            console.log("valid token")
-            await login(validateTokenResponse.data.user, validateTokenResponse.data.Token)
-        } else {
-            console.log("Token invalid/expired")
-            await logout()
-        }
-    }
+    const { user, token, login, validateToken } = useAuth()
 
     useEffect(() => {
         (async () => {
             if (token && user) {
-                // console.log(user.Username, token)
                 await validateToken(user, token)
-                // console.log("validated")
             }
             setLoading(false)
         })()
-        // console.log("returned")
-        // return (setLoading(false))
     }, [])
 
     const handleLogin = async (event) => {
@@ -116,7 +96,7 @@ export const LoginPage = () => {
                     </div>
                 </div>
             </div>
-        </> : <Loader2Icon className="animate-spin size-24 mx-auto mt-24"/>}
+        </> : <Loader2Icon className="animate-spin size-24 mx-auto mt-24" />}
         </>
     )
 }

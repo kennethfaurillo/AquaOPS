@@ -1,15 +1,24 @@
 import axios from "axios"
 import { Loader2Icon } from "lucide-react"
 import { createContext, useContext, useMemo, useState } from "react"
-import LogLineChart from "./LogLineChart"
-import { Button } from "./ui/button"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "./ui/drawer"
-import { Input } from "./ui/input"
-import { Label } from "./ui/label"
+import LogLineChart from "../components/LogLineChart"
+import { Button } from "../components/ui/button"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../components/ui/dialog"
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "../components/ui/drawer"
+import { Input } from "../components/ui/input"
+import { Label } from "../components/ui/label"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../components/ui/select"
+import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
 
 
 const DrawerDialogContext = createContext()
+
+type TimeUnit = 'minute' | 'hour' | 'month';
+
+interface TimeRange {
+    number: number;
+    unit: TimeUnit;
+}
 
 export function DrawerDialogProvider({ children }) {
     // Modal drawer for charts    
@@ -20,6 +29,7 @@ export function DrawerDialogProvider({ children }) {
     const [loggerInfo, setLoggerInfo] = useState(null)
     // Modal dialog for logger config
     const [loggerDialogOpen, setLoggerDialogOpen] = useState(false)
+    const [chartTimeRange, setChartTimeRange] = useState("12")
 
     const fetchLoggerInfo = async (loggerId) => {
         const loggerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/${loggerId}`)
@@ -28,27 +38,38 @@ export function DrawerDialogProvider({ children }) {
 
     const value = useMemo(() => ({
         chartDrawerOpen, setChartDrawerOpen, logger, setLogger, loggerInfo, setLoggerInfo, loggerDialogOpen, setLoggerDialogOpen, fetchLoggerInfo
-    }), [chartDrawerOpen, logger, loggerInfo])
+    }), [chartDrawerOpen, loggerDialogOpen, logger, loggerInfo])
 
     return (
         <DrawerDialogContext.Provider value={value}>
             <Drawer open={chartDrawerOpen} onOpenChange={setChartDrawerOpen}>
                 <DrawerContent>
-                    <DrawerHeader>
+                    <DrawerHeader className="relative">
                         <DrawerTitle className="text-piwad-lightblue-500 text-3xl">{logger?.Name.replaceAll('-', ' ').split('_').slice(2) ?? "Unnamed"} LOGGER</DrawerTitle>
                         <DrawerDescription >
                             Logger ID: {logger?.LoggerId ?? "#########"} | Latest Log: {`${new Date(logger?.LogTime)}`}
                         </DrawerDescription>
                     </DrawerHeader>
-                    {logger ? <LogLineChart logger={logger}/> : <Loader2Icon className="animate-spin self-center size-12 my-5" />}
+                    {logger ? <LogLineChart logger={logger} timeRange={chartTimeRange} /> : <Loader2Icon className="animate-spin self-center size-12 my-5" />}
                     <DrawerFooter className="flex-row justify-center">
-                        {/* <Button>Submit</Button> */}
+                        <Select value={chartTimeRange} onValueChange={(value) => setChartTimeRange(value)} >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Time Range" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="1">Last Hour</SelectItem>
+                                <SelectItem value="12">Last 12 Hours</SelectItem>
+                                <SelectItem value="24">Last Day</SelectItem>
+                                <SelectItem value={`${24*7}`}>Last Week</SelectItem>
+                                <SelectItem value={`${24*30}`}>Last Month</SelectItem>
+                                <SelectItem value={`${24*90}`} disabled>Last 3 Months</SelectItem>
+                            </SelectContent>
+                        </Select>
                         <Button className="bg-piwad-lightyellow-500 text-black" onClick={async () => {
                             if (logger) {
                                 await fetchLoggerInfo(logger.LoggerId).then((response) => {
                                     console.log(JSON.stringify(response))
                                     setLoggerInfo(response[0])
-                                    // setLoggerInfoLoading(false)
                                     setLoggerDialogOpen(true)
                                 })
                             }
@@ -64,7 +85,6 @@ export function DrawerDialogProvider({ children }) {
                     <DialogHeader>
                         <DialogTitle className="text-piwad-blue-500">Logger Information and Configuration</DialogTitle>
                         <DialogDescription>Only Admins can modify logger configuration and information</DialogDescription>
-                        {/* <DialogDescription>{loggerInfo?.Name.replaceAll('-', ' ').split('_').slice(2)} | #{loggerInfo?.LoggerId} | {loggerInfo?.Latitude}°N, {loggerInfo?.Longitude}°E</DialogDescription> */}
                     </DialogHeader>
                     {loggerInfo ?
                         <div className="text-center">
@@ -83,7 +103,7 @@ export function DrawerDialogProvider({ children }) {
                             <Input id={"loggerName"} placeholder={loggerInfo?.VoltageLimit?.replace(',', ' - ') ?? "N/A"} disabled />
                             <Label htmlFor="loggerName" >Flow Limit</Label>
                             <Input id={"loggerID"} placeholder={loggerInfo?.FlowLimit?.replace(',', ' - ') ?? "N/A"} disabled />
-                            <Label htmlFor="loggerName" >Logger Latitude</Label>
+                            <Label htmlFor="loggerName" >Pressure Limit</Label>
                             <Input id={"loggerLat"} placeholder={loggerInfo?.PressureLimit?.replace(',', ' - ') ?? "N/A"} disabled />
                         </div> : <Loader2Icon className="animate-spin m-auto size-16" />}
                     <DialogClose asChild><Button>Close</Button></DialogClose>

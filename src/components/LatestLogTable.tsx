@@ -7,13 +7,12 @@ import { Datalogger, } from "./Types"
 import { Button } from "./ui/button"
 import { DataTable } from "./ui/data-table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
-import { useDrawerDialogContext } from "./useDrawerDialogContext"
-
+import { useDrawerDialogContext } from "../hooks/useDrawerDialogContext"
 
 function LoggerTable(props) {
   const [loggerData, setLoggerData] = useState([])
   const [loading, setLoading] = useState(true)
-  const setLatestLogTime = props?.setLatestLogTime
+  const setLatestLog = props?.setLatestLog
 
   const {setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo} = useDrawerDialogContext()
 
@@ -54,7 +53,6 @@ function LoggerTable(props) {
         const nameSplit = row.getValue("Name").split('_')
         const name = nameSplit.slice(2).toString().replaceAll('-', ' ')
         const type = nameSplit.slice(1, 2)
-        // return (<><p className="font-bold">{name}</p><p className="text-muted-foreground">{row.getValue("LoggerId")}</p></>)
         return (
           <>
             <Button variant={"link"} onClick={() => {
@@ -110,8 +108,7 @@ function LoggerTable(props) {
         )
       },
       cell: ({ row }) => {
-        // if (row.getValue("LogTime")) return <>{(moment(row.getValue("LogTime"), true).format("MMM D, YYYY H:mm:ss"))}</>
-        if (row.getValue("LogTime")) return <div className="text-center">{(moment(row.getValue("LogTime"), true).format("M/D/YY H:mm:ss"))}</div>
+        if (row.getValue("LogTime")) return <div className="text-center">{(moment(row.getValue("LogTime").replace('Z',''), true).format("M/D/YY H:mm:ss"))}</div>
         return (<div className="text-gray-300 font-semibold">NA</div>)
       }
     },
@@ -188,7 +185,11 @@ function LoggerTable(props) {
     async function fetchData() {
       axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`).then(response => {
         // console.log(response.data.length,response.data)
-        setLatestLogTime(response.data.at(0).LogTime)
+        const latestLog = response.data.reduce((latest, current) => {
+          return new Date(current.LogTime) > new Date(latest.LogTime) ? current : latest
+        })
+        setLatestLog(latestLog)
+        console.log(latestLog)
         setLoggerData(response.data)
       }, error => {
         console.log(error.toString())

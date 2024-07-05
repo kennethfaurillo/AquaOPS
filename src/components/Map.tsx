@@ -1,7 +1,7 @@
 import ResetViewControl from '@20tab/react-leaflet-resetview';
 import axios from 'axios';
 import { DivIcon, Icon } from 'leaflet';
-import { BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
+import { BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, CalendarRangeIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { GeoJSON, MapContainer, Marker, TileLayer, Tooltip } from 'react-leaflet';
 import { toast } from 'sonner';
@@ -13,7 +13,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
-import { useDrawerDialogContext } from './useDrawerDialogContext';
+import { useDrawerDialogContext } from '../hooks/useDrawerDialogContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import moment from 'moment';
 
 let loggerIcon = new Icon({
   iconUrl: "src/assets/meter.png",
@@ -60,7 +62,7 @@ function LoggerMapCard() {
   const [basemap, setBasemap] = useState(basemaps.at(0))
   // const [mapTheme, setMapTheme] = useState("light")
 
-  const {setLogger, setChartDrawerOpen,} = useDrawerDialogContext()
+  const { setLogger, setChartDrawerOpen, } = useDrawerDialogContext()
 
   useEffect(() => {
     if (!map) return
@@ -115,48 +117,50 @@ function LoggerMapCard() {
   const DisplaySelectors = ({ map }) => {
     const [openPopover, setOpenPopover] = useState(false)
     return (
-      <Popover open={openPopover} onOpenChange={setOpenPopover}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="default"
-            className=" justify-start text-white border-white/20 bg-blue-800/50"
-          >
-            {basemap ? (
-              <>
-                <basemap.icon className="mr-2 h-4 w-4 shrink-0" />
-                {basemap.label}
-              </>
-            ) : (
-              <>+ Set Basemap</>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="p-0" side="right" align="start">
-          <Command>
-            <CommandInput placeholder="Change basemap..." />
-            <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              <CommandGroup>
-                {basemaps.map((bmap) => (
-                  <CommandItem
-                    key={bmap.name}
-                    value={bmap.name}
-                    className={`${bmap.name === basemap?.name ? "bg-piwad-yellow-100" : "bg-none"} gap-2`}
-                    onSelect={(name) => {
-                      setBasemap(basemaps.find((priority) => priority.name === name) || null)
-                      setOpenPopover(false)
-                    }}
-                  >
-                    <bmap.icon />
-                    <span>{bmap.label}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      <>
+        <Popover open={openPopover} onOpenChange={setOpenPopover}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="default"
+              className=" justify-start text-white border-white/20 bg-blue-800/50"
+            >
+              {basemap ? (
+                <>
+                  <basemap.icon className="mr-2 h-4 w-4 shrink-0" />
+                  {basemap.label}
+                </>
+              ) : (
+                <>+ Set Basemap</>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0" side="right" align="start">
+            <Command>
+              {/* <CommandInput placeholder="Change basemap..." /> */}
+              <CommandList>
+                <CommandEmpty>No results found.</CommandEmpty>
+                <CommandGroup>
+                  {basemaps.map((bmap) => (
+                    <CommandItem
+                      key={bmap.name}
+                      value={bmap.name}
+                      className={`${bmap.name === basemap?.name ? "bg-piwad-yellow-100" : "bg-none"} gap-2`}
+                      onSelect={(name) => {
+                        setBasemap(basemaps.find((priority) => priority.name === name) || null)
+                        setOpenPopover(false)
+                      }}
+                    >
+                      <bmap.icon />
+                      <span>{bmap.label}</span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </>
     )
   }
 
@@ -231,7 +235,7 @@ function LoggerMapCard() {
   const displayMap = (() => (
     <MapContainer // @ts-ignore
       center={[13.58438280013, 123.2738403740]} ref={setMap} style={{ height: '71vh' }}
-      scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={13} doubleClickZoom={false} zoomSnap={0.1}
+      scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={13} doubleClickZoom={false}
       maxBounds={[[13.676173, 123.111745], [13.516072, 123.456730]]}>
       <ResetViewControl title="Reset View" icon={"🔍"} />
       <TileLayer
@@ -268,6 +272,9 @@ function LoggerMapCard() {
                   <div className='text-[#f1663b] font-bold'>
                     {loggerData.CurrentFlow ? <>{loggerData.CurrentFlow}<em> lps</em></> : null}
                   </div>
+                  <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
+                    {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z',''), true).format('M/D HH:mm')}<br /></> : null}
+                  </div>
                 </Tooltip>
               </Marker>
               <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
@@ -287,7 +294,7 @@ function LoggerMapCard() {
 
   return (
     <>
-      <Card className='col-span-full xl:col-span-9 z-0' >
+      <Card className='col-span-full xl:col-span-9 z-0 drop-shadow-xl' >
         <CardHeader className='rounded-t-lg bg-piwad-lightblue-600'>
           <CardTitle className='text-slate-950'>
             <div className="grid grid-cols-6">
