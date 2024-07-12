@@ -3,12 +3,11 @@
 Written in React + TypeScript + Vite
 
 ## Features:
-- Interactive Map showing logger locations
-- Tables showing latest log data
+- Interactive Map showing logger locations and pipelines
+- Tables and Charts showing latest log data
+- Report Generation
 - User authentication
 
 ## TODO:
-- Charts
-- Reports
 - User Profiles
 - Improve authentication
