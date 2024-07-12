@@ -62,7 +62,6 @@ function Header(props) {
                                             <AvatarFallback>User</AvatarFallback>
                                         </Avatar>
                                         <div className="grid grid-cols-2">
-                                            {/* <div className="col-span-2">{props.user.FirstName ?? "Firstname"} {props.user.LastName ?? "Lastname"}</div> */}
                                             <div className="col-span-2">{user.Username.toUpperCase()}</div>
                                             <div className="col-span-1 text-sm text-piwad-lightyellow-600/80 ">{user.Type ?? "UserType"}</div>
                                         </div>

@@ -48,8 +48,6 @@ function LoggerTable(props) {
         )
       },
       cell: ({ row }) => {
-        //@ts-ignore
-        // console.log(row)
         const nameSplit = row.getValue("Name").split('_')
         const name = nameSplit.slice(2).toString().replaceAll('-', ' ')
         const type = nameSplit.slice(1, 2)
@@ -151,18 +149,15 @@ function LoggerTable(props) {
     {
       id: "actions",
       cell: ({ row }) => {
-        const datalogger = row.original
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                {/* <span className="sr-only">Open Menu</span> */}
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              {/* <DropdownMenuItem onClick={() => navigator.clipboard.writeText(datalogger.LoggerId.toString())}><SettingsIcon className="size-1/6 mr-1"/>Edit Logger Info</DropdownMenuItem> */}
               <DropdownMenuItem onClick={async () => {
                 const newLogger = (await fetchLoggerInfo(row.original.LoggerId))[0]
                 // console.log(newLogger)
@@ -184,12 +179,10 @@ function LoggerTable(props) {
   useEffect(() => {
     async function fetchData() {
       axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`).then(response => {
-        // console.log(response.data.length,response.data)
         const latestLog = response.data.reduce((latest, current) => {
           return new Date(current.LogTime) > new Date(latest.LogTime) ? current : latest
         })
         setLatestLog(latestLog)
-        console.log(latestLog)
         setLoggerData(response.data)
       }, error => {
         console.log(error.toString())
@@ -208,11 +201,6 @@ function LoggerTable(props) {
       pageSize: 8,
     }
   }
-
-  // const fetchLoggerInfo = async (loggerId) => {
-  //   const loggerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/${loggerId}`)
-  //   return loggerResponse.data
-  // }
 
   return (
     <>

@@ -239,8 +239,6 @@ function LoggerMapCard() {
       maxBounds={[[13.676173, 123.111745], [13.516072, 123.456730]]}>
       <ResetViewControl title="Reset View" icon={"🔍"} />
       <TileLayer
-        // url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
-        // url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" // @ts-ignore
         url={basemap ? basemap.url : "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"}
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         className='z-0'
@@ -257,10 +255,8 @@ function LoggerMapCard() {
         <>
           {Array.from(loggersLatest, ([loggerId, loggerData]) => (
             <div key={loggerId}>
-              {/* {console.log(loggerData)} */}
               <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={loggerIcon} eventHandlers={{
                 click: (event) => {
-                  // console.log('click', event)
                   setChartDrawerOpen(true)
                   setLogger(loggerData)
                 },
@@ -279,7 +275,7 @@ function LoggerMapCard() {
               </Marker>
               <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
                 {basemap?.name == "stdDark" ?
-                  // fix text color not changing
+                  // TODO: fix text color not changing
                   <Tooltip permanent direction='bottom' className={"logger-label-dark"}>{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip> :
                   <Tooltip permanent direction='bottom' > {loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip>
                 }
