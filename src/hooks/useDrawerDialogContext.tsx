@@ -81,7 +81,8 @@ export function DrawerDialogProvider({ children }) {
                 <DrawerContent>
                     <DrawerHeader className="relative">
                         <DrawerTitle className="text-piwad-lightblue-500 text-3xl inline-flex">
-                            {logger?.Name.replaceAll('-', ' ').split('_').slice(2) ?? "Unnamed"} LOGGER  <Button variant="ghost" className="mx-1 px-1" onClick={async () => {
+                            {logger?.Name.replaceAll('-', ' ').split('_').slice(2) ?? "Unnamed"} LOGGER
+                            <Button variant="ghost" className="mx-1 px-1" onClick={async () => {
                                 if (logger) {
                                     await fetchLoggerInfo(logger.LoggerId).then((response) => {
                                         console.log(JSON.stringify(response))

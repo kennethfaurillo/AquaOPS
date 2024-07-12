@@ -102,8 +102,8 @@ function LoggerMapCard() {
   }, [])
 
   const DisplayPosition = ({ map }) => {
-    const center = [51.505, -0.09]
-    const zoom = 13
+    const center = [13.58438280013, 123.2738403740]
+    const zoom = 13.5
 
     const [position, setPosition] = useState(() => map.getCenter())
 
@@ -122,7 +122,7 @@ function LoggerMapCard() {
     }, [map, onMove])
     return (
       <>
-        <div>
+        <div onClick={onClick} className='cursor-pointer'>
           Coordinates: {position.lat.toFixed('6')}°, {position.lng.toFixed('6')}°
         </div>
         <div className='mb-3 sm:-mb-6 sm:mt-2 sm:space-x-4'/>
@@ -169,7 +169,7 @@ function LoggerMapCard() {
         : null
       }
       <GeoJSON data={pipelines} style={(feature) => ({
-        color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#6792A090",//"#6792A090",
+        color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",//"#6792A090",
         weight: weight,
       })}
         onEachFeature={onEachPipeline}
@@ -224,14 +224,14 @@ function LoggerMapCard() {
               </div>
               <div className="col-span-6 sm:col-span-4 flex items-center space-x-4 rounded-md border-2 border-piwad-yellow-0 -my-2 py-2">
                 <div className="grid grid-cols-9 flex-1 space-y-1 mx-4">
-                  <div className="text-piwad-yellow-50 hidden sm:flex text-sm md:text-xl font-medium co leading-none col-span-full justify-center sm:justify-normal sm:col-span-2 items-center">
+                  <div className="text-piwad-yellow-50 hidden md:flex text-sm md:text-xl font-medium co leading-none col-span-full justify-center sm:justify-normal md:col-span-2 items-center">
                     Logger Status:</div>
-                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center md:justify-normal sm:col-span-2 flex items-center">
-                    {5}&nbsp;<BadgeCheckIcon color='lightgreen' />&nbsp;Active</div>
-                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center md:justify-normal sm:col-span-2 flex items-center">
-                    {0}&nbsp;<BadgeMinusIcon color='red' />&nbsp;Disabled</div>
-                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center md:justify-normal sm:col-span-2 flex items-center">
-                    {2}&nbsp;<BadgeHelpIcon color='yellow' />&nbsp;Unknown</div>
+                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center md:justify-normal md:col-span-2 flex items-center">
+                    {5}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
+                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center md:justify-normal md:col-span-2 flex items-center">
+                    {0}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Inactive</div>
+                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center md:justify-normal md:col-span-2 flex items-center">
+                    {2}&nbsp;<BadgeHelpIcon className='sm:mx-1' color='yellow' />&nbsp;Unknown</div>
                 </div>
               </div>
             </div>

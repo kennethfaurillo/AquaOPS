@@ -9,7 +9,9 @@ const colorMap = {
     CurrentPressure: "text-[#73d25f]",
     CurrentFlow: "text-blue-700",
     TotalFlowPositive: "text-green-400",
-    TotalFlowNegative: "text-indigo-600"
+    TotalFlowNegative: "text-indigo-600",
+    DailyFlowPositive: "text-green-400",
+    DailyFlowNegative: "text-indigo-600"
 }
 
 
@@ -51,98 +53,9 @@ const CustomTotalizerBarTooltip = ({ active, payload, label }) => {
     }
 }
 
-const samplePressureData = [
-    { 'CurrentPressure': 24 },
-    { 'CurrentPressure': 23 },
-    { 'CurrentPressure': 21 },
-    { 'CurrentPressure': 22 },
-    { 'CurrentPressure': 23 },
-    { 'CurrentPressure': 24 },
-    { 'CurrentPressure': 25 },
-    { 'CurrentPressure': 21 },
-    { 'CurrentPressure': 22 },
-    { 'CurrentPressure': 23 },
-    { 'CurrentPressure': 24 },
-    { 'CurrentPressure': 23 },
-    { 'CurrentPressure': 21 },
-    { 'CurrentPressure': 22 },
-    { 'CurrentPressure': 23 },
-    { 'CurrentPressure': 24 },
-    { 'CurrentPressure': 25 },
-    { 'CurrentPressure': 21 },
-    { 'CurrentPressure': 22 },
-    { 'CurrentPressure': 23 },
-    { 'CurrentPressure': 24 },
-    { 'CurrentPressure': 23 },
-    { 'CurrentPressure': 21 },
-    { 'CurrentPressure': 22 },
-    { 'CurrentPressure': 23 },
-    { 'CurrentPressure': 24 },
-    { 'CurrentPressure': 25 },
-    { 'CurrentPressure': 21 },
-    { 'CurrentPressure': 22 },
-    { 'CurrentPressure': 23 },
-    { 'CurrentPressure': 22 },
-    { 'CurrentPressure': 23 },
-    { 'CurrentPressure': 24 },
-    { 'CurrentPressure': 23 },
-    { 'CurrentPressure': 21 },
-    { 'CurrentPressure': 22 },
-    { 'CurrentPressure': 23 },
-    { 'CurrentPressure': 24 },
-    { 'CurrentPressure': 25 },
-    { 'CurrentPressure': 21 },
-    { 'CurrentPressure': 22 },
-    { 'CurrentPressure': 23 },
-]
-
-const sampleFlowData = [
-    { 'CurrentFlow': 8 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 9 },
-    { 'CurrentFlow': 7 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 8 },
-    { 'CurrentFlow': 11 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 12 },
-    { 'CurrentFlow': 8 },
-    { 'CurrentFlow': 9 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 8 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 9 },
-    { 'CurrentFlow': 7 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 8 },
-    { 'CurrentFlow': 11 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 12 },
-    { 'CurrentFlow': 8 },
-    { 'CurrentFlow': 9 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 8 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 9 },
-    { 'CurrentFlow': 7 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 8 },
-    { 'CurrentFlow': 11 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 12 },
-    { 'CurrentFlow': 8 },
-    { 'CurrentFlow': 9 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 11 },
-    { 'CurrentFlow': 10 },
-    { 'CurrentFlow': 12 },
-    { 'CurrentFlow': 8 },
-    { 'CurrentFlow': 9 },
-    { 'CurrentFlow': 10 },
-]
-
 function LogLineChart(props) {
     const [logData, setLogData] = useState([])
+    const [totalizerData, setTotalizerData] = useState([])
     const [filteredLogData, setFilteredLogData] = useState([])
     const [loading, setLoading] = useState(true)
     const [hideLine, setHideLine] = useState({
@@ -160,16 +73,19 @@ function LogLineChart(props) {
         const fetchData = async () => {
             // { console.log(window.innerWidth) }
             let logResponse = null
+            let totalizerResponse = null
             if (props.logger.Name.toLowerCase().includes("pressure")) {
                 logResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/pressure_log/${props.logger.LoggerId}`)
             } else if (props.logger.Name.toLowerCase().includes("flow")) {
                 logResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/flow_log/${props.logger.LoggerId}`)
+                totalizerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/totalizer/${props.logger.LoggerId}`)
             } else {
                 console.log("Unknown Datalogger")
                 console.log(JSON.stringify(props.logger))
             }
             if (logResponse.data.length) {
                 // Filter logs here
+                setTotalizerData(totalizerResponse.data)
                 setLogData(logResponse.data)
                 setFilteredLogData(logResponse.data.slice(-timeRange * 6))
             } else {
@@ -177,6 +93,7 @@ function LogLineChart(props) {
                 console.log("NO LOGS")
             }
             setLoading(false)
+            console.log(totalizerResponse.data)
             // console.log(logResponse.data.length)
         }
         fetchData()
@@ -211,20 +128,20 @@ function LogLineChart(props) {
     return (
         <> {!loading ? <>
             {/* TODO: Totalizer Daily Bar Charts  */}
-            {0 ?
+            {totalizerData ?
                 <ResponsiveContainer width={"95%"} height={150} className={"mx-auto mb-4"}>
-                    <BarChart data={filteredLogData}>
-                        <XAxis dataKey={'LogTime'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).format('H:mm')} />
+                    <BarChart data={totalizerData}>
+                        <XAxis dataKey={'Date'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).format('MMM D')} />
                         <YAxis width={30} tick={{ fontSize: 10 }} domain={[-10, 'dataMax + 5']} allowDataOverflow />
                         <CartesianGrid strokeDasharray={"5 10"} />
                         <Legend />
                         <Tooltip content={<CustomTotalizerBarTooltip />} />
-                        <Bar dataKey={'TotalFlowPositive'}
+                        <Bar dataKey={'DailyFlowPositive'}
                             name={"Totalizer Positive"}
                             fill='#4ADE80'
                             type={'monotone'}
                             stackId={1} />
-                        <Bar dataKey={'TotalFlowNegative'}
+                        <Bar dataKey={'DailyFlowNegative'}
                             name={"Totalizer Negative"}
                             fill='#4F46E5'
                             type={'monotone'}
