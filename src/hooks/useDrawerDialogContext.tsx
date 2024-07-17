@@ -32,6 +32,8 @@ export function DrawerDialogProvider({ children }) {
     const [reportDialogOpen, setReportDialogOpen] = useState(false)
     // Time interval for chart display
     const [chartTimeRange, setChartTimeRange] = useState("12")
+    // Allowed dates for report generation
+    const [allowedDates, setAllowedDates] = useState([])
     // Link to download generated report
     const [link, setLink] = useState(null)
     // Loading state for report generation
@@ -44,17 +46,26 @@ export function DrawerDialogProvider({ children }) {
         totalizerPositive: false,
         totalizerNegative: false
     })
-    // Time interval for report generation
     const today = new Date((new Date()).toDateString())
+    // Time interval for report generation
+    // TODO: Set to latest log 
     const [date, setDate] = useState<DateRange | undefined>({
-        from: addDays(today, -2),
+        from: addDays(today, -1),
         to: today,
     })
 
     const fetchLoggerInfo = async (loggerId) => {
         const loggerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/${loggerId}`)
         return loggerResponse.data
+    }
 
+    const fetchLoggerDates = async (loggerId, loggerType = "pressure") => {
+        if (!["pressure", "flow"].includes(loggerType)) {
+            throw ("Invalid Logger Type")
+        }
+        const logDatesResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/${loggerType}_log_dates/${loggerId}`)
+        const temp = logDatesResponse.data
+        return logDatesResponse.data
     }
 
     // cleanup when closing
@@ -115,11 +126,18 @@ export function DrawerDialogProvider({ children }) {
                         </Select>
                         <Button className="bg-piwad-lightyellow-500 text-black" onClick={async () => {
                             // setReportDialogOpen(true)
-                            if (logger) {
-                                await fetchLoggerInfo(logger.LoggerId).then((response) => {
-                                    console.log(JSON.stringify(response))
-                                    setLoggerInfo(response[0])
-                                    setReportDialogOpen(true)
+                            await fetchLoggerInfo(logger.LoggerId).then((response) => {
+                                console.log(JSON.stringify(response))
+                                setLoggerInfo(response[0])
+                                setReportDialogOpen(true)
+                            })
+                            if (logger.Name.toLowerCase().includes("flow")) {
+                                await fetchLoggerDates(logger.LoggerId, "flow").then((response) => {
+                                    setAllowedDates(response)
+                                })
+                            } else if (logger.Name.toLowerCase().includes("pressure")) {
+                                await fetchLoggerDates(logger.LoggerId, "pressure").then((response) => {
+                                    setAllowedDates(response)
                                 })
                             }
                         }}>Generate Report</Button>
@@ -280,17 +298,19 @@ export function DrawerDialogProvider({ children }) {
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0">
-                                        <Calendar
-                                            initialFocus
-                                            mode="range"
-                                            defaultMonth={date?.from}
-                                            selected={date}
-                                            onSelect={setDate}
-                                            numberOfMonths={1}
-                                            disabled={(date) =>
-                                                date > new Date() || date < new Date("2024-03-18")
-                                            }
-                                        />
+                                        {allowedDates.length ?
+                                            <Calendar
+                                                initialFocus
+                                                mode="range"
+                                                defaultMonth={date?.from}
+                                                selected={date}
+                                                onSelect={setDate}
+                                                numberOfMonths={1}
+                                                disabled={(calDate) => {
+                                                    return !allowedDates.includes(calDate.toDateString())
+                                                }}
+                                            />
+                                            : null}
                                     </PopoverContent>
                                 </Popover>
                             </div>

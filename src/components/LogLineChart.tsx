@@ -66,6 +66,7 @@ function LogLineChart(props) {
         totalizerNegative: false,
     })
     const timeRange = props.timeRange
+    const loggerType = props.logger.Name.toLowerCase().includes("pressure") ? "pressure" : "flow"
     const [average, setAverage] = useState('')
 
     useEffect(() => {
@@ -74,18 +75,20 @@ function LogLineChart(props) {
             // { console.log(window.innerWidth) }
             let logResponse = null
             let totalizerResponse = null
-            if (props.logger.Name.toLowerCase().includes("pressure")) {
+            if (loggerType == "pressure") {
                 logResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/pressure_log/${props.logger.LoggerId}`)
-            } else if (props.logger.Name.toLowerCase().includes("flow")) {
+            } else if (loggerType == "flow") {
                 logResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/flow_log/${props.logger.LoggerId}`)
                 totalizerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/totalizer/${props.logger.LoggerId}`)
             } else {
                 console.log("Unknown Datalogger")
                 console.log(JSON.stringify(props.logger))
             }
+            if (totalizerResponse?.data.length) {
+                setTotalizerData(totalizerResponse.data)
+            }
             if (logResponse.data.length) {
                 // Filter logs here
-                setTotalizerData(totalizerResponse.data)
                 setLogData(logResponse.data)
                 setFilteredLogData(logResponse.data.slice(-timeRange * 6))
             } else {
@@ -93,8 +96,7 @@ function LogLineChart(props) {
                 console.log("NO LOGS")
             }
             setLoading(false)
-            console.log(totalizerResponse.data)
-            // console.log(logResponse.data.length)
+            // if (loggerType == "flow") console.log(totalizerResponse.data)
         }
         fetchData()
     }, [])
@@ -127,8 +129,7 @@ function LogLineChart(props) {
 
     return (
         <> {!loading ? <>
-            {/* TODO: Totalizer Daily Bar Charts  */}
-            {totalizerData ?
+            {loggerType=="flow" ?
                 <ResponsiveContainer width={"95%"} height={150} className={"mx-auto mb-4"}>
                     <BarChart data={totalizerData}>
                         <XAxis dataKey={'Date'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).format('MMM D')} />
