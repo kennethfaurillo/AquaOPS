@@ -1,17 +1,32 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { capitalize } from "@/lib/utils";
+import { ScrollArea } from "./ui/scroll-area";
+import axios from "axios";
 
 
 function Header(props) {
-    const { user, logout } = useAuth()
+    const { user, token, logout } = useAuth()
     const [alertOpen, setAlertOpen] = useState(false)
     const [sheetOpen, setSheetOpen] = useState(false)
+    const [eventLogs, setEventLogs] = useState([])
+
+    useEffect(() => {
+        return () => {
+            setEventLogs([])
+        }
+    }, [])
+
+    const fetchEventLogs = async () => {
+        const eventLogResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/event_log?userId=${user.UserId}&token=${token}`)
+        setEventLogs(eventLogResponse.data)
+        return
+    }
 
     return (
         <>
@@ -21,7 +36,7 @@ function Header(props) {
                         <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
                         <Separator className="bg-piwad-blue-500" />
                         <AlertDialogDescription>
-                        Are you sure you want to log out? You will need to log in again to access your account.
+                            Are you sure you want to log out? You will need to log in again to access your account.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -62,7 +77,7 @@ function Header(props) {
                                             <AvatarFallback>User</AvatarFallback>
                                         </Avatar>
                                         <div className="grid grid-cols-2">
-                                            <div className="col-span-2">{user.Username.toUpperCase()}</div>
+                                            <div className="col-span-2">{capitalize(user.Username)}</div>
                                             <div className="col-span-1 text-sm text-piwad-lightyellow-600/80 ">{user.Type ?? "UserType"}</div>
                                         </div>
                                     </SheetTitle>
@@ -71,13 +86,54 @@ function Header(props) {
                                         Hello, {capitalize(user.Username)}!
                                     </SheetDescription>
                                 </SheetHeader>
+                                <ScrollArea className="h-3/4 rounded-md border my-2 p-4 opacity-80 font-sans">
+                                    <div className="text-xl mb-2 font-semibold text-black/90">Access Logs</div>
+                                    {eventLogs.length ?
+                                        eventLogs.map((log) => (
+                                            <>
+                                                <div className="flex justify-between">
+                                                    <div className="text-[.66rem] text-slate-800/80 ml-0">{(new Date(log.Timestamp.replace('Z',''))).toLocaleString()} </div>
+                                                    {/* <div className="text-[.66rem] text-slate-800/80 ml-0">{(new Date(log.Timestamp)).toLocaleString()} </div> */}
+                                                    <div className="text-[.66rem] text-blue-700/80 mr-2">{log.IpAddress}</div>
+                                                </div>
+                                                <div key={log.LogId} className="text-sm">
+                                                    {log.Message}
+                                                </div>
+                                                <Separator className="my-2" />
+                                            </>
+                                        )) : null}
+                                    {/* Jokester began sneaking into the castle in the middle of the night and leaving
+                                    jokes all over the place: under the king's pillow, in his soup, even in the
+                                    royal toilet. The king was furious, but he couldn't seem to stop Jokester. And
+                                    then, one day, the people of the kingdom discovered that the jokes left by
+                                    Jokester were so funny that they couldn't help but laugh. And once they
+                                    started laughing, they couldn't stop.Jokester began sneaking into the castle in the middle of the night and leaving
+                                    jokes all over the place: under the king's pillow, in his soup, even in the
+                                    royal toilet. The king was furious, but he couldn't seem to stop Jokester. And
+                                    then, one day, the people of the kingdom discovered that the jokes left by
+                                    Jokester were so funny that they couldn't help but laugh. And once they
+                                    started laughing, they couldn't stop.Jokester began sneaking into the castle in the middle of the night and leaving
+                                    jokes all over the place: under the king's pillow, in his soup, even in the
+                                    royal toilet. The king was furious, but he couldn't seem to stop Jokester. And
+                                    then, one day, the people of the kingdom discovered that the jokes left by
+                                    Jokester were so funny that they couldn't help but laugh. And once they
+                                    started laughing, they couldn't stop.Jokester began sneaking into the castle in the middle of the night and leaving
+                                    jokes all over the place: under the king's pillow, in his soup, even in the
+                                    royal toilet. The king was furious, but he couldn't seem to stop Jokester. And
+                                    then, one day, the people of the kingdom discovered that the jokes left by
+                                    Jokester were so funny that they couldn't help but laugh. And once they
+                                    started laughing, they couldn't stop. */}
+                                </ScrollArea>
                                 <SheetFooter>
                                     <div className="absolute bottom-10 right-4 space-x-1.5 sm:space-x-2">
-                                        <Button className="bg-piwad-lightyellow-500 text-black" onClick={async() => logout()}>Secret Button</Button>
+                                        <Button className="bg-piwad-lightyellow-500 text-black/90" onClick={() => {
+                                            fetchEventLogs()
+                                            // setSheetOpen(false)
+                                        }}>Secret Button</Button>
                                         <Button variant={"destructive"} onClick={() => {
                                             setAlertOpen(true)
                                             setSheetOpen(false)
-                                            }}>Log Out</Button>
+                                        }}>Log Out</Button>
                                         <SheetClose asChild >
                                             <Button>Close</Button>
                                         </SheetClose>

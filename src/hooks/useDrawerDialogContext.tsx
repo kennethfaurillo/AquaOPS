@@ -16,6 +16,7 @@ import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, Dr
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
+import { useAuth } from "./useAuth"
 
 const DrawerDialogContext = createContext()
 
@@ -53,6 +54,7 @@ export function DrawerDialogProvider({ children }) {
         from: addDays(today, -1),
         to: today,
     })
+    const {user, token} = useAuth()
 
     const fetchLoggerInfo = async (loggerId) => {
         const loggerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/${loggerId}`)
@@ -175,7 +177,7 @@ export function DrawerDialogProvider({ children }) {
                             <Input id={"loggerLat"} placeholder={loggerInfo?.PressureLimit?.replace(',', ' - ') ?? "N/A"} disabled />
                         </div> : <Loader2Icon className="animate-spin m-auto size-16" />}
                     <DialogClose asChild><Button>Close</Button></DialogClose>
-                    <Button className="bg-green-500" onClick={() => setLoggerDialogOpen(false)}>Save</Button>
+                    <Button className="bg-green-500" onClick={() => setLoggerDialogOpen(false)} disabled>Save</Button>
                 </DialogContent>
             </Dialog>
             {/* Report Generation Dialog */}
@@ -324,7 +326,7 @@ export function DrawerDialogProvider({ children }) {
                                 setLink(null)
                                 toast.loading("Generating Report")
                                 try {
-                                    const reportJson = await generateReport(loggerInfo, reportChecked, date)
+                                    const reportJson = await generateReport(loggerInfo, reportChecked, date, user)
                                     // Header containing logger info, no need to send column headers
                                     const header = `${loggerInfo.Name} ${loggerInfo.LoggerId} ${loggerInfo.Model} ${loggerInfo.Latitude},${loggerInfo.Longitude}`
                                     const _link = jsonToCSV(reportJson, header)

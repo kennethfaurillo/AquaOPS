@@ -1,7 +1,7 @@
 import ResetViewControl from '@20tab/react-leaflet-resetview';
 import axios from 'axios';
 import { DivIcon, Icon } from 'leaflet';
-import { BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
+import { BadgeAlertIcon, BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
 import moment from 'moment';
 import { useCallback, useEffect, useState } from 'react';
 import { GeoJSON, MapContainer, Marker, TileLayer, Tooltip } from 'react-leaflet';
@@ -12,6 +12,7 @@ import './Map.css';
 import { DataLog, Datalogger } from './Types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { addDays } from 'date-fns';
 
 let loggerIcon = new Icon({
   iconUrl: "src/assets/meter.png",
@@ -56,6 +57,7 @@ function LoggerMapCard() {
   const [map, setMap] = useState(null)
   const [weight, setWeight] = useState(5); // Initial weight
   const [basemap, setBasemap] = useState(basemaps.at(0))
+  const [loggersStatus, setLoggersStatus] = useState({Active:0,Inactive:0,Disabled:0})
 
   const { setLogger, setChartDrawerOpen, } = useDrawerDialogContext()
 
@@ -89,6 +91,19 @@ function LoggerMapCard() {
             if (logger.LoggerId == log.LoggerId) {
               //@ts-ignore
               tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
+              // TODO: Adjust active status timeout
+              // Count as Active if last log within 3 days 
+              if(new Date(log.LogTime) > addDays(new Date(),-3)){
+                setLoggersStatus({
+                  ...loggersStatus,
+                  Active: loggersStatus.Active++
+                })
+              } else {
+                setLoggersStatus({
+                  ...loggersStatus,
+                  Inactive: loggersStatus.Inactive++
+                })
+              }
             }
           })
         })
@@ -227,11 +242,11 @@ function LoggerMapCard() {
                   <div className="text-piwad-yellow-50 hidden md:flex text-sm md:text-xl font-medium co leading-none col-span-full justify-center sm:justify-normal md:col-span-2 items-center">
                     Logger Status:</div>
                   <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center md:justify-normal md:col-span-2 flex items-center">
-                    {5}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
+                  {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
                   <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center md:justify-normal md:col-span-2 flex items-center">
-                    {0}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Inactive</div>
+                    {loggersStatus.Inactive}&nbsp;<BadgeAlertIcon className='sm:mx-1' color='yellow' />&nbsp;Inactive</div>
                   <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center md:justify-normal md:col-span-2 flex items-center">
-                    {2}&nbsp;<BadgeHelpIcon className='sm:mx-1' color='yellow' />&nbsp;Unknown</div>
+                    {loggersStatus.Disabled}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Disabled</div>
                 </div>
               </div>
             </div>

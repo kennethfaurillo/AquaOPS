@@ -38,7 +38,7 @@ const CustomTotalizerBarTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
             <div className="p-2 bg-slate-700/60 flex flex-col gap-0 rounded-md backdrop-blur-sm" key={label}>
-                <p className="text-white text-lg">{label}</p>
+                <p className="text-white text-lg">{(new Date(label)).toDateString()}</p>
                 {payload.map((val, index) => (
                     <div key={index}>
                         {/* {console.log(val, colorMap[val.dataKey])} */}
