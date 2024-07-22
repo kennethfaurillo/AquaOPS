@@ -1,17 +1,22 @@
 import LatestLogsCard from "@/components/LatestLogsCard";
 import { useAuth } from "@/hooks/useAuth";
-import axios from "axios";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import '../App.css';
 import Header from "../components/Header";
 import LoggerMapCard from "../components/Map";
 import '../index.css';
 import { DrawerDialogProvider } from "@/hooks/useDrawerDialogContext";
+import { ExpandIcon } from "lucide-react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 
 function DashboardPage() {
     const { user, token, validateToken } = useAuth()
+    const [dashboardPrefs, setDashboardPrefs] = useLocalStorage('dashboardPrefs', {
+        showLoggerList: true,
+        showLoggerMap: true
+    })
 
     useEffect(() => {
         (async () => {
@@ -25,15 +30,39 @@ function DashboardPage() {
         return (
             <>
                 <div className='m-auto h-dvh bg-slate-100'>
-                    <Header user={{ "FirstName": "Piwad", "LastName": user.Username }} />
+                    <Header user={{ "FirstName": "Piwad", "LastName": user.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
+                    {/* <ExpandIcon className="cursor-pointer" onClick={() => {
+                        console.log(expandMap)
+                        setExpandMap(!expandMap)
+                    }} /> */}
                     <div className='grid grid-cols-12 gap-2 mt-2 mx-4 '>
                         <DrawerDialogProvider>
-                        <div className="col-span-full xl:col-span-3">
-                            <LatestLogsCard />
-                        </div>
-                        <div className="col-span-full xl:col-span-9 z-0">
-                            <LoggerMapCard />
-                        </div>
+                            {dashboardPrefs?.showLoggerList ?
+                                <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerMap ? 3: 'full'}`}>
+                                    <LatestLogsCard />
+                                </div> : null
+                            }
+                            {dashboardPrefs?.showLoggerMap ?
+                                <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9: 'full'} z-0`}>
+                                    <LoggerMapCard />
+                                </div> : null
+                            }
+                            {/* {!dashboardPrefs?.showLoggerList ?
+                                <>
+                                    <div className="col-span-full xl:col-span-12 z-0">
+                                        <LoggerMapCard />
+                                    </div>
+                                </>
+                                :
+                                <>
+                                    <div className="col-span-full xl:col-span-3">
+                                        <LatestLogsCard />
+                                    </div>
+                                    <div className="col-span-full xl:col-span-9 z-0">
+                                        <LoggerMapCard />
+                                    </div>
+                                </>
+                            } */}
                         </DrawerDialogProvider>
                     </div>
                 </div >

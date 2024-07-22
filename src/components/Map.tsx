@@ -1,12 +1,14 @@
 import ResetViewControl from '@20tab/react-leaflet-resetview';
 import axios from 'axios';
 import { DivIcon, Icon } from 'leaflet';
-import { BadgeAlertIcon, BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
+import { BadgeAlertIcon, BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
 import moment from 'moment';
 import { useCallback, useEffect, useState } from 'react';
 import { GeoJSON, MapContainer, Marker, TileLayer, Tooltip } from 'react-leaflet';
 import { toast } from 'sonner';
-import { pipelines } from '../assets/pipelines';
+import { pipelines } from '@/assets/shpPipelines';
+import { baranggay } from '@/assets/shpBaranggay';
+import { piliBoundary } from '@/assets/shpPiliBoundary';
 import { useDrawerDialogContext } from '../hooks/useDrawerDialogContext';
 import './Map.css';
 import { DataLog, Datalogger } from './Types';
@@ -49,6 +51,12 @@ const basemaps: Basemap[] = [
     label: "Dark Map",
     url: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
     icon: MoonIcon
+  },
+  {
+    name: "arcSat",
+    label: "Sat Map",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    icon: EarthIcon
   },
 ]
 
@@ -170,7 +178,7 @@ function LoggerMapCard() {
   const displayMap = (() => (
     <MapContainer // @ts-ignore
       center={[13.58438280013, 123.2738403740]} ref={setMap} style={{ height: '78dvh' }}
-      scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={13} doubleClickZoom={false}
+      scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
       maxBounds={[[13.676173, 123.111745], [13.516072, 123.456730]]}>
       <ResetViewControl title="Reset View" icon={"🔍"} />
       <TileLayer
@@ -188,8 +196,8 @@ function LoggerMapCard() {
         weight: weight,
       })}
         onEachFeature={onEachPipeline}
-      >
-      </GeoJSON>
+      />
+      <GeoJSON data={piliBoundary} style={{fillOpacity: 0, weight: 1, color: 'orange'}}/>
       {loggersLatest.size ?
         <>
           {Array.from(loggersLatest, ([loggerId, loggerData]) => (
@@ -239,13 +247,13 @@ function LoggerMapCard() {
               </div>
               <div className="col-span-6 sm:col-span-4 flex items-center space-x-4 rounded-md border-2 border-piwad-yellow-0 -my-2 py-2">
                 <div className="grid grid-cols-9 flex-1 space-y-1 mx-4">
-                  <div className="text-piwad-yellow-50 hidden md:flex text-sm md:text-xl font-medium co leading-none col-span-full justify-center sm:justify-normal md:col-span-2 items-center">
-                    Logger Status:</div>
-                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center md:justify-normal md:col-span-2 flex items-center">
+                  {/* <div className="text-piwad-yellow-50 hidden md:flex text-sm md:text-xl font-medium co leading-none col-span-full justify-center sm:justify-normal md:col-span-2 items-center">
+                    Logger Status:</div> */}
+                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center  flex items-center">
                   {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
-                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center md:justify-normal md:col-span-2 flex items-center">
+                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center  flex items-center">
                     {loggersStatus.Inactive}&nbsp;<BadgeAlertIcon className='sm:mx-1' color='yellow' />&nbsp;Inactive</div>
-                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center md:justify-normal md:col-span-2 flex items-center">
+                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center  flex items-center">
                     {loggersStatus.Disabled}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Disabled</div>
                 </div>
               </div>

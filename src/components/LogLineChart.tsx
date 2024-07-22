@@ -153,7 +153,7 @@ function LogLineChart(props) {
             }
             <ResponsiveContainer width={"95%"} height={!props.logger.CurrentFlow ? 550 : 400} className={"self-center "}>
                 <LineChart height={200} data={filteredLogData}  >
-                    <XAxis dataKey={'LogTime'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).format('H:mm')} />
+                    <XAxis dataKey={'LogTime'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).utcOffset('+0000').format('H:mm')} />
                     <YAxis width={30} tick={{ fontSize: 10 }} domain={[-10, 'dataMax + 5']} allowDataOverflow />
                     <CartesianGrid strokeDasharray={"5 10"} />
                     <Legend onClick={(e) =>
