@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { capitalize } from "@/lib/utils";
 import axios from "axios";
-import { BarChartHorizontal, CloudIcon, FileClockIcon, GithubIcon, LifeBuoyIcon, LogOutIcon, Settings, User } from "lucide-react";
+import { BarChartHorizontal, CloudIcon, FileClockIcon, GithubIcon, LifeBuoyIcon, Loader2Icon, LoaderCircleIcon, LogOutIcon, Settings, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -18,6 +18,7 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHe
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Toggle } from "./ui/toggle";
 import { Switch } from "./ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 
 function Header(props) {
@@ -84,7 +85,10 @@ function Header(props) {
                                     </div>
                                     <Separator className="my-2" />
                                 </>
-                            )) : null}
+                            )) :
+                            <div className="justify-center flex-col h-[50vh] text-red-500/90 font-semibold">
+                                <Loader2Icon className="animate-spin size-24 mx-auto h-full "/>
+                            </div>}
                     </ScrollArea>
                     <DialogClose asChild><Button>Close</Button></DialogClose>
                 </DialogContent>
@@ -103,65 +107,75 @@ function Header(props) {
                 </div>
                 <div className="flex ml-auto">
                     {props.user ? <>
-                        <DropdownMenu modal={false}>
-                            <DropdownMenuTrigger className="flex gap-1 text-slate-50 text-2xl items-center outline-none">
-                                <>
-                                    {/* <div className="text-slate-50 text-2xl lg:hidden">{props.user.FirstName.at(0).toUpperCase() ?? "F"}{props.user.LastName.at(0).toUpperCase() ?? "L"}</div> */}
-                                    {/* <div className="text-slate-50 hidden text-3xl lg:block 2xl:hidden">{props.user.FirstName ?? "Firstname"} {props.user.LastName.at(0).toUpperCase() ?? "L"}.</div> */}
-                                    <div className="text-slate-50 hidden text-3xl lg:block 2xl:hidden">{capitalize(props.user.LastName) ?? "L"}</div>
-                                    {/* <div className="text-slate-50 hidden text-3xl 2xl:block">{props.user.FirstName ?? "Firstname"} {capitalize(props.user.LastName) ?? "Lastname"}</div> */}
-                                    <Avatar className="m-2 mr-4 size-9 sm:size-14 cursor-pointer" >
-                                        <AvatarImage src="src/assets/shadcn.jpg" />
-                                        <AvatarFallback>User</AvatarFallback>
-                                    </Avatar>
-                                </>
-                            </DropdownMenuTrigger>
-                            {/* TODO: edit options */}
-                            <DropdownMenuContent className="w-56">
-                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuGroup>
-                                    <DropdownMenuItem disabled>
-                                        <User className="mr-2 h-4 w-4" />
-                                        <span>Profile</span>
+                        <TooltipProvider>
+                            <DropdownMenu modal={false}>
+                                <DropdownMenuTrigger className="flex gap-1 text-slate-50 text-2xl items-center outline-none">
+                                    <>
+                                        {/* <div className="text-slate-50 text-2xl lg:hidden">{props.user.FirstName.at(0).toUpperCase() ?? "F"}{props.user.LastName.at(0).toUpperCase() ?? "L"}</div> */}
+                                        {/* <div className="text-slate-50 hidden text-3xl lg:block 2xl:hidden">{props.user.FirstName ?? "Firstname"} {props.user.LastName.at(0).toUpperCase() ?? "L"}.</div> */}
+                                        <div className="text-slate-50 text-2xl lg:block">{capitalize(user.Username) ?? "L"}</div>
+                                        {/* <div className="text-slate-50 hidden text-3xl 2xl:block">{props.user.FirstName ?? "Firstname"} {capitalize(props.user.LastName) ?? "Lastname"}</div> */}
+                                        <Avatar className="m-2 mr-4 size-9 sm:size-14 cursor-pointer" >
+                                            <AvatarImage src="src/assets/shadcn.jpg" />
+                                            <AvatarFallback>User</AvatarFallback>
+                                        </Avatar>
+                                    </>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56">
+                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuItem disabled>
+                                            <User className="mr-2 h-4 w-4" />
+                                            <span>Profile</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem disabled>
+                                            <BarChartHorizontal className="mr-2 h-4 w-4" />
+                                            <span>Statistics</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={setSheetOpen}>
+                                            <Settings className="mr-2 h-4 w-4" />
+                                            <span>Settings</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onSelect={() => window.open('https://github.com/kennethfaurillo/PDMS', '_blank')?.focus()}>
+                                        <GithubIcon className="mr-2 h-4 w-4" />
+                                        <span>GitHub</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem disabled>
-                                        <BarChartHorizontal className="mr-2 h-4 w-4" />
-                                        <span>Statistics</span>
+                                        <LifeBuoyIcon className="mr-2 h-4 w-4" />
+                                        <span>Support</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={setSheetOpen}>
-                                        <Settings className="mr-2 h-4 w-4" />
-                                        <span>Settings</span>
+                                    <DropdownMenuItem disabled>
+                                        <CloudIcon className="mr-2 h-4 w-4" />
+                                        <span>API</span>
                                     </DropdownMenuItem>
-                                </DropdownMenuGroup>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onSelect={() => window.open('https://github.com/kennethfaurillo/PDMS', '_blank')?.focus()}>
-                                    <GithubIcon className="mr-2 h-4 w-4" />
-                                    <span>GitHub</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem disabled>
-                                    <LifeBuoyIcon className="mr-2 h-4 w-4" />
-                                    <span>Support</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem disabled>
-                                    <CloudIcon className="mr-2 h-4 w-4" />
-                                    <span>API</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => {
-                                    fetchEventLogs()
-                                    setEventlogsDialogOpen(true)
-                                }}>
-                                    <FileClockIcon className="mr-2 h-4 w-4" />
-                                    <span>System Event Logs</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onSelect={setLogoutAlertOpen}>
-                                    <LogOutIcon className="mr-2 h-4 w-4" />
-                                    <span>Log out</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-
+                                    <Tooltip delayDuration={200}>
+                                        <TooltipTrigger className="cursor-default w-full">
+                                            <DropdownMenuItem onSelect={() => {
+                                                fetchEventLogs()
+                                                setEventlogsDialogOpen(true)
+                                            }} disabled={user.Type != "admin"}>
+                                                    <FileClockIcon className="mr-2 h-4 w-4" />
+                                                    <span>System Event Logs</span>
+                                            </DropdownMenuItem>
+                                        </TooltipTrigger>
+                                        {user.Type != "admin" ?
+                                        <TooltipContent>
+                                            <p>{capitalize(user.Type)} not authorized to view System Logs</p>
+                                        </TooltipContent> : 
+                                        null
+                                        }
+                                    </Tooltip>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onSelect={setLogoutAlertOpen}>
+                                        <LogOutIcon className="mr-2 h-4 w-4" />
+                                        <span>Log out</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TooltipProvider>
                         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                             <SheetContent className="backdrop-blur-md rounded-l-xl ">
                                 <SheetHeader>
@@ -253,25 +267,25 @@ function Header(props) {
                                             </CardHeader>
                                             <CardContent className="space-y-2">
                                                 <div className="flex space-x-2 items-center">
-                                                    <Switch id="swDataloggerList" checked={dashboardPrefs.showLoggerList} onCheckedChange={() => setDashboardPrefs({...dashboardPrefs, showLoggerList: !dashboardPrefs.showLoggerList})}/> <Label htmlFor="swDataloggerList" className="cursor-pointer">Datalogger List</Label>
+                                                    <Switch id="swDataloggerList" checked={dashboardPrefs.showLoggerList} onCheckedChange={() => setDashboardPrefs({ ...dashboardPrefs, showLoggerList: !dashboardPrefs.showLoggerList })} /> <Label htmlFor="swDataloggerList" className="cursor-pointer">Datalogger List</Label>
                                                 </div>
                                                 <div className="flex space-x-2 items-center">
-                                                    <Switch id="swDataloggerMap" checked={dashboardPrefs.showLoggerMap} onCheckedChange={() => setDashboardPrefs({...dashboardPrefs, showLoggerMap: !dashboardPrefs.showLoggerMap})} /> <Label htmlFor="swDataloggerMap" className="cursor-pointer">Datalogger Map</Label>
+                                                    <Switch id="swDataloggerMap" checked={dashboardPrefs.showLoggerMap} onCheckedChange={() => setDashboardPrefs({ ...dashboardPrefs, showLoggerMap: !dashboardPrefs.showLoggerMap })} /> <Label htmlFor="swDataloggerMap" className="cursor-pointer">Datalogger Map</Label>
                                                 </div>
                                                 <div className="flex space-x-2 items-center">
-                                                    <Switch id="swTotalVolume" disabled/> <Label htmlFor="swTotalVolume" className="cursor-pointer">Total Volume for the Day</Label>
+                                                    <Switch id="swTotalVolume" disabled /> <Label htmlFor="swTotalVolume" className="cursor-pointer">Total Volume for the Day</Label>
                                                 </div>
                                                 <div className="flex space-x-2 items-center">
-                                                    <Switch id="swHighestFlow" disabled/> <Label htmlFor="swHighestFlow" className="cursor-pointer">Highest Flow</Label>
+                                                    <Switch id="swHighestFlow" disabled /> <Label htmlFor="swHighestFlow" className="cursor-pointer">Highest Flow</Label>
                                                 </div>
                                                 <div className="flex space-x-2 items-center">
-                                                    <Switch id="swLowestFlow" disabled/> <Label htmlFor="swLowestFlow" className="cursor-pointer">Lowest Flow</Label>
+                                                    <Switch id="swLowestFlow" disabled /> <Label htmlFor="swLowestFlow" className="cursor-pointer">Lowest Flow</Label>
                                                 </div>
                                                 <div className="flex space-x-2 items-center">
-                                                    <Switch id="swHighestPressure" disabled/> <Label htmlFor="swHighestPressure" className="cursor-pointer">Highest Pressure</Label>
+                                                    <Switch id="swHighestPressure" disabled /> <Label htmlFor="swHighestPressure" className="cursor-pointer">Highest Pressure</Label>
                                                 </div>
                                                 <div className="flex space-x-2 items-center">
-                                                    <Switch id="swLowestPressure" disabled/> <Label htmlFor="swLowestPressure" className="cursor-pointer">Lowest Pressure</Label>
+                                                    <Switch id="swLowestPressure" disabled /> <Label htmlFor="swLowestPressure" className="cursor-pointer">Lowest Pressure</Label>
                                                 </div>
                                                 <div className="flex justify-end">
                                                     <Button className="mt-2 bg-green-500/80 text-white" disabled>Save</Button>

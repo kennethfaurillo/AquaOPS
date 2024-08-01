@@ -4,7 +4,7 @@ import { DivIcon, Icon } from 'leaflet';
 import { BadgeAlertIcon, BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
 import moment from 'moment';
 import { useCallback, useEffect, useState } from 'react';
-import { GeoJSON, MapContainer, Marker, TileLayer, Tooltip } from 'react-leaflet';
+import { GeoJSON, MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 import { toast } from 'sonner';
 import { pipelines } from '@/assets/shpPipelines';
 import { baranggay } from '@/assets/shpBaranggay';
@@ -15,6 +15,9 @@ import { DataLog, Datalogger } from './Types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { addDays } from 'date-fns';
+import { Separator } from './ui/separator';
+import { Checkbox } from './ui/checkbox';
+import { Label } from './ui/label';
 
 let loggerIcon = new Icon({
   iconUrl: "src/assets/meter.png",
@@ -65,7 +68,9 @@ function LoggerMapCard() {
   const [map, setMap] = useState(null)
   const [weight, setWeight] = useState(5); // Initial weight
   const [basemap, setBasemap] = useState(basemaps.at(0))
-  const [loggersStatus, setLoggersStatus] = useState({Active:0,Inactive:0,Disabled:0})
+  const [loggersStatus, setLoggersStatus] = useState({ Active: 0, Inactive: 0, Disabled: 0 })
+  const [showLayers, setShowLayers] = useState({ Pipelines: true, Areas: true, DMA: true, Dataloggers: true})
+  const [position, setPosition] = useState({lat: 13.58438280013, lng: 123.2738403740})
 
   const { setLogger, setChartDrawerOpen, } = useDrawerDialogContext()
 
@@ -97,11 +102,10 @@ function LoggerMapCard() {
         loggersInfoResponse.data.map((logger: Datalogger) => {
           latestLogsResponse.data.map((log: DataLog) => {
             if (logger.LoggerId == log.LoggerId) {
-              //@ts-ignore
               tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
               // TODO: Adjust active status timeout
               // Count as Active if last log within 3 days 
-              if(new Date(log.LogTime) > addDays(new Date(),-3)){
+              if (new Date(log.LogTime) > addDays(new Date(), -3)) {
                 setLoggersStatus({
                   ...loggersStatus,
                   Active: loggersStatus.Active++
@@ -115,6 +119,7 @@ function LoggerMapCard() {
             }
           })
         })
+        console.log("end")
         setLoggersLatest(tempLoggersLatest)
       }
       catch (error) {
@@ -127,28 +132,15 @@ function LoggerMapCard() {
   const DisplayPosition = ({ map }) => {
     const center = [13.58438280013, 123.2738403740]
     const zoom = 13.5
-
-    const [position, setPosition] = useState(() => map.getCenter())
-
     const onClick = useCallback(() => {
       map.setView(center, zoom)
     }, [map])
-    const onMove = useCallback(() => {
-      setPosition(map.getCenter())
-    }, [map])
-
-    useEffect(() => {
-      map.on('move', onMove)
-      return () => {
-        map.off('move', onMove)
-      }
-    }, [map, onMove])
     return (
       <>
         <div onClick={onClick} className='cursor-pointer'>
           Coordinates: {position.lat.toFixed('6')}°, {position.lng.toFixed('6')}°
         </div>
-        <div className='mb-3 sm:-mb-6 sm:mt-2 sm:space-x-4'/>
+        <div className='mb-3 sm:-mb-6 sm:mt-2 sm:space-x-4' />
       </>
     )
   }
@@ -156,7 +148,6 @@ function LoggerMapCard() {
   const onEachPipeline = (feature, layer) => {
     if (feature.properties && feature.properties.ogr_fid) {
       layer.on('click', () => {
-        console.log("click")
         console.log(feature.properties)
         toast.info(`Pipeline #${feature.properties?.ogr_fid} ${feature.properties?.location.toUpperCase()}`, {
           description: <>
@@ -172,33 +163,80 @@ function LoggerMapCard() {
     }
   };
 
+  const onEachArea = (feature, layer) => {
+    if (feature.properties && feature.properties.Name) {
+      layer.on('dblclick', () => {
+        console.log(feature.properties)
+        toast.info(`Baranggay: ${feature.properties?.Name}`)
+      });
+    }
+  };
+
   const themeToggleOnclick = () => {
-      setBasemap(basemaps.find((bmap) => bmap.name != basemap.name))
+    setBasemap(basemaps.find((bmap) => bmap.name != basemap.name))
+  }
+
+  const MapEvents = () =>{
+    useMapEvents({
+      mousemove(e) {
+        setPosition({ lat: e.latlng.lat, lng: e.latlng.lng})
+      }
+    })
+    return false
   }
   const displayMap = (() => (
     <MapContainer // @ts-ignore
-      center={[13.58438280013, 123.2738403740]} ref={setMap} style={{ height: '78dvh' }}
-      scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
+      center={[13.58438280013, 123.2738403740]} ref={setMap} style={{ height: '78dvh' }} 
+      scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false} 
       maxBounds={[[13.676173, 123.111745], [13.516072, 123.456730]]}>
       <ResetViewControl title="Reset View" icon={"🔍"} />
+      {/* Layer Toggle Card */}
+      <Card className='absolute z-[400] top-4 right-4 bg-slate-100/60 backdrop-blur-[1px] drop-shadow-lg'>
+        <CardHeader className="py-4">
+          <CardTitle className='text-piwad-blue-400'>Layers</CardTitle>
+          <CardDescription>Select layers to show</CardDescription>
+          <Separator/>
+        </CardHeader>
+        <CardContent className='-m-2 space-y-1'>
+          <div className='space-x-1'>
+            <Checkbox id="cbPipelines" checked={showLayers.Pipelines} onCheckedChange={()=> setShowLayers({...showLayers, Pipelines: !showLayers.Pipelines})}/> <Label htmlFor="cbPipelines" className="cursor-pointer font-sans text-piwad-blue-300 align-top">Pipelines</Label>
+          </div>
+          <div className='space-x-1'>
+            <Checkbox id="cbBaranggays" checked={showLayers.Areas} onCheckedChange={()=> setShowLayers({...showLayers, Areas: !showLayers.Areas})}/> <Label htmlFor="cbBaranggays" className="cursor-pointer font-sans text-piwad-blue-300 align-top">Area Boundaries</Label>
+          </div>
+          <div className='space-x-1'>
+            <Checkbox id="cbDMA" checked={showLayers.DMA} onCheckedChange={()=> setShowLayers({...showLayers, DMA: !showLayers.DMA})}/> <Label htmlFor="cbDMA" className="cursor-pointer font-sans text-piwad-blue-300 align-top">DMA Boundaries</Label>
+          </div>
+          <div className='space-x-1'>
+            <Checkbox id="cbLoggers" checked={showLayers.Dataloggers} onCheckedChange={()=> setShowLayers({...showLayers, Dataloggers: !showLayers.Dataloggers})}/> <Label htmlFor="cbLoggers" className="cursor-pointer font-sans text-piwad-blue-300 align-top">Data Loggers</Label>
+          </div>
+          {/* <div className="flex justify-end">
+            <Button className="mt-2 ml-2 bg-green-500/80 text-white" disabled>Save</Button>
+          </div> */}
+        </CardContent>
+      </Card>
+
       <TileLayer
         url={basemap ? basemap.url : "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"}
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
+      <MapEvents/>
       {basemap ?
         basemap.name == "osmLight" ?
           <Button className='absolute bottom-8 right-4 z-[400] size-12 p-0 rounded-full opacity-80' onClick={themeToggleOnclick}><MoonIcon /></Button>
           : <Button className='absolute bottom-8 right-4 z-[400] size-12 p-0 rounded-full opacity-80' variant={"secondary"} onClick={themeToggleOnclick}><SunIcon /></Button>
         : null
       }
+      {showLayers.Areas ? 
+      <GeoJSON data={piliBoundary} style={{ fillOpacity: 0, weight: 1, color: 'orange' }} onEachFeature={onEachArea} /> : null }
+      {showLayers.Pipelines ? 
       <GeoJSON data={pipelines} style={(feature) => ({
         color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",//"#6792A090",
         weight: weight,
       })}
         onEachFeature={onEachPipeline}
-      />
-      <GeoJSON data={piliBoundary} style={{fillOpacity: 0, weight: 1, color: 'orange'}}/>
-      {loggersLatest.size ?
+      /> : null }
+      {loggersLatest.size && showLayers.Dataloggers ?
         <>
           {Array.from(loggersLatest, ([loggerId, loggerData]) => (
             <div key={loggerId}>
@@ -250,7 +288,7 @@ function LoggerMapCard() {
                   {/* <div className="text-piwad-yellow-50 hidden md:flex text-sm md:text-xl font-medium co leading-none col-span-full justify-center sm:justify-normal md:col-span-2 items-center">
                     Logger Status:</div> */}
                   <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center  flex items-center">
-                  {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
+                    {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
                   <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center  flex items-center">
                     {loggersStatus.Inactive}&nbsp;<BadgeAlertIcon className='sm:mx-1' color='yellow' />&nbsp;Inactive</div>
                   <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center  flex items-center">

@@ -54,7 +54,7 @@ export function DrawerDialogProvider({ children }) {
         from: addDays(today, -1),
         to: today,
     })
-    const {user, token} = useAuth()
+    const { user, token } = useAuth()
 
     const fetchLoggerInfo = async (loggerId) => {
         const loggerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/${loggerId}`)
@@ -133,15 +133,23 @@ export function DrawerDialogProvider({ children }) {
                                 setLoggerInfo(response[0])
                                 setReportDialogOpen(true)
                             })
+                            let latestLogs = []
+                            const defaultDaysRange = 3
                             if (logger.Name.toLowerCase().includes("flow")) {
                                 await fetchLoggerDates(logger.LoggerId, "flow").then((response) => {
                                     setAllowedDates(response)
+                                    latestLogs = response.slice(-defaultDaysRange)
                                 })
                             } else if (logger.Name.toLowerCase().includes("pressure")) {
                                 await fetchLoggerDates(logger.LoggerId, "pressure").then((response) => {
                                     setAllowedDates(response)
+                                    latestLogs = response.slice(-defaultDaysRange)
                                 })
                             }
+                            setDate({
+                                from: new Date(latestLogs.at(0)),
+                                to: new Date(latestLogs.at(-1)),
+                            })
                         }}>Generate Report</Button>
                         <DrawerClose asChild>
                             <Button>Close</Button>
