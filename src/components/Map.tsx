@@ -1,23 +1,21 @@
+import { piliBoundary } from '@/assets/shpPiliBoundary';
+import { pipelines } from '@/assets/shpPipelines';
 import ResetViewControl from '@20tab/react-leaflet-resetview';
 import axios from 'axios';
+import { addDays } from 'date-fns';
 import { DivIcon, Icon } from 'leaflet';
-import { BadgeAlertIcon, BadgeCheckIcon, BadgeHelpIcon, BadgeMinusIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
+import 'leaflet.fullscreen/Control.FullScreen.css';
+import 'leaflet.fullscreen/Control.FullScreen.js';
+import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
 import moment from 'moment';
 import { useCallback, useEffect, useState } from 'react';
-import { GeoJSON, MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
+import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 import { toast } from 'sonner';
-import { pipelines } from '@/assets/shpPipelines';
-import { baranggay } from '@/assets/shpBaranggay';
-import { piliBoundary } from '@/assets/shpPiliBoundary';
 import { useDrawerDialogContext } from '../hooks/useDrawerDialogContext';
 import './Map.css';
 import { DataLog, Datalogger } from './Types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { addDays } from 'date-fns';
-import { Separator } from './ui/separator';
-import { Checkbox } from './ui/checkbox';
-import { Label } from './ui/label';
 
 let loggerIcon = new Icon({
   iconUrl: "src/assets/meter.png",
@@ -69,10 +67,11 @@ function LoggerMapCard() {
   const [weight, setWeight] = useState(5); // Initial weight
   const [basemap, setBasemap] = useState(basemaps.at(0))
   const [loggersStatus, setLoggersStatus] = useState({ Active: 0, Inactive: 0, Disabled: 0 })
-  const [showLayers, setShowLayers] = useState({ Pipelines: true, Areas: true, DMA: true, Dataloggers: true})
-  const [position, setPosition] = useState({lat: 13.58438280013, lng: 123.2738403740})
+  const [position, setPosition] = useState({ lat: 13.58438280013, lng: 123.2738403740 })
+  const [fullscreenMap, setFullscreenMap] = useState(false)
 
   const { setLogger, setChartDrawerOpen, } = useDrawerDialogContext()
+  const { BaseLayer, Overlay } = LayersControl
 
   useEffect(() => {
     if (!map) return
@@ -83,6 +82,14 @@ function LoggerMapCard() {
       setWeight(newWeight);
     };
 
+    map.on('enterFullscreen exitFullscreen', (e) => {
+      if (e.type == "enterFullscreen") {
+        setFullscreenMap(true);
+      } else {
+        setFullscreenMap(false);
+      }
+    });
+
     map.on('zoomend', updateWeight);
     updateWeight(); // Set initial weight based on initial zoom
 
@@ -90,7 +97,6 @@ function LoggerMapCard() {
       map.off('zoomend', updateWeight);
     };
   }, [map]);
-
 
   // Initial load
   useEffect(() => {
@@ -119,7 +125,6 @@ function LoggerMapCard() {
             }
           })
         })
-        console.log("end")
         setLoggersLatest(tempLoggersLatest)
       }
       catch (error) {
@@ -155,7 +160,6 @@ function LoggerMapCard() {
             <span> | Length: {feature?.properties.lenght.replace('.', '')}</span>
             <div>
               {feature.properties["year inst."] ? <>Install Date: {feature.properties["year inst."].toUpperCase()}</> : <span>{null}</span>}
-
             </div>
           </>,
         })
@@ -176,72 +180,58 @@ function LoggerMapCard() {
     setBasemap(basemaps.find((bmap) => bmap.name != basemap.name))
   }
 
-  const MapEvents = () =>{
+  const MapEvents = () => {
     useMapEvents({
       mousemove(e) {
-        setPosition({ lat: e.latlng.lat, lng: e.latlng.lng})
+        setPosition({ lat: e.latlng.lat, lng: e.latlng.lng })
+      },
+      dblclick() {
+        map.toggleFullscreen()
       }
     })
     return false
   }
   const displayMap = (() => (
     <MapContainer // @ts-ignore
-      center={[13.58438280013, 123.2738403740]} ref={setMap} style={{ height: '78dvh' }} 
-      scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false} 
+      center={[13.58438280013, 123.2738403740]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
+      scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
       maxBounds={[[13.676173, 123.111745], [13.516072, 123.456730]]}>
       <ResetViewControl title="Reset View" icon={"🔍"} />
-      {/* Layer Toggle Card */}
-      <Card className='absolute z-[400] top-4 right-4 bg-slate-100/60 backdrop-blur-[1px] drop-shadow-lg'>
-        <CardHeader className="py-4">
-          <CardTitle className='text-piwad-blue-400'>Layers</CardTitle>
-          <CardDescription>Select layers to show</CardDescription>
-          <Separator/>
-        </CardHeader>
-        <CardContent className='-m-2 space-y-1'>
-          <div className='space-x-1'>
-            <Checkbox id="cbPipelines" checked={showLayers.Pipelines} onCheckedChange={()=> setShowLayers({...showLayers, Pipelines: !showLayers.Pipelines})}/> <Label htmlFor="cbPipelines" className="cursor-pointer font-sans text-piwad-blue-300 align-top">Pipelines</Label>
-          </div>
-          <div className='space-x-1'>
-            <Checkbox id="cbBaranggays" checked={showLayers.Areas} onCheckedChange={()=> setShowLayers({...showLayers, Areas: !showLayers.Areas})}/> <Label htmlFor="cbBaranggays" className="cursor-pointer font-sans text-piwad-blue-300 align-top">Area Boundaries</Label>
-          </div>
-          <div className='space-x-1'>
-            <Checkbox id="cbDMA" checked={showLayers.DMA} onCheckedChange={()=> setShowLayers({...showLayers, DMA: !showLayers.DMA})}/> <Label htmlFor="cbDMA" className="cursor-pointer font-sans text-piwad-blue-300 align-top">DMA Boundaries</Label>
-          </div>
-          <div className='space-x-1'>
-            <Checkbox id="cbLoggers" checked={showLayers.Dataloggers} onCheckedChange={()=> setShowLayers({...showLayers, Dataloggers: !showLayers.Dataloggers})}/> <Label htmlFor="cbLoggers" className="cursor-pointer font-sans text-piwad-blue-300 align-top">Data Loggers</Label>
-          </div>
-          {/* <div className="flex justify-end">
-            <Button className="mt-2 ml-2 bg-green-500/80 text-white" disabled>Save</Button>
-          </div> */}
-        </CardContent>
-      </Card>
-
-      <TileLayer
-        url={basemap ? basemap.url : "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"}
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
-      <MapEvents/>
-      {basemap ?
-        basemap.name == "osmLight" ?
-          <Button className='absolute bottom-8 right-4 z-[400] size-12 p-0 rounded-full opacity-80' onClick={themeToggleOnclick}><MoonIcon /></Button>
-          : <Button className='absolute bottom-8 right-4 z-[400] size-12 p-0 rounded-full opacity-80' variant={"secondary"} onClick={themeToggleOnclick}><SunIcon /></Button>
-        : null
-      }
-      {showLayers.Areas ? 
-      <GeoJSON data={piliBoundary} style={{ fillOpacity: 0, weight: 1, color: 'orange' }} onEachFeature={onEachArea} /> : null }
-      {showLayers.Pipelines ? 
-      <GeoJSON data={pipelines} style={(feature) => ({
-        color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",//"#6792A090",
-        weight: weight,
-      })}
-        onEachFeature={onEachPipeline}
-      /> : null }
-      {loggersLatest.size && showLayers.Dataloggers ?
+      <LayersControl position='topright'>
+        <BaseLayer name='Street Map' checked>
+          <TileLayer
+            url={basemap ? basemap.url : "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"}
+            attribution={basemap.name == 'osmLight' ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' : '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
+          />
+        </BaseLayer>
+        <BaseLayer name='Satellite Map'>
+          <TileLayer
+            url={"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}
+            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+          />
+        </BaseLayer>
+        <Overlay name='Area Boundaries' checked>
+          <GeoJSON data={piliBoundary} style={{ fillOpacity: 0, weight: 1, color: 'orange' }} onEachFeature={onEachArea} />
+        </Overlay>
+        <Overlay name='Pipelines' checked>
+        <GeoJSON data={pipelines} style={(feature) => ({
+          color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",//"#6792A090",
+          weight: weight,
+        })}
+          onEachFeature={onEachPipeline}
+        />
+        </Overlay>
+        <Overlay name='DMA Boundaries'>
+        </Overlay>
+        <Overlay name='Data Loggers' checked>
+          <LayerGroup>
+        {loggersLatest.size ?
         <>
           {Array.from(loggersLatest, ([loggerId, loggerData]) => (
             <div key={loggerId}>
               <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={loggerIcon} eventHandlers={{
-                click: (event) => {
+                click: () => {
+                  if (fullscreenMap) map.toggleFullscreen()
                   setChartDrawerOpen(true)
                   setLogger(loggerData)
                 },
@@ -269,6 +259,27 @@ function LoggerMapCard() {
         </>
         : null
       }
+      </LayerGroup>
+        </Overlay>
+      </LayersControl>
+      <MapEvents />
+      {basemap ?
+        basemap.name == "osmLight" ?
+          <Button className='absolute bottom-8 right-4 z-[401] size-12 p-0 rounded-full opacity-80' onClick={themeToggleOnclick}><MoonIcon /></Button>
+          : <Button className='absolute bottom-8 right-4 z-[401] size-12 p-0 rounded-full opacity-80' variant={"secondary"} onClick={themeToggleOnclick}><SunIcon /></Button>
+        : null}
+      {fullscreenMap ?
+        <div className="absolute bottom-8 sm:grid grid-cols-9 space-y-1 z-[400] w-full px-0 md:px-72 ">
+          {/* <div className="text-piwad-yellow-50 hidden md:flex text-sm md:text-xl font-medium co leading-none col-span-full justify-center sm:justify-normal md:col-span-2 items-center">
+                        Logger Status:</div> */}
+          <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center">
+            {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
+          <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center">
+            {loggersStatus.Inactive}&nbsp;<BadgeAlertIcon className='sm:mx-1' color='yellow' />&nbsp;Inactive</div>
+          <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center">
+            {loggersStatus.Disabled}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Disabled</div>
+        </div>
+        : null}
     </MapContainer>
   ))
 

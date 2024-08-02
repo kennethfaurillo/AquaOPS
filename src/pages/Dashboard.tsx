@@ -31,10 +31,6 @@ function DashboardPage() {
             <>
                 <div className='m-auto h-dvh bg-slate-100'>
                     <Header user={{ "FirstName": "Piwad", "LastName": user.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
-                    {/* <ExpandIcon className="cursor-pointer" onClick={() => {
-                        console.log(expandMap)
-                        setExpandMap(!expandMap)
-                    }} /> */}
                     <div className='grid grid-cols-12 gap-2 mt-2 mx-4 '>
                         <DrawerDialogProvider>
                             {dashboardPrefs?.showLoggerList ?
@@ -47,22 +43,6 @@ function DashboardPage() {
                                     <LoggerMapCard />
                                 </div> : null
                             }
-                            {/* {!dashboardPrefs?.showLoggerList ?
-                                <>
-                                    <div className="col-span-full xl:col-span-12 z-0">
-                                        <LoggerMapCard />
-                                    </div>
-                                </>
-                                :
-                                <>
-                                    <div className="col-span-full xl:col-span-3">
-                                        <LatestLogsCard />
-                                    </div>
-                                    <div className="col-span-full xl:col-span-9 z-0">
-                                        <LoggerMapCard />
-                                    </div>
-                                </>
-                            } */}
                         </DrawerDialogProvider>
                     </div>
                 </div >
