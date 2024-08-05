@@ -34,7 +34,7 @@ function DashboardPage() {
                     <div className='grid grid-cols-12 gap-2 mt-2 mx-4 '>
                         <DrawerDialogProvider>
                             {dashboardPrefs?.showLoggerList ?
-                                <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerMap ? 3: 'full'}`}>
+                                <div className={`col-span-full xl:col-span-3`}>
                                     <LatestLogsCard />
                                 </div> : null
                             }
@@ -43,6 +43,7 @@ function DashboardPage() {
                                     <LoggerMapCard />
                                 </div> : null
                             }
+                            <div className="col-span-3 size-24 overflow-hidden border"></div>
                         </DrawerDialogProvider>
                     </div>
                 </div >

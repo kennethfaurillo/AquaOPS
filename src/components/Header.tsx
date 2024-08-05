@@ -95,15 +95,15 @@ function Header(props) {
             </Dialog>
 
             <div className='flex gap-4 sticky top-0 max-w-dvw bg-piwad-lightblue-700/100 backdrop-blur drop-shadow-xl z-10 max-h-12 sm:max-h-20 overflow-hidden'>
-                <div className="flex gap-4 p-1 items-center">
+                <div className="flex gap-2 p-1 items-center">
                     <a href="/">
                         <Avatar className='m-1 ml-2 size-9 sm:size-14'>
                             <AvatarImage src='src/assets/piwad_logo.png' />
                             <AvatarFallback className='text-xs'>PIWAD</AvatarFallback>
                         </Avatar>
                     </a>
-                    <h2 className="scroll-m-20 hidden md:block text-3xl font-semibold tracking-tight first:mt-0 text-slate-100 ">PIWAD Datalogger Monitoring System</h2>
-                    <h2 className="scroll-m-20 md:hidden -ml-2 text-2xl font-semibold tracking-tight first:mt-0 text-slate-100 ">PDMS</h2>
+                    <h2 className="scroll-m-20 hidden md:block text-3xl font-sans tracking-tight first:mt-0 text-slate-100 ">PIWAD AquaOps</h2>
+                    <h2 className="scroll-m-20 md:hidden -ml-2 text-2xl font-sans tracking-tight first:mt-0 text-slate-100 ">AquaOps</h2>
                 </div>
                 <div className="flex ml-auto">
                     {props.user ? <>

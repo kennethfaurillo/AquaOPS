@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { useDrawerDialogContext } from '../hooks/useDrawerDialogContext';
 import './Map.css';
 import { DataLog, Datalogger } from './Types';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
@@ -75,6 +76,7 @@ function LoggerMapCard() {
 
   useEffect(() => {
     if (!map) return
+
     const updateWeight = () => {
       const zoom = map.getZoom();
       // Adjust weight based on zoom level
@@ -126,6 +128,7 @@ function LoggerMapCard() {
           })
         })
         setLoggersLatest(tempLoggersLatest)
+        console.log(tempLoggersLatest)
       }
       catch (error) {
         console.log(error)
@@ -185,12 +188,17 @@ function LoggerMapCard() {
       mousemove(e) {
         setPosition({ lat: e.latlng.lat, lng: e.latlng.lng })
       },
-      dblclick() {
+      // dblclick() {
+      //   map.toggleFullscreen()
+      // },
+      keypress(e){
+        if(!(e.originalEvent.key == 'f' || e.originalEvent.key == 'F')) return
         map.toggleFullscreen()
       }
     })
     return false
   }
+
   const displayMap = (() => (
     <MapContainer // @ts-ignore
       center={[13.58438280013, 123.2738403740]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
@@ -269,16 +277,23 @@ function LoggerMapCard() {
           : <Button className='absolute bottom-8 right-4 z-[401] size-12 p-0 rounded-full opacity-80' variant={"secondary"} onClick={themeToggleOnclick}><SunIcon /></Button>
         : null}
       {fullscreenMap ?
-        <div className="absolute bottom-8 sm:grid grid-cols-9 space-y-1 z-[400] w-full px-0 md:px-72 ">
-          {/* <div className="text-piwad-yellow-50 hidden md:flex text-sm md:text-xl font-medium co leading-none col-span-full justify-center sm:justify-normal md:col-span-2 items-center">
-                        Logger Status:</div> */}
-          <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center">
+      <>
+        <div className='absolute bottom-8 left-8 flex gap-2 justify-center items-center'>
+          <Avatar className='z-[400] size-10 sm:size-14'>
+            <AvatarFallback>PIWAD</AvatarFallback>
+            <AvatarImage src='src/assets/piwad_logo.png'/>
+          </Avatar>
+          <h2 className='text-xl sm:text-3xl font-sans font-extralight text-piwad-blue-400 z-[400]'>AquaOps</h2>
+        </div>
+        <div className='sm:grid grid-cols-9 space-y-2 w-full px-0 md:px-72'>
+          <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center z-[400]">
             {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
-          <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center">
+          <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center z-[400]">
             {loggersStatus.Inactive}&nbsp;<BadgeAlertIcon className='sm:mx-1' color='yellow' />&nbsp;Inactive</div>
-          <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center">
+          <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center z-[400]">
             {loggersStatus.Disabled}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Disabled</div>
         </div>
+        </>
         : null}
     </MapContainer>
   ))
