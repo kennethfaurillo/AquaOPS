@@ -47,6 +47,10 @@ export function DrawerDialogProvider({ children }) {
         totalizerPositive: false,
         totalizerNegative: false
     })
+    // Logger modifying logger config
+    const [loggerConfig, setLoggerConfig] = useState({})
+    const [loadingConfigChange, setloadingConfigChange] = useState(false)
+
     const today = new Date((new Date()).toDateString())
     // Time interval for report generation
     // TODO: Set to latest log 
@@ -70,18 +74,28 @@ export function DrawerDialogProvider({ children }) {
         return logDatesResponse.data
     }
 
-    // cleanup when closing
     useEffect(() => {
-        if (reportDialogOpen) return
-        setReportChecked({
-            flow: false,
-            pressure: false,
-            voltage: false,
-            totalizerPositive: false,
-            totalizerNegative: false
-        })
-        setLink(null)
+        // cleanup when closing report dialog
+        return () => {
+            setLoadingReport(false)
+            setReportChecked({
+                flow: false,
+                pressure: false,
+                voltage: false,
+                totalizerPositive: false,
+                totalizerNegative: false
+            })
+            setLink(null)
+        }
     }, [reportDialogOpen])
+
+    useEffect(() => {
+        // cleanup when closing config dialog
+        return () => {
+            setLoggerConfig({})
+            setloadingConfigChange(false)
+        }
+    }, [loggerDialogOpen])
 
     const value = useMemo(() => ({
         chartDrawerOpen, setChartDrawerOpen, logger, setLogger, loggerInfo, setLoggerInfo, loggerDialogOpen, setLoggerDialogOpen, fetchLoggerInfo
@@ -98,7 +112,6 @@ export function DrawerDialogProvider({ children }) {
                             <Button variant="ghost" className="mx-1 px-1" onClick={async () => {
                                 if (logger) {
                                     await fetchLoggerInfo(logger.LoggerId).then((response) => {
-                                        console.log(JSON.stringify(response))
                                         setLoggerInfo(response[0])
                                         setLoggerDialogOpen(true)
                                     })
@@ -165,27 +178,93 @@ export function DrawerDialogProvider({ children }) {
                         <DialogDescription>Only Admins can modify logger configuration and information</DialogDescription>
                     </DialogHeader>
                     {loggerInfo ?
-                        <div className="text-center">
-                            <p className="text-lg text-left font-semibold">Logger Info</p>
-                            <Label htmlFor="loggerName" >Logger Name</Label>
-                            <Input id={"loggerName"} placeholder={loggerInfo.Name?.replaceAll('-', ' ').split('_').slice(2)} disabled />
-                            <Label htmlFor="loggerName" >Logger ID</Label>
-                            <Input id={"loggerID"} placeholder={loggerInfo.LoggerId} disabled />
-                            <Label htmlFor="loggerName" >Logger Latitude</Label>
-                            <Input id={"loggerLat"} placeholder={loggerInfo.Latitude} disabled />
-                            <Label htmlFor="loggerName" >Logger Longitude</Label>
-                            <Input id={"loggerLong"} placeholder={loggerInfo.Longitude} disabled />
-                            <br />
-                            <p className="text-lg text-left font-semibold">Logger Alarm Limits</p>
-                            <Label htmlFor="loggerName" >Voltage Limit</Label>
-                            <Input id={"loggerName"} placeholder={loggerInfo?.VoltageLimit?.replace(',', ' - ') ?? "N/A"} disabled />
-                            <Label htmlFor="loggerName" >Flow Limit</Label>
-                            <Input id={"loggerID"} placeholder={loggerInfo?.FlowLimit?.replace(',', ' - ') ?? "N/A"} disabled />
-                            <Label htmlFor="loggerName" >Pressure Limit</Label>
-                            <Input id={"loggerLat"} placeholder={loggerInfo?.PressureLimit?.replace(',', ' - ') ?? "N/A"} disabled />
+                        // TODO: Change min max to sliders
+                        // TODO: Input validation using zod
+                        <div className="text-left">
+                            <p className="text-xl text-left font-semibold">Logger Info</p>
+                            <div className="grid grid-cols-2 gap-x-4">
+                                <div>
+                                    <Label htmlFor="loggerName" className="text-slate-600">Logger Name</Label>
+                                    <Input id={"loggerName"} placeholder={loggerInfo.Name?.replaceAll('-', ' ').split('_').slice(2)} disabled />
+                                </div>
+                                <div>
+                                    <Label htmlFor="loggerID" className="text-slate-600">Logger ID</Label>
+                                    <Input id={"loggerID"} placeholder={loggerInfo.LoggerId} disabled />
+                                </div>
+                                <div>
+                                    <Label htmlFor="loggerLat" className="text-slate-600">Latitude</Label>
+                                    <Input id={"loggerLat"} placeholder={loggerInfo.Latitude}
+                                        onChange={(e) => setLoggerConfig({ ...loggerConfig, Latitude: e.target.value })} disabled />
+                                </div>
+                                <div>
+                                    <Label htmlFor="loggerLong" className="text-slate-600">Longitude</Label>
+                                    <Input id={"loggerLong"} placeholder={loggerInfo.Longitude}
+                                        onChange={(e) => setLoggerConfig({ ...loggerConfig, Longitude: e.target.value })} disabled />
+                                </div>
+                            </div>
+                            <div className="my-2"/>
+                            <p className="text-xl text-left font-semibold">Logger Alarm Limits</p>
+                            <div className="text-md font-medium">Voltage</div>
+                            <div className="flex items-center gap-x-4 mt-1">
+                                <Label htmlFor="voltageLow" className="text-slate-600">Lower Limit</Label>
+                                <Input id={"voltageLow"} placeholder={loggerInfo?.VoltageLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.VoltageLimit}
+                                    onChange={(e) => setLoggerConfig({ ...loggerConfig, VoltageLow: e.target.value })} />
+                                <Label htmlFor="voltageHigh" className="text-slate-600">Upper Limit</Label>
+                                <Input id={"voltageHigh"} placeholder={loggerInfo?.VoltageLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.VoltageLimit}
+                                    onChange={(e) => setLoggerConfig({ ...loggerConfig, VoltageHigh: e.target.value })} />
+                            </div>
+                            <div className="text-md font-medium mt-1">Flow</div>
+                            <div className="flex items-center space-x-2 mt-1">
+                                <Label htmlFor="flowLow" className="text-slate-600">Lower Limit</Label>
+                                <Input id={"flowLow"} placeholder={loggerInfo?.FlowLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.FlowLimit}
+                                    onChange={(e) => setLoggerConfig({ ...loggerConfig, FlowLow: e.target.value })} />
+                                <Label htmlFor="flowHigh" className="text-slate-600">Upper Limit</Label>
+                                <Input id={"flowHigh"} placeholder={loggerInfo?.FlowLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.FlowLimit}
+                                    onChange={(e) => setLoggerConfig({ ...loggerConfig, FlowHigh: e.target.value })} />
+                            </div>
+                            <div className="text-md font-medium mt-1">Pressure</div>
+                            <div className="flex items-center space-x-2 mt-1">
+                                <Label htmlFor="pressureLow" className="text-slate-600">Lower Limit</Label>
+                                <Input id={"pressureLow"} placeholder={loggerInfo?.PressureLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.PressureLimit}
+                                    onChange={(e) => setLoggerConfig({ ...loggerConfig, PressureLow: e.target.value })} />
+                                <Label htmlFor="pressureHigh" className="text-slate-600">Upper Limit</Label>
+                                <Input id={"pressureHigh"} placeholder={loggerInfo?.PressureLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.PressureLimit}
+                                    onChange={(e) => setLoggerConfig({ ...loggerConfig, PressureHigh: e.target.value })} />
+                            </div>
                         </div> : <Loader2Icon className="animate-spin m-auto size-16" />}
                     <DialogClose asChild><Button>Close</Button></DialogClose>
-                    <Button className="bg-green-500" onClick={() => setLoggerDialogOpen(false)} disabled>Save</Button>
+                    {!loadingConfigChange ?
+                        <Button className="bg-green-500" onClick={async () => {
+                            setloadingConfigChange(true)
+                            toast.loading("Updating Limits")
+                            const _loggerConfig = {}
+                            if (loggerConfig.VoltageLow && loggerConfig.VoltageHigh) {
+                                _loggerConfig.VoltageLimit = loggerConfig.VoltageLow + ',' + loggerConfig.VoltageHigh
+                            }
+                            if (loggerConfig.FlowLow && loggerConfig.FlowHigh) {
+                                _loggerConfig.FlowLimit = loggerConfig.FlowLow + ',' + loggerConfig.FlowHigh
+                            }
+                            if (loggerConfig.PressureLow && loggerConfig.PressureHigh) {
+                                _loggerConfig.PressureLimit = loggerConfig.PressureLow + ',' + loggerConfig.PressureHigh
+                            }
+                            // Update logger config
+                            try {
+                                const changeConfigResponse = await axios.patch(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger_limits/${loggerInfo.LoggerId}`, {
+                                    ..._loggerConfig
+                                })
+                                setTimeout(() => {
+                                    toast.dismiss()
+                                    toast.success("Limits Changed!", { description: "The logger configuration limits have been successfully updated." })}, 500)
+                            } catch (e) {
+                                setTimeout(() => {
+                                    toast.dismiss()
+                                    toast.error("Invalid Limits!", { description: "There was an error updating the logger configuration limits. Please check the values and try again." })}, 500)
+                            }
+                            setloadingConfigChange(false)
+                            // setLoggerDialogOpen(false)
+                        }} disabled={loadingConfigChange}>Save</Button>
+                        : <Button className="bg-green-500"> <Loader2Icon className="animate-spin" /></Button>
+                    }
                 </DialogContent>
             </Dialog>
             {/* Report Generation Dialog */}
@@ -364,7 +443,7 @@ export function DrawerDialogProvider({ children }) {
                 </DialogContent>
             </Dialog>
             {children}
-        </DrawerDialogContext.Provider>
+        </DrawerDialogContext.Provider >
     )
 }
 

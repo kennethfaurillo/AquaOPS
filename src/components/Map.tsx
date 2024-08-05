@@ -278,19 +278,19 @@ function LoggerMapCard() {
         : null}
       {fullscreenMap ?
         <>
-          <div className='absolute bottom-8 left-8 flex gap-2 justify-center items-center'>
+          <div className='absolute bottom-8 left-8 flex gap-2 justify-center items-center rounded-md backdrop-blur-[2px] z-[400]'>
             <Avatar className='z-[400] size-10 sm:size-14'>
               <AvatarFallback>PIWAD</AvatarFallback>
               <AvatarImage src='src/assets/piwad_logo.png' />
             </Avatar>
             <h2 className='text-xl sm:text-3xl font-sans font-extralight text-piwad-blue-400 z-[400]'>AquaOps</h2>
           </div>
-          <div className='sm:grid grid-cols-9 space-y-2 w-full px-0 md:px-72'>
-            <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center z-[400]">
+          <div className='flex justify-around space-y-2 w-full px-0 md:px-72'>
+            <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-start-1 col-span-3 justify-center flex items-center backdrop-blur-[1px] z-[400]">
               {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
-            <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center z-[400]">
+            <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center backdrop-blur-[1px] z-[400]">
               {loggersStatus.Inactive}&nbsp;<BadgeAlertIcon className='sm:mx-1' color='yellow' />&nbsp;Inactive</div>
-            <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center z-[400]">
+            <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-2 justify-center flex items-center backdrop-blur-[1px] z-[400]">
               {loggersStatus.Disabled}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Disabled</div>
           </div>
         </>
