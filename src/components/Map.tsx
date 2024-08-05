@@ -191,8 +191,8 @@ function LoggerMapCard() {
       // dblclick() {
       //   map.toggleFullscreen()
       // },
-      keypress(e){
-        if(!(e.originalEvent.key == 'f' || e.originalEvent.key == 'F')) return
+      keypress(e) {
+        if (!(e.originalEvent.key == 'f' || e.originalEvent.key == 'F')) return
         map.toggleFullscreen()
       }
     })
@@ -222,52 +222,52 @@ function LoggerMapCard() {
           <GeoJSON data={piliBoundary} style={{ fillOpacity: 0, weight: 1, color: 'orange' }} onEachFeature={onEachArea} />
         </Overlay>
         <Overlay name='Pipelines' checked>
-        <GeoJSON data={pipelines} style={(feature) => ({
-          color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",//"#6792A090",
-          weight: weight,
-        })}
-          onEachFeature={onEachPipeline}
-        />
+          <GeoJSON data={pipelines} style={(feature) => ({
+            color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",//"#6792A090",
+            weight: weight,
+          })}
+            onEachFeature={onEachPipeline}
+          />
         </Overlay>
         <Overlay name='DMA Boundaries'>
         </Overlay>
         <Overlay name='Data Loggers' checked>
           <LayerGroup>
-        {loggersLatest.size ?
-        <>
-          {Array.from(loggersLatest, ([loggerId, loggerData]) => (
-            <div key={loggerId}>
-              <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={loggerIcon} eventHandlers={{
-                click: () => {
-                  if (fullscreenMap) map.toggleFullscreen()
-                  setChartDrawerOpen(true)
-                  setLogger(loggerData)
-                },
-              }}>
-                <Tooltip permanent direction={'top'}>
-                  <div className='text-piwad-blue-400 font-bold drop-shadow-xl'>
-                    {loggerData.CurrentPressure ? <>{loggerData.CurrentPressure}<em> psi</em><br /></> : null}
+            {loggersLatest.size ?
+              <>
+                {Array.from(loggersLatest, ([loggerId, loggerData]) => (
+                  <div key={loggerId}>
+                    <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={loggerIcon} eventHandlers={{
+                      click: () => {
+                        if (fullscreenMap) map.toggleFullscreen()
+                        setChartDrawerOpen(true)
+                        setLogger(loggerData)
+                      },
+                    }}>
+                      <Tooltip permanent direction={'top'}>
+                        <div className='text-piwad-blue-400 font-bold drop-shadow-xl'>
+                          {loggerData.CurrentPressure ? <>{loggerData.CurrentPressure}<em> psi</em><br /></> : null}
+                        </div>
+                        <div className='text-[#f1663b] font-bold'>
+                          {loggerData.CurrentFlow ? <>{loggerData.CurrentFlow}<em> lps</em></> : null}
+                        </div>
+                        <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
+                          {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('M/D HH:mm')}<br /></> : null}
+                        </div>
+                      </Tooltip>
+                    </Marker>
+                    <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
+                      {basemap?.name == "stdDark" ?
+                        <div><Tooltip permanent direction='bottom' className='logger-label-dark' >{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip></div> :
+                        <Tooltip permanent direction='bottom'>{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip>
+                      }
+                    </Marker>
                   </div>
-                  <div className='text-[#f1663b] font-bold'>
-                    {loggerData.CurrentFlow ? <>{loggerData.CurrentFlow}<em> lps</em></> : null}
-                  </div>
-                  <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
-                    {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('M/D HH:mm')}<br /></> : null}
-                  </div>
-                </Tooltip>
-              </Marker>
-              <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
-                {basemap?.name == "stdDark" ?
-                  <div><Tooltip permanent direction='bottom' className='logger-label-dark' >{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip></div> :
-                  <Tooltip permanent direction='bottom'>{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip>
-                }
-              </Marker>
-            </div>
-          ))}
-        </>
-        : null
-      }
-      </LayerGroup>
+                ))}
+              </>
+              : null
+            }
+          </LayerGroup>
         </Overlay>
       </LayersControl>
       <MapEvents />
@@ -277,22 +277,22 @@ function LoggerMapCard() {
           : <Button className='absolute bottom-8 right-4 z-[401] size-12 p-0 rounded-full opacity-80' variant={"secondary"} onClick={themeToggleOnclick}><SunIcon /></Button>
         : null}
       {fullscreenMap ?
-      <>
-        <div className='absolute bottom-8 left-8 flex gap-2 justify-center items-center'>
-          <Avatar className='z-[400] size-10 sm:size-14'>
-            <AvatarFallback>PIWAD</AvatarFallback>
-            <AvatarImage src='src/assets/piwad_logo.png'/>
-          </Avatar>
-          <h2 className='text-xl sm:text-3xl font-sans font-extralight text-piwad-blue-400 z-[400]'>AquaOps</h2>
-        </div>
-        <div className='sm:grid grid-cols-9 space-y-2 w-full px-0 md:px-72'>
-          <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center z-[400]">
-            {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
-          <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center z-[400]">
-            {loggersStatus.Inactive}&nbsp;<BadgeAlertIcon className='sm:mx-1' color='yellow' />&nbsp;Inactive</div>
-          <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center z-[400]">
-            {loggersStatus.Disabled}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Disabled</div>
-        </div>
+        <>
+          <div className='absolute bottom-8 left-8 flex gap-2 justify-center items-center'>
+            <Avatar className='z-[400] size-10 sm:size-14'>
+              <AvatarFallback>PIWAD</AvatarFallback>
+              <AvatarImage src='src/assets/piwad_logo.png' />
+            </Avatar>
+            <h2 className='text-xl sm:text-3xl font-sans font-extralight text-piwad-blue-400 z-[400]'>AquaOps</h2>
+          </div>
+          <div className='sm:grid grid-cols-9 space-y-2 w-full px-0 md:px-72'>
+            <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center z-[400]">
+              {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
+            <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center z-[400]">
+              {loggersStatus.Inactive}&nbsp;<BadgeAlertIcon className='sm:mx-1' color='yellow' />&nbsp;Inactive</div>
+            <div className="text-piwad-blue-400 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center z-[400]">
+              {loggersStatus.Disabled}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Disabled</div>
+          </div>
         </>
         : null}
     </MapContainer>
@@ -306,13 +306,10 @@ function LoggerMapCard() {
             <div className="grid grid-cols-6">
               <div className="col-span-6 sm:col-span-2">
                 <p className="mb-1 text-piwad-lightyellow-300">Data Logger Map</p>
-                {/* <Separator className='mt-2 w-[1/12]'/> */}
                 <div className="text-base text-slate-200 mb-2 ">{map ? <DisplayPosition map={map} /> : null}</div>
               </div>
               <div className="col-span-6 sm:col-span-4 flex items-center space-x-4 rounded-md border-2 border-piwad-yellow-0 -my-2 py-2">
                 <div className="grid grid-cols-9 flex-1 space-y-1 mx-4">
-                  {/* <div className="text-piwad-yellow-50 hidden md:flex text-sm md:text-xl font-medium co leading-none col-span-full justify-center sm:justify-normal md:col-span-2 items-center">
-                    Logger Status:</div> */}
                   <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center  flex items-center">
                     {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
                   <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center  flex items-center">

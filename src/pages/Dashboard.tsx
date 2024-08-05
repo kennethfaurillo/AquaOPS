@@ -9,6 +9,7 @@ import '../index.css';
 import { DrawerDialogProvider } from "@/hooks/useDrawerDialogContext";
 import { ExpandIcon } from "lucide-react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import TableCard from "@/components/TableCard";
 
 
 function DashboardPage() {
@@ -35,7 +36,7 @@ function DashboardPage() {
                         <DrawerDialogProvider>
                             {dashboardPrefs?.showLoggerList ?
                                 <div className={`col-span-full xl:col-span-3`}>
-                                    <LatestLogsCard />
+                                    <TableCard />
                                 </div> : null
                             }
                             {dashboardPrefs?.showLoggerMap ?
@@ -43,7 +44,6 @@ function DashboardPage() {
                                     <LoggerMapCard />
                                 </div> : null
                             }
-                            <div className="col-span-3 size-24 overflow-hidden border"></div>
                         </DrawerDialogProvider>
                     </div>
                 </div >
