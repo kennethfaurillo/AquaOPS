@@ -15,9 +15,9 @@ function TableCard() {
             <TooltipProvider delayDuration={200}>
                 <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} >
                     <TabsList className="grid grid-cols-3 w-full mr-1 bg-slate-200/80">
-                        <TabsTrigger value="loggers">Data Loggers</TabsTrigger>
-                        <TabsTrigger value="sources">Water Sources</TabsTrigger>
-                        <TabsTrigger value="stations">Pump Stations</TabsTrigger>
+                        <TabsTrigger value="loggers">Loggers</TabsTrigger>
+                        <TabsTrigger value="sources">Sources</TabsTrigger>
+                        <TabsTrigger value="stations">Stations</TabsTrigger>
                     </TabsList>
                     {/* <CardTitle className='text-piwad-lightyellow-300'>
                         Data Logger List

@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
         })
         if (validateTokenResponse.data.pass) {
             console.log("valid token")
-            await login(validateTokenResponse.data.user, validateTokenResponse.data.Token)
+            await login(validateTokenResponse.data.user, _token)
         } else {
             console.log("Token invalid/expired")
             await logout()

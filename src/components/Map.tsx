@@ -128,7 +128,6 @@ function LoggerMapCard() {
           })
         })
         setLoggersLatest(tempLoggersLatest)
-        console.log(tempLoggersLatest)
       }
       catch (error) {
         console.log(error)
@@ -201,6 +200,7 @@ function LoggerMapCard() {
 
   const displayMap = (() => (
     <MapContainer // @ts-ignore
+      className='cursor-crosshair'
       center={[13.58438280013, 123.2738403740]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
       scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
       maxBounds={[[13.676173, 123.111745], [13.516072, 123.456730]]}>
