@@ -1,15 +1,13 @@
-import LatestLogsCard from "@/components/LatestLogsCard";
+import TableCard from "@/components/TableCard";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
+import { DrawerDialogProvider } from "@/hooks/useDrawerDialogContext";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import '../App.css';
 import Header from "../components/Header";
 import LoggerMapCard from "../components/Map";
 import '../index.css';
-import { DrawerDialogProvider } from "@/hooks/useDrawerDialogContext";
-import { ExpandIcon } from "lucide-react";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import TableCard from "@/components/TableCard";
 
 
 function DashboardPage() {

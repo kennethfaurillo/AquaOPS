@@ -16,6 +16,7 @@ export default defineConfig({
     //   key: fs.readFileSync(path.resolve(__dirname, 'server.key')),
     //   cert: fs.readFileSync(path.resolve(__dirname, 'server.cert')),
     // },
-    host: true
+    host: true,
+    open: true
 }
 })

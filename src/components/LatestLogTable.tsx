@@ -35,7 +35,6 @@ function LoggerTable(props) {
       header: ({ column }) => {
         return (
           <>
-
             <Button variant="ghost" className="px-2" onClick={() => {
               column.toggleSorting(column.getIsSorted() === "asc")
             }}>
@@ -49,17 +48,17 @@ function LoggerTable(props) {
       },
       cell: ({ row }) => {
         const nameSplit = row.getValue("Name").split('_')
-        const name = nameSplit.slice(2).toString().replaceAll('-', ' ')
+        const name = nameSplit.slice(2).toString().replaceAll('-', ' ').replaceAll('=', '-')
         const type = nameSplit.slice(1, 2)
         return (
           <>
             <Button variant={"link"} onClick={() => {
               setChartDrawerOpen(true)
               setLogger(row.original)
-            }} className="p-0 block text-left"><p className="font-bold">{name}</p><p className="text-muted-foreground">{row.getValue("LoggerId")}</p></Button>
+            }} className="p-0 block text-left whitespace-pre-wrap max-w-20 h-fit"><p className="font-bold">{name}</p><p className="text-muted-foreground">{row.getValue("LoggerId")}</p></Button>
           </>
         )
-      }
+      },
     },
     {
       accessorKey: "LoggerId",

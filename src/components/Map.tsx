@@ -107,26 +107,21 @@ function LoggerMapCard() {
         const loggersInfoResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
         const latestLogsResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`)
         let tempLoggersLatest = new Map()
+        const tempLoggersStatus = { Active: 0, Inactive: 0, Disabled: 0 }
         loggersInfoResponse.data.map((logger: Datalogger) => {
           latestLogsResponse.data.map((log: DataLog) => {
             if (logger.LoggerId == log.LoggerId) {
               tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
-              // TODO: Adjust active status timeout
               // Count as Active if last log within 3 days 
               if (new Date(log.LogTime) > addDays(new Date(), -3)) {
-                setLoggersStatus({
-                  ...loggersStatus,
-                  Active: loggersStatus.Active++
-                })
+                tempLoggersStatus.Active++
               } else {
-                setLoggersStatus({
-                  ...loggersStatus,
-                  Inactive: loggersStatus.Inactive++
-                })
+                tempLoggersStatus.Inactive++
               }
             }
           })
         })
+        setLoggersStatus(tempLoggersStatus)
         setLoggersLatest(tempLoggersLatest)
       }
       catch (error) {
@@ -252,14 +247,15 @@ function LoggerMapCard() {
                           {loggerData.CurrentFlow ? <>{loggerData.CurrentFlow}<em> lps</em></> : null}
                         </div>
                         <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
-                          {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('M/D HH:mm')}<br /></> : null}
+                          {/* {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('M/D h:mm a')}<br /></> : null} */}
+                          {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('M/D h:mm a')}<br /></> : null}
                         </div>
                       </Tooltip>
                     </Marker>
                     <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
                       {basemap?.name == "stdDark" ?
-                        <div><Tooltip permanent direction='bottom' className='logger-label-dark' >{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip></div> :
-                        <Tooltip permanent direction='bottom'>{loggerData.Name.replaceAll('-', ' ').split('_').slice(2)}</Tooltip>
+                        <div><Tooltip permanent direction='bottom' className='logger-label-dark' >{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip></div> :
+                        <Tooltip permanent direction='bottom'>{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip>
                       }
                     </Marker>
                   </div>
@@ -278,7 +274,7 @@ function LoggerMapCard() {
         : null}
       {fullscreenMap ?
         <>
-          <div className='absolute bottom-8 left-8 flex gap-2 justify-center items-center rounded-md backdrop-blur-[2px] z-[400]'>
+          <div className='absolute bottom-8 left-8 flex gap-2 mx-2 justify-center items-center rounded-lg backdrop-blur-[2px] z-[400]'>
             <Avatar className='z-[400] size-10 sm:size-14'>
               <AvatarFallback>PIWAD</AvatarFallback>
               <AvatarImage src='src/assets/piwad_logo.png' />

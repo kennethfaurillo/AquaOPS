@@ -53,7 +53,6 @@ export function DrawerDialogProvider({ children }) {
 
     const today = new Date((new Date()).toDateString())
     // Time interval for report generation
-    // TODO: Set to latest log 
     const [date, setDate] = useState<DateRange | undefined>({
         from: addDays(today, -1),
         to: today,
@@ -108,7 +107,7 @@ export function DrawerDialogProvider({ children }) {
                 <DrawerContent>
                     <DrawerHeader className="relative">
                         <DrawerTitle className="text-piwad-lightblue-500 text-3xl inline-flex">
-                            {logger?.Name.replaceAll('-', ' ').split('_').slice(2) ?? "Unnamed"} LOGGER
+                            {logger?.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2) ?? "Unnamed"} LOGGER
                             <Button variant="ghost" className="mx-1 px-1" onClick={async () => {
                                 if (logger) {
                                     await fetchLoggerInfo(logger.LoggerId).then((response) => {
@@ -185,7 +184,7 @@ export function DrawerDialogProvider({ children }) {
                             <div className="grid grid-cols-2 gap-x-4">
                                 <div>
                                     <Label htmlFor="loggerName" className="text-slate-600">Logger Name</Label>
-                                    <Input id={"loggerName"} placeholder={loggerInfo.Name?.replaceAll('-', ' ').split('_').slice(2)} disabled />
+                                    <Input id={"loggerName"} placeholder={loggerInfo.Name?.split('_').slice(2)} disabled />
                                 </div>
                                 <div>
                                     <Label htmlFor="loggerID" className="text-slate-600">Logger ID</Label>
@@ -272,7 +271,7 @@ export function DrawerDialogProvider({ children }) {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle className="text-piwad-blue-500">Datalog Report Generation</DialogTitle>
-                        {loggerInfo ? <DialogDescription>For {loggerInfo.Name?.replaceAll('-', ' ').split('_').slice(2)} Logger</DialogDescription> : null}
+                        {loggerInfo ? <DialogDescription>For {loggerInfo.Name?.replaceAll('-', ' ').replaceAll('=','-').split('_').slice(2)} Logger</DialogDescription> : null}
                     </DialogHeader>
                     {loggerInfo ?
                         <div className="text-center">

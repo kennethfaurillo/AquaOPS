@@ -1,10 +1,9 @@
+import { PlusCircleIcon } from "lucide-react";
 import { useState } from "react";
 import LatestLogTable from "./LatestLogTable";
-import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Separator } from "./ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { PlusCircleIcon, PlusIcon, PlusSquareIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 function TableCard() {

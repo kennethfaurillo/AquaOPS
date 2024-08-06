@@ -61,7 +61,7 @@ function LogLineChart(props) {
     const [hideLine, setHideLine] = useState({
         CurrentPressure: false,
         CurrentFlow: false,
-        AverageVoltage: false,
+        AverageVoltage: true,
         totalizerPositive: false,
         totalizerNegative: false,
     })
