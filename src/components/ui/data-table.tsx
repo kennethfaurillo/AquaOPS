@@ -13,7 +13,10 @@ interface DataTableProps<TData, TValue, TInitState, TLoading> {
 }
 
 export function DataTable<TData, TValue, TInitState, TLoading>({ columns, data, initialState, loading }: DataTableProps<TData, TValue, TInitState, TLoading>) {
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>([{
+    id: "LogTime",
+    desc: true, // Adjust the sorting order if needed
+  }])
   const test = {
     pagination: {
       pageSize: 8,
@@ -58,16 +61,16 @@ export function DataTable<TData, TValue, TInitState, TLoading>({ columns, data, 
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
               ))
             )
               : (
@@ -85,13 +88,13 @@ export function DataTable<TData, TValue, TInitState, TLoading>({ columns, data, 
                 <TableCell className="font-medium"><Skeleton className="w-[50px] h-[20px] rounded-full" /></TableCell>
                 <TableCell className="font-medium"><Skeleton className="w-[50px] h-[20px] rounded-full" /></TableCell>
               </TableRow>)
-            ) : 
-                // TableRow>
-                //   <TableCell colSpan={columns.length} className="h-24 text-center">
-                //     No results.
-                //   </TableCell>
-                // </TableRow>
-            <></>}
+            ) :
+              // TableRow>
+              //   <TableCell colSpan={columns.length} className="h-24 text-center">
+              //     No results.
+              //   </TableCell>
+              // </TableRow>
+              <></>}
           </TableBody>
         </Table>
       </div>

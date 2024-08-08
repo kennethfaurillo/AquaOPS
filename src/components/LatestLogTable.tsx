@@ -95,7 +95,6 @@ function LoggerTable(props) {
     {
       accessorKey: "LogTime",
       header: ({ column }) => {
-        column.toggleSorting(true)
         return (
           <Button variant="ghost" className="px-1" onClick={() => {
             column.toggleSorting(column.getIsSorted() === "asc")
