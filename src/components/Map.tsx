@@ -1,8 +1,11 @@
 import { piliBoundary } from '@/assets/shpPiliBoundary';
 import { pipelines } from '@/assets/shpPipelines';
+import { source_well } from '@/assets/shpSourceWell';
+import { source_spring } from '@/assets/shpSourceSpring';
+import { source_surface } from '@/assets/shpSourceSurface';
 import ResetViewControl from '@20tab/react-leaflet-resetview';
 import axios from 'axios';
-import { addDays } from 'date-fns';
+import { addDays, addHours } from 'date-fns';
 import { DivIcon, Icon } from 'leaflet';
 import 'leaflet.fullscreen/Control.FullScreen.css';
 import 'leaflet.fullscreen/Control.FullScreen.js';
@@ -18,8 +21,34 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
-let loggerIcon = new Icon({
+
+const loggerIcon = new Icon({
   iconUrl: "src/assets/meter.png",
+  iconSize: [30, 30],
+})
+
+const wellIcon = new Icon({
+  iconUrl: "src/assets/water-well2.png",
+  iconSize: [20, 20],
+})
+
+const springIcon = new Icon({
+  iconUrl: "src/assets/hot-spring.png",
+  iconSize: [30, 30],
+})
+
+const riverIcon = new Icon({
+  iconUrl: "src/assets/river.png",
+  iconSize: [30, 30],
+})
+
+const sumpIcon = new Icon({
+  iconUrl: "src/assets/sump.png",
+  iconSize: [30, 30],
+})
+
+const damIcon = new Icon({
+  iconUrl: "src/assets/dam2.png",
   iconSize: [30, 30],
 })
 
@@ -73,6 +102,8 @@ function LoggerMapCard() {
 
   const { setLogger, setChartDrawerOpen, } = useDrawerDialogContext()
   const { BaseLayer, Overlay } = LayersControl
+  const scaleFactor = 1
+  const pollMs = 300000
 
   useEffect(() => {
     if (!map) return
@@ -80,7 +111,7 @@ function LoggerMapCard() {
     const updateWeight = () => {
       const zoom = map.getZoom();
       // Adjust weight based on zoom level
-      const newWeight = Math.max(2, 1 + (zoom - 13) / 1); // Example calculation
+      const newWeight = Math.max(2, 1 + (zoom - 13) / scaleFactor);
       setWeight(newWeight);
     };
 
@@ -113,7 +144,7 @@ function LoggerMapCard() {
             if (logger.LoggerId == log.LoggerId) {
               tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
               // Count as Active if last log within 3 days 
-              if (new Date(log.LogTime) > addDays(new Date(), -3)) {
+              if (new Date(log.LogTime) > addHours(new Date(), -24)) {
                 tempLoggersStatus.Active++
               } else {
                 tempLoggersStatus.Inactive++
@@ -129,6 +160,10 @@ function LoggerMapCard() {
       }
     }
     fetchData()
+    const poll = setInterval(() => {
+      fetchData()
+    }, pollMs)
+    return () => clearInterval(poll)
   }, [])
 
   const DisplayPosition = ({ map }) => {
@@ -172,6 +207,29 @@ function LoggerMapCard() {
       });
     }
   };
+
+  const onEachWell = (feature, layer) => {
+    layer.setIcon(wellIcon)
+    layer.on('click', () => {
+      toast.info(`Well Source: ${feature.properties?.well_activ}`)
+    })
+  }
+
+  const onEachSpring = (feature, layer) => {
+    layer.setIcon(springIcon)
+    console.log(feature)
+    layer.on('click', () => {
+      toast.info(`Spring Source: ${feature.properties?.SPRING}`)
+    })
+  }
+
+  const onEachSurface = (feature, layer) => {
+    layer.setIcon(damIcon)
+    console.log(feature)
+    layer.on('click', () => {
+      toast.info(`Surface Water: ${feature.properties?.SURFACE}`)
+    })
+  }
 
   const themeToggleOnclick = () => {
     setBasemap(basemaps.find((bmap) => bmap.name != basemap.name))
@@ -218,11 +276,20 @@ function LoggerMapCard() {
         </Overlay>
         <Overlay name='Pipelines' checked>
           <GeoJSON data={pipelines} style={(feature) => ({
-            color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",//"#6792A090",
+            color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",
             weight: weight,
           })}
             onEachFeature={onEachPipeline}
           />
+        </Overlay>
+        <Overlay name='Wells' checked>
+          <GeoJSON data={source_well} onEachFeature={onEachWell}/>
+        </Overlay>
+        <Overlay name='Springs' checked>
+          <GeoJSON data={source_spring} onEachFeature={onEachSpring}/>
+        </Overlay>
+        <Overlay name='Surface Water' checked>
+          <GeoJSON data={source_surface} onEachFeature={onEachSurface}/>
         </Overlay>
         <Overlay name='DMA Boundaries'>
         </Overlay>
@@ -254,7 +321,7 @@ function LoggerMapCard() {
                     </Marker>
                     <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
                       {basemap?.name == "stdDark" ?
-                        <div><Tooltip permanent direction='bottom' className='logger-label-dark' >{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip></div> :
+                        <div><Tooltip permanent direction='bottom' className='logger-label-dark'>{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip></div> :
                         <Tooltip permanent direction='bottom'>{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip>
                       }
                     </Marker>
@@ -279,7 +346,7 @@ function LoggerMapCard() {
               <AvatarFallback>PIWAD</AvatarFallback>
               <AvatarImage src='src/assets/piwad_logo.png' />
             </Avatar>
-            <h2 className='text-xl sm:text-3xl font-sans font-extralight text-piwad-blue-400 z-[400]'>AquaOps</h2>
+            <h2 className='text-xl sm:text-5xl font-sans font-extralight text-piwad-blue-400 z-[400]'>AquaOps</h2>
           </div>
           <div className='flex justify-around space-y-2 w-full px-0 md:px-72'>
             <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-start-1 col-span-3 justify-center flex items-center backdrop-blur-[1px] z-[400]">

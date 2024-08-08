@@ -206,28 +206,28 @@ export function DrawerDialogProvider({ children }) {
                             <div className="text-md font-medium">Voltage</div>
                             <div className="flex items-center gap-x-4 mt-1">
                                 <Label htmlFor="voltageLow" className="text-slate-600">Lower Limit</Label>
-                                <Input id={"voltageLow"} placeholder={loggerInfo?.VoltageLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.VoltageLimit}
+                                <Input id={"voltageLow"} placeholder={loggerInfo?.VoltageLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.VoltageLimit || user.Type != 'admin'}
                                     onChange={(e) => setLoggerConfig({ ...loggerConfig, VoltageLow: e.target.value })} />
                                 <Label htmlFor="voltageHigh" className="text-slate-600">Upper Limit</Label>
-                                <Input id={"voltageHigh"} placeholder={loggerInfo?.VoltageLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.VoltageLimit}
+                                <Input id={"voltageHigh"} placeholder={loggerInfo?.VoltageLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.VoltageLimit || user.Type != 'admin'}
                                     onChange={(e) => setLoggerConfig({ ...loggerConfig, VoltageHigh: e.target.value })} />
                             </div>
                             <div className="text-md font-medium mt-1">Flow</div>
                             <div className="flex items-center space-x-2 mt-1">
                                 <Label htmlFor="flowLow" className="text-slate-600">Lower Limit</Label>
-                                <Input id={"flowLow"} placeholder={loggerInfo?.FlowLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.FlowLimit}
+                                <Input id={"flowLow"} placeholder={loggerInfo?.FlowLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.FlowLimit || user.Type != 'admin'}
                                     onChange={(e) => setLoggerConfig({ ...loggerConfig, FlowLow: e.target.value })} />
                                 <Label htmlFor="flowHigh" className="text-slate-600">Upper Limit</Label>
-                                <Input id={"flowHigh"} placeholder={loggerInfo?.FlowLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.FlowLimit}
+                                <Input id={"flowHigh"} placeholder={loggerInfo?.FlowLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.FlowLimit || user.Type != 'admin'}
                                     onChange={(e) => setLoggerConfig({ ...loggerConfig, FlowHigh: e.target.value })} />
                             </div>
                             <div className="text-md font-medium mt-1">Pressure</div>
                             <div className="flex items-center space-x-2 mt-1">
                                 <Label htmlFor="pressureLow" className="text-slate-600">Lower Limit</Label>
-                                <Input id={"pressureLow"} placeholder={loggerInfo?.PressureLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.PressureLimit}
+                                <Input id={"pressureLow"} placeholder={loggerInfo?.PressureLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.PressureLimit || user.Type != 'admin'}
                                     onChange={(e) => setLoggerConfig({ ...loggerConfig, PressureLow: e.target.value })} />
                                 <Label htmlFor="pressureHigh" className="text-slate-600">Upper Limit</Label>
-                                <Input id={"pressureHigh"} placeholder={loggerInfo?.PressureLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.PressureLimit}
+                                <Input id={"pressureHigh"} placeholder={loggerInfo?.PressureLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.PressureLimit || user.Type != 'admin'}
                                     onChange={(e) => setLoggerConfig({ ...loggerConfig, PressureHigh: e.target.value })} />
                             </div>
                         </div> : <Loader2Icon className="animate-spin m-auto size-16" />}

@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { capitalize } from "@/lib/utils";
 import axios from "axios";
-import { BarChartHorizontal, CloudIcon, FileClockIcon, GithubIcon, LifeBuoyIcon, Loader2Icon, LoaderCircleIcon, LogOutIcon, Settings, User } from "lucide-react";
+import { BarChartHorizontal, CloudIcon, FileClockIcon, GithubIcon, LifeBuoyIcon, Loader2Icon, LogOutIcon, Settings, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -9,15 +9,14 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "./ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Toggle } from "./ui/toggle";
 import { Switch } from "./ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 
@@ -102,8 +101,13 @@ function Header(props) {
                             <AvatarFallback className='text-xs'>PIWAD</AvatarFallback>
                         </Avatar>
                     </a>
-                    <h2 className="scroll-m-20 hidden md:block text-3xl font-sans tracking-tight first:mt-0 text-slate-100 ">PIWAD AquaOps</h2>
-                    <h2 className="scroll-m-20 md:hidden -ml-2 text-2xl font-sans tracking-tight first:mt-0 text-slate-100 ">AquaOps</h2>
+                    <div className="flex">
+                    <h2 className="scroll-m-20 hidden md:block text-3xl font-sans tracking-tight first:mt-0 text-slate-100 ">PIWAD</h2>
+                    <h2 className="md:block text-3xl text-blue-200 ml-2">Aqua</h2>
+                    <h2 className="md:block text-3xl text-yellow-500 ">OPS</h2>
+                    </div>
+                    {/* <h2 className="scroll-m-20 hidden md:block text-3xl font-sans tracking-tight first:mt-0 text-slate-100 ">PIWAD AquaOPS</h2> */}
+                    <h2 className="scroll-m-20 md:hidden -ml-2 text-2xl font-sans tracking-tight first:mt-0 text-slate-100 ">AquaOPS</h2>
                 </div>
                 <div className="flex ml-auto">
                     {props.user ? <>
@@ -116,7 +120,7 @@ function Header(props) {
                                         <div className="text-slate-50 text-2xl lg:block">{capitalize(user.Username) ?? "L"}</div>
                                         {/* <div className="text-slate-50 hidden text-3xl 2xl:block">{props.user.FirstName ?? "Firstname"} {capitalize(props.user.LastName) ?? "Lastname"}</div> */}
                                         <Avatar className="m-2 mr-4 size-9 sm:size-14 cursor-pointer" >
-                                            <AvatarImage src="src/assets/shadcn.jpg" />
+                                            <AvatarImage src={`src/assets/${user.Type == "admin" ? "software-engineer" : "engineer"}.png`}/>
                                             <AvatarFallback>User</AvatarFallback>
                                         </Avatar>
                                     </>
@@ -181,7 +185,7 @@ function Header(props) {
                                 <SheetHeader>
                                     <SheetTitle className="flex items-center text-2xl gap-2">
                                         <Avatar className="m-2 mr-2 size-14 sm:size-16">
-                                            <AvatarImage src="src/assets/shadcn.jpg" />
+                                            <AvatarImage src={`src/assets/${user.Type == "admin" ? "software-engineer" : "engineer"}.png`} />
                                             <AvatarFallback>User</AvatarFallback>
                                         </Avatar>
                                         <div className="grid grid-cols-2">

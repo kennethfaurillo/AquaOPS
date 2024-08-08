@@ -67,14 +67,15 @@
 }
 
 /* Media query for screens smaller than 640px */
-@media (min-width: 980px) {
+@media (min-width: 680px) {
     .leaflet-tooltip-bottom {
-        font-size: small;
-        font-weight: lighter;
+        font-size: x-small;
+        font-weight: 500;
     }
 }
 @media (min-width: 1600px) {
     .leaflet-tooltip-bottom {
-        font-size: medium;
+        font-size: small;
+        font-weight: lighter;
     }
 }

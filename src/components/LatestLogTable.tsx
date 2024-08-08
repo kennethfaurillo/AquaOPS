@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table"
+import { ColumnDef, sortingFns } from "@tanstack/react-table"
 import axios from 'axios'
 import { ArrowDownIcon, ArrowUpIcon, CircleGaugeIcon, Clock4Icon, MoreHorizontal, RouterIcon, ScatterChartIcon, SettingsIcon, WavesIcon } from "lucide-react"
 import moment from "moment"
@@ -13,6 +13,7 @@ function LoggerTable(props) {
   const [loggerData, setLoggerData] = useState([])
   const [loading, setLoading] = useState(true)
   const setLatestLog = props?.setLatestLog
+  const pollMs = 300000
 
   const {setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo} = useDrawerDialogContext()
 
@@ -94,6 +95,7 @@ function LoggerTable(props) {
     {
       accessorKey: "LogTime",
       header: ({ column }) => {
+        column.toggleSorting(true)
         return (
           <Button variant="ghost" className="px-1" onClick={() => {
             column.toggleSorting(column.getIsSorted() === "asc")
@@ -190,6 +192,10 @@ function LoggerTable(props) {
       })
     }
     fetchData()
+    const poll = setInterval(() => {
+      fetchData()
+    }, pollMs)
+    return () => clearInterval(poll)
   }, [])
 
   const initialState = {
@@ -198,7 +204,7 @@ function LoggerTable(props) {
     },
     pagination: {
       pageSize: 8,
-    }
+    },
   }
 
   return (
