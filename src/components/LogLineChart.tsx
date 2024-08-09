@@ -14,7 +14,6 @@ const colorMap = {
     DailyFlowNegative: "text-indigo-600"
 }
 
-
 const CustomCombinedLineTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
@@ -53,6 +52,8 @@ const CustomTotalizerBarTooltip = ({ active, payload, label }) => {
     }
 }
 
+const LOG_COUNT = 12
+
 function LogLineChart(props) {
     const [logData, setLogData] = useState([])
     const [totalizerData, setTotalizerData] = useState([])
@@ -90,7 +91,7 @@ function LogLineChart(props) {
             if (logResponse.data.length) {
                 // Filter logs here
                 setLogData(logResponse.data)
-                setFilteredLogData(logResponse.data.slice(-timeRange * 6))
+                setFilteredLogData(logResponse.data.slice(-timeRange * LOG_COUNT))
             } else {
                 setLogData([])
                 console.log("NO LOGS")
@@ -104,7 +105,7 @@ function LogLineChart(props) {
     // update filtered data when selected timerange changes
     useEffect(() => {
         if (logData) {
-            const _filteredLogData = logData.slice(-timeRange * 6)
+            const _filteredLogData = logData.slice(-timeRange * LOG_COUNT)
             setFilteredLogData(_filteredLogData)
             // console.log(_filteredLogData)
         }

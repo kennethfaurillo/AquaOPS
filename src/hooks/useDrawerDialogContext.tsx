@@ -134,7 +134,7 @@ export function DrawerDialogProvider({ children }) {
                                 <SelectItem value="24">Last Day</SelectItem>
                                 <SelectItem value={`${24 * 7}`}>Last Week</SelectItem>
                                 <SelectItem value={`${24 * 30}`}>Last Month</SelectItem>
-                                <SelectItem value={`${24 * 90}`} disabled>Last 3 Months</SelectItem>
+                                <SelectItem value={`${24 * 90}`}>Last 3 Months</SelectItem>
                                 <SelectItem value={`${24 * 180}`} disabled>Last 6 Months</SelectItem>
                             </SelectContent>
                         </Select>

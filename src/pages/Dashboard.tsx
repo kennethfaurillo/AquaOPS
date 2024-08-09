@@ -8,6 +8,7 @@ import '../App.css';
 import Header from "../components/Header";
 import LoggerMapCard from "../components/Map";
 import '../index.css';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 
 function DashboardPage() {
@@ -30,21 +31,25 @@ function DashboardPage() {
             <>
                 <div className='m-auto h-dvh bg-slate-100'>
                     <Header user={{ "FirstName": "Piwad", "LastName": user.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
-                    <div className='grid grid-cols-12 gap-2 mt-2 mx-4 '>
+                        <ResizablePanelGroup direction="horizontal">
                         <DrawerDialogProvider>
+                            <ResizablePanel minSize={24}>
                             {dashboardPrefs?.showLoggerList ?
-                                <div className={`col-span-full xl:col-span-3`}>
                                     <TableCard />
-                                </div> : null
+                                 : null
                             }
+                            </ResizablePanel>
+                            <ResizableHandle withHandle/>
+                            <ResizablePanel defaultSize={76} minSize={45}>
                             {dashboardPrefs?.showLoggerMap ?
                                 <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9: 'full'} z-0`}>
                                     <LoggerMapCard />
                                 </div> : null
                             }
+                            </ResizablePanel>
                         </DrawerDialogProvider>
+                        </ResizablePanelGroup>
                     </div>
-                </div >
             </>
         )
     }

@@ -24,7 +24,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 
 const loggerIcon = new Icon({
   iconUrl: "src/assets/meter.png",
-  iconSize: [30, 30],
+  iconSize: [24, 24],
 })
 
 const wellIcon = new Icon({
@@ -97,7 +97,7 @@ function LoggerMapCard() {
   const [weight, setWeight] = useState(5); // Initial weight
   const [basemap, setBasemap] = useState(basemaps.at(0))
   const [loggersStatus, setLoggersStatus] = useState({ Active: 0, Inactive: 0, Disabled: 0 })
-  const [position, setPosition] = useState({ lat: 13.58438280013, lng: 123.2738403740 })
+  const [position, setPosition] = useState({ lat: 13.586680, lng: 123.279893 })
   const [fullscreenMap, setFullscreenMap] = useState(false)
 
   const { setLogger, setChartDrawerOpen, } = useDrawerDialogContext()
@@ -167,7 +167,7 @@ function LoggerMapCard() {
   }, [])
 
   const DisplayPosition = ({ map }) => {
-    const center = [13.58438280013, 123.2738403740]
+    const center = [13.586680, 123.279893]
     const zoom = 13.5
     const onClick = useCallback(() => {
       map.setView(center, zoom)
@@ -183,6 +183,7 @@ function LoggerMapCard() {
   }
 
   const onEachPipeline = (feature, layer) => {
+    layer.bindTooltip(`Pipeline #${feature.properties?.ogr_fid} ${feature.properties?.location.toUpperCase()}`, {direction: 'center'})
     if (feature.properties && feature.properties.ogr_fid) {
       layer.on('click', () => {
         console.log(feature.properties)
@@ -210,25 +211,17 @@ function LoggerMapCard() {
 
   const onEachWell = (feature, layer) => {
     layer.setIcon(wellIcon)
-    layer.on('click', () => {
-      toast.info(`Well Source: ${feature.properties?.well_activ}`)
-    })
+    layer.bindTooltip(feature.properties?.well_activ, {direction: 'top'})
   }
 
   const onEachSpring = (feature, layer) => {
     layer.setIcon(springIcon)
-    console.log(feature)
-    layer.on('click', () => {
-      toast.info(`Spring Source: ${feature.properties?.SPRING}`)
-    })
+    layer.bindTooltip(feature.properties?.SPRING, {direction: 'top'})
   }
 
   const onEachSurface = (feature, layer) => {
     layer.setIcon(damIcon)
-    console.log(feature)
-    layer.on('click', () => {
-      toast.info(`Surface Water: ${feature.properties?.SURFACE}`)
-    })
+    layer.bindTooltip(feature.properties?.SURFACE, {direction: 'top'})
   }
 
   const themeToggleOnclick = () => {
@@ -254,7 +247,7 @@ function LoggerMapCard() {
   const displayMap = (() => (
     <MapContainer // @ts-ignore
       className='cursor-crosshair'
-      center={[13.58438280013, 123.2738403740]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
+      center={[13.586680, 123.279893]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
       scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
       maxBounds={[[13.676173, 123.111745], [13.516072, 123.456730]]}>
       <ResetViewControl title="Reset View" icon={"🔍"} />
@@ -307,7 +300,7 @@ function LoggerMapCard() {
                       },
                     }}>
                       <Tooltip permanent direction={'top'}>
-                        <div className='text-piwad-blue-400 font-bold drop-shadow-xl'>
+                        <div className='text-black font-bold drop-shadow-xl'>
                           {loggerData.CurrentPressure ? <>{loggerData.CurrentPressure}<em> psi</em><br /></> : null}
                         </div>
                         <div className='text-[#f1663b] font-bold'>

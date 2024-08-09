@@ -13,7 +13,7 @@ function LoggerTable(props) {
   const [loggerData, setLoggerData] = useState([])
   const [loading, setLoading] = useState(true)
   const setLatestLog = props?.setLatestLog
-  const pollMs = 300000
+  const pollMs = 6000
 
   const {setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo} = useDrawerDialogContext()
 
@@ -199,7 +199,7 @@ function LoggerTable(props) {
 
   const initialState = {
     columnVisibility: {
-      LogId: false, Timestamp: false, LoggerId: false
+      LogId: false, Timestamp: false, LoggerId: false, actions: false
     },
     pagination: {
       pageSize: 8,
