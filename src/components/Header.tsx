@@ -102,12 +102,11 @@ function Header(props) {
                         </Avatar>
                     </a>
                     <div className="flex">
-                    <h2 className="scroll-m-20 hidden md:block text-3xl font-sans tracking-tight first:mt-0 text-slate-100 ">PIWAD</h2>
+                    <h2 className="scroll-m-20 md:block text-3xl font-sans tracking-tight first:mt-0 text-slate-100 ">PIWAD</h2>
                     <h2 className="md:block text-3xl text-blue-200 ml-2">Aqua</h2>
                     <h2 className="md:block text-3xl text-yellow-500 ">OPS</h2>
                     </div>
                     {/* <h2 className="scroll-m-20 hidden md:block text-3xl font-sans tracking-tight first:mt-0 text-slate-100 ">PIWAD AquaOPS</h2> */}
-                    <h2 className="scroll-m-20 md:hidden -ml-2 text-2xl font-sans tracking-tight first:mt-0 text-slate-100 ">AquaOPS</h2>
                 </div>
                 <div className="flex ml-auto">
                     {props.user ? <>

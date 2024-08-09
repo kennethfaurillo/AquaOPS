@@ -2,7 +2,7 @@ import TableCard from "@/components/TableCard";
 import { useAuth } from "@/hooks/useAuth";
 import { DrawerDialogProvider } from "@/hooks/useDrawerDialogContext";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import '../App.css';
 import Header from "../components/Header";
@@ -17,6 +17,8 @@ function DashboardPage() {
         showLoggerList: true,
         showLoggerMap: true
     })
+    const isWideScreen = window.innerWidth >= 1280
+
 
     useEffect(() => {
         (async () => {
@@ -26,30 +28,40 @@ function DashboardPage() {
         })()
     }, [])
 
+    console.log(isWideScreen)
+
     if (token && user) {
         return (
             <>
                 <div className='m-auto h-dvh bg-slate-100'>
                     <Header user={{ "FirstName": "Piwad", "LastName": user.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
-                        <ResizablePanelGroup direction="horizontal">
-                        <DrawerDialogProvider>
-                            <ResizablePanel minSize={24}>
-                            {dashboardPrefs?.showLoggerList ?
+                    <DrawerDialogProvider>
+                        {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (
+                            <ResizablePanelGroup direction="horizontal" className="h-full">
+                                <ResizablePanel minSize={25}>
                                     <TableCard />
-                                 : null
-                            }
-                            </ResizablePanel>
-                            <ResizableHandle withHandle/>
-                            <ResizablePanel defaultSize={76} minSize={45}>
-                            {dashboardPrefs?.showLoggerMap ?
-                                <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9: 'full'} z-0`}>
+                                </ResizablePanel>
+                                <ResizableHandle withHandle />
+                                <ResizablePanel defaultSize={76} minSize={45}>
                                     <LoggerMapCard />
-                                </div> : null
-                            }
-                            </ResizablePanel>
-                        </DrawerDialogProvider>
-                        </ResizablePanelGroup>
-                    </div>
+                                </ResizablePanel>
+                            </ResizablePanelGroup>
+                        ) : (
+                            <div className="grid grid-cols-12 gap-4">
+                                {dashboardPrefs?.showLoggerList ? (
+                                    <div className={`col-span-full xl:col-span-3`}>
+                                        <TableCard />
+                                    </div>
+                                ) : null}
+                                {dashboardPrefs?.showLoggerMap ? (
+                                    <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9 : 'full'} z-0`}>
+                                        <LoggerMapCard />
+                                    </div>
+                                ) : null}
+                            </div>
+                        )}
+                    </DrawerDialogProvider>
+                </div>
             </>
         )
     }

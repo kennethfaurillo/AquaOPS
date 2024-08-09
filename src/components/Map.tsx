@@ -3,6 +3,7 @@ import { pipelines } from '@/assets/shpPipelines';
 import { source_well } from '@/assets/shpSourceWell';
 import { source_spring } from '@/assets/shpSourceSpring';
 import { source_surface } from '@/assets/shpSourceSurface';
+import { specific_capacity } from '@/assets/shpSpecificCapacity'
 import ResetViewControl from '@20tab/react-leaflet-resetview';
 import axios from 'axios';
 import { addDays, addHours } from 'date-fns';
@@ -183,7 +184,7 @@ function LoggerMapCard() {
   }
 
   const onEachPipeline = (feature, layer) => {
-    layer.bindTooltip(`Pipeline #${feature.properties?.ogr_fid} ${feature.properties?.location.toUpperCase()}`, {direction: 'center'})
+    layer.bindTooltip(`Pipeline #${feature.properties?.ogr_fid} ${feature.properties?.location.toUpperCase()}`, { direction: 'center' })
     if (feature.properties && feature.properties.ogr_fid) {
       layer.on('click', () => {
         console.log(feature.properties)
@@ -211,17 +212,17 @@ function LoggerMapCard() {
 
   const onEachWell = (feature, layer) => {
     layer.setIcon(wellIcon)
-    layer.bindTooltip(feature.properties?.well_activ, {direction: 'top'})
+    layer.bindTooltip(feature.properties?.well_activ, { direction: 'top' })
   }
 
   const onEachSpring = (feature, layer) => {
     layer.setIcon(springIcon)
-    layer.bindTooltip(feature.properties?.SPRING, {direction: 'top'})
+    layer.bindTooltip(feature.properties?.SPRING, { direction: 'top' })
   }
 
   const onEachSurface = (feature, layer) => {
     layer.setIcon(damIcon)
-    layer.bindTooltip(feature.properties?.SURFACE, {direction: 'top'})
+    layer.bindTooltip(feature.properties?.SURFACE, { direction: 'top' })
   }
 
   const themeToggleOnclick = () => {
@@ -267,6 +268,9 @@ function LoggerMapCard() {
         <Overlay name='Area Boundaries' checked>
           <GeoJSON data={piliBoundary} style={{ fillOpacity: 0, weight: 1, color: 'orange' }} onEachFeature={onEachArea} />
         </Overlay>
+        <Overlay name='Specific Capacity'>
+          <GeoJSON data={specific_capacity} style={{ fillOpacity: 0, weight: 1, color: 'violet' }} />
+        </Overlay>
         <Overlay name='Pipelines' checked>
           <GeoJSON data={pipelines} style={(feature) => ({
             color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",
@@ -276,13 +280,13 @@ function LoggerMapCard() {
           />
         </Overlay>
         <Overlay name='Wells' checked>
-          <GeoJSON data={source_well} onEachFeature={onEachWell}/>
+          <GeoJSON data={source_well} onEachFeature={onEachWell} />
         </Overlay>
         <Overlay name='Springs' checked>
-          <GeoJSON data={source_spring} onEachFeature={onEachSpring}/>
+          <GeoJSON data={source_spring} onEachFeature={onEachSpring} />
         </Overlay>
         <Overlay name='Surface Water' checked>
-          <GeoJSON data={source_surface} onEachFeature={onEachSurface}/>
+          <GeoJSON data={source_surface} onEachFeature={onEachSurface} />
         </Overlay>
         <Overlay name='DMA Boundaries'>
         </Overlay>
@@ -300,10 +304,15 @@ function LoggerMapCard() {
                       },
                     }}>
                       <Tooltip permanent direction={'top'}>
-                        <div className='text-black font-bold drop-shadow-xl'>
+                        {/* {loggerData.CurrentPressure ?
+                          <>
+                          {loggerData.CurrentPressure < loggerData.}
+                          </>
+                          : null} */}
+                        <div className='text-black font-bold'>
                           {loggerData.CurrentPressure ? <>{loggerData.CurrentPressure}<em> psi</em><br /></> : null}
                         </div>
-                        <div className='text-[#f1663b] font-bold'>
+                        <div className='text-black font-bold'>
                           {loggerData.CurrentFlow ? <>{loggerData.CurrentFlow}<em> lps</em></> : null}
                         </div>
                         <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
@@ -361,7 +370,7 @@ function LoggerMapCard() {
           <CardTitle className='text-slate-950'>
             <div className="grid grid-cols-6">
               <div className="col-span-6 sm:col-span-2">
-                <p className="mb-1 text-piwad-lightyellow-300">Data Logger Map</p>
+                <p className="mb-1 text-piwad-lightyellow-300">Utility Map</p>
                 <div className="text-base text-slate-200 mb-2 ">{map ? <DisplayPosition map={map} /> : null}</div>
               </div>
               <div className="col-span-6 sm:col-span-4 flex items-center space-x-4 rounded-md border-2 border-piwad-yellow-0 -my-2 py-2">
