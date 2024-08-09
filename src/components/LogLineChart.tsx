@@ -88,7 +88,7 @@ function LogLineChart(props) {
             if (totalizerResponse?.data.length) {
                 setTotalizerData(totalizerResponse.data)
             }
-            if (logResponse.data.length) {
+            if (logResponse.data.length ) {
                 // Filter logs here
                 setLogData(logResponse.data)
                 setFilteredLogData(logResponse.data.slice(-timeRange * LOG_COUNT))
@@ -112,7 +112,7 @@ function LogLineChart(props) {
     }, [timeRange])
     // update average value
     useEffect(() => {
-        const _average = getAvg(filteredLogData, "")
+        const _average = filteredLogData.length ? getAvg(filteredLogData, "") : 0
         setAverage(_average)
         // console.log(_average)
     }, [filteredLogData])
@@ -130,7 +130,7 @@ function LogLineChart(props) {
 
     return (
         <> {!loading ? <>
-            {loggerType=="flow" ?
+            {loggerType=="flow" && logData.length ?
                 <ResponsiveContainer width={"95%"} height={150} className={"mx-auto mb-4"}>
                     <BarChart data={totalizerData}>
                         <XAxis dataKey={'Date'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).format('MMM D')} />

@@ -4,6 +4,7 @@ import { source_well } from '@/assets/shpSourceWell';
 import { source_spring } from '@/assets/shpSourceSpring';
 import { source_surface } from '@/assets/shpSourceSurface';
 import { specific_capacity } from '@/assets/shpSpecificCapacity'
+import { valve_blowOff } from '@/assets/shpBlowOff'
 import ResetViewControl from '@20tab/react-leaflet-resetview';
 import axios from 'axios';
 import { addDays, addHours } from 'date-fns';
@@ -51,6 +52,11 @@ const sumpIcon = new Icon({
 const damIcon = new Icon({
   iconUrl: "src/assets/dam2.png",
   iconSize: [30, 30],
+})
+
+const valveIcon = new Icon({
+  iconUrl: "src/assets/valve.png",
+  iconSize: [12, 12],
 })
 
 const colorMap = {
@@ -104,7 +110,7 @@ function LoggerMapCard() {
   const { setLogger, setChartDrawerOpen, } = useDrawerDialogContext()
   const { BaseLayer, Overlay } = LayersControl
   const scaleFactor = 1
-  const pollMs = 300000
+  const pollMs = 60000
 
   useEffect(() => {
     if (!map) return
@@ -214,15 +220,27 @@ function LoggerMapCard() {
     layer.setIcon(wellIcon)
     layer.bindTooltip(feature.properties?.well_activ, { direction: 'top' })
   }
-
+  
   const onEachSpring = (feature, layer) => {
     layer.setIcon(springIcon)
     layer.bindTooltip(feature.properties?.SPRING, { direction: 'top' })
   }
-
+  
   const onEachSurface = (feature, layer) => {
     layer.setIcon(damIcon)
     layer.bindTooltip(feature.properties?.SURFACE, { direction: 'top' })
+  }
+  
+  const onEachSpecificCapacity = (feature, layer) => {
+    layer.bindTooltip(feature.properties?.cap, { direction: 'center' })
+    layer.on('dblclick', () => {
+      toast.info(`Capacity: ${feature.properties?.cap}`)
+    });
+  }
+
+  const onEachBlowOff = (feature, layer) => {
+    layer.setIcon(valveIcon)
+    layer.bindTooltip(feature.properties?.location.toUpperCase() + '\n' + feature.properties?.size, { direction: 'top' })
   }
 
   const themeToggleOnclick = () => {
@@ -265,11 +283,11 @@ function LoggerMapCard() {
             attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
           />
         </BaseLayer>
-        <Overlay name='Area Boundaries' checked>
+        <Overlay name='Baranggay Boundaries' checked>
           <GeoJSON data={piliBoundary} style={{ fillOpacity: 0, weight: 1, color: 'orange' }} onEachFeature={onEachArea} />
         </Overlay>
         <Overlay name='Specific Capacity'>
-          <GeoJSON data={specific_capacity} style={{ fillOpacity: 0, weight: 1, color: 'violet' }} />
+          <GeoJSON data={specific_capacity} style={{ fillOpacity: 0, weight: 1, color: 'violet' }} onEachFeature={onEachSpecificCapacity}/>
         </Overlay>
         <Overlay name='Pipelines' checked>
           <GeoJSON data={pipelines} style={(feature) => ({
@@ -287,6 +305,9 @@ function LoggerMapCard() {
         </Overlay>
         <Overlay name='Surface Water' checked>
           <GeoJSON data={source_surface} onEachFeature={onEachSurface} />
+        </Overlay>
+        <Overlay name='Blow Off Valves' >
+          <GeoJSON data={valve_blowOff}  onEachFeature={onEachBlowOff}/>
         </Overlay>
         <Overlay name='DMA Boundaries'>
         </Overlay>
