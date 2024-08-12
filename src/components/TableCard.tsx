@@ -18,24 +18,18 @@ function TableCard() {
                         <TabsTrigger value="sources">Sources</TabsTrigger>
                         <TabsTrigger value="stations">Stations</TabsTrigger>
                     </TabsList>
-                    {/* <CardTitle className='text-piwad-lightyellow-300'>
-                        Data Logger List
-                    </CardTitle>
-                    <CardDescription className='text-slate-200'>
-                        <>Latest Log: {latestLog?.Name ? capitalize(latestLog.Name.replaceAll('-', ' ').split('_').slice(2).join(' ')) + " Logger" : "N/A"} {latestLog?.LogTime ? (new Date(latestLog.LogTime.slice(0, -1))).toLocaleString() : null}</>
-                    </CardDescription> */}
                     <TabsContent value="loggers" forceMount hidden={activeTab != "loggers"}>
                         <Card>
-                            <CardHeader className="py-4">
+                            <CardHeader className="py-4 rounded-t-lg bg-piwad-lightblue-600">
                                 <div className="relative flex-row">
-                                    <CardTitle>Data Loggers</CardTitle>
+                                    <CardTitle className="text-piwad-lightyellow-400 ">Data Loggers</CardTitle>
                                     <Tooltip>
-                                        <TooltipTrigger asChild><PlusCircleIcon color="#4186E5" className="absolute right-1 top-1 text-slate-900 cursor-pointer" /></TooltipTrigger>
+                                        <TooltipTrigger asChild><PlusCircleIcon color="white" className="absolute right-1 top-1 text-slate-900 cursor-pointer" /></TooltipTrigger>
                                         <TooltipContent>Add New Logger</TooltipContent>
                                     </Tooltip>
-                                    <CardDescription>View and manage data loggers</CardDescription>
-                                </div>
+                                    <CardDescription className="text-white/80">View and manage data loggers</CardDescription>
                                 <Separator />
+                                </div>
                             </CardHeader>
                             <CardContent>
                                 <LatestLogTable setLatestLog={setLatestLog} />
@@ -44,38 +38,38 @@ function TableCard() {
                     </TabsContent>
                     <TabsContent value="sources" forceMount hidden={activeTab != "sources"}>
                         <Card>
-                            <CardHeader className="py-4">
+                            <CardHeader className="py-4 rounded-t-lg bg-piwad-lightblue-600">
                                 <div className="relative flex-row">
-                                    <CardTitle>Water Sources</CardTitle>
+                                    <CardTitle className="text-piwad-lightyellow-400">Water Sources</CardTitle>
                                     <Tooltip>
-                                        <TooltipTrigger asChild><PlusCircleIcon color="#4186E5" className="absolute right-1 top-1 text-slate-900 cursor-pointer" /></TooltipTrigger>
+                                        <TooltipTrigger asChild><PlusCircleIcon color="white" className="absolute right-1 top-1 text-slate-900 cursor-pointer" /></TooltipTrigger>
                                         <TooltipContent>Add New Source</TooltipContent>
                                     </Tooltip>
                                     
-                                    <CardDescription>Update water source information</CardDescription>
-                                </div>
+                                    <CardDescription className="text-white/80">Update water source information</CardDescription>
                                 <Separator />
+                                </div>
                             </CardHeader>
-                            <CardContent className="relative">
+                            <CardContent>
                                 <LatestLogTable setLatestLog={setLatestLog} />
                             </CardContent>
                         </Card>
                     </TabsContent>
                     <TabsContent value="stations" forceMount hidden={activeTab != "stations"}>
                         <Card>
-                            <CardHeader className="py-4">
+                            <CardHeader className="py-4 rounded-t-lg bg-piwad-lightblue-600">
                                 <div className="relative flex-row">
-                                    <CardTitle>Pump Stations</CardTitle>
+                                    <CardTitle className="text-piwad-lightyellow-400">Pump Stations</CardTitle>
                                     <Tooltip>
-                                        <TooltipTrigger asChild><PlusCircleIcon color="#4186E5" className="absolute right-1 top-1 text-slate-900 cursor-pointer" /></TooltipTrigger>
+                                        <TooltipTrigger asChild><PlusCircleIcon color="white" className="absolute right-1 top-1 text-slate-900 cursor-pointer" /></TooltipTrigger>
                                         <TooltipContent>Add New Station</TooltipContent>
                                     </Tooltip>
                                     
-                                    <CardDescription>Configure pump station settings</CardDescription>
-                                </div>
+                                    <CardDescription className="text-white/80">Configure pump station settings</CardDescription>
                                 <Separator />
+                                </div>
                             </CardHeader>
-                            <CardContent className="space-y-2">
+                            <CardContent>
                                 <LatestLogTable setLatestLog={setLatestLog} />
                             </CardContent>
                         </Card>

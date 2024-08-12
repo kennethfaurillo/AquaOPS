@@ -86,27 +86,16 @@ function Header(props) {
                                 </>
                             )) :
                             <div className="justify-center flex-col h-[50vh] text-red-500/90 font-semibold">
-                                <Loader2Icon className="animate-spin size-24 mx-auto h-full "/>
+                                <Loader2Icon className="animate-spin size-24 mx-auto h-full " />
                             </div>}
                     </ScrollArea>
                     <DialogClose asChild><Button>Close</Button></DialogClose>
                 </DialogContent>
             </Dialog>
 
-            <div className='flex gap-4 sticky top-0 max-w-dvw bg-piwad-lightblue-700/100 backdrop-blur drop-shadow-xl z-10 max-h-12 sm:max-h-20 overflow-hidden'>
-                <div className="flex gap-2 p-1 items-center">
-                    <a href="/">
-                        <Avatar className='m-1 ml-2 size-9 sm:size-14'>
-                            <AvatarImage src='src/assets/piwad_logo.png' />
-                            <AvatarFallback className='text-xs'>PIWAD</AvatarFallback>
-                        </Avatar>
-                    </a>
-                    <div className="flex">
-                    <h2 className="scroll-m-20 md:block text-3xl font-sans tracking-tight first:mt-0 text-slate-100 ">PIWAD</h2>
-                    <h2 className="md:block text-3xl text-blue-200 ml-2">Aqua</h2>
-                    <h2 className="md:block text-3xl text-yellow-500 ">OPS</h2>
-                    </div>
-                    {/* <h2 className="scroll-m-20 hidden md:block text-3xl font-sans tracking-tight first:mt-0 text-slate-100 ">PIWAD AquaOPS</h2> */}
+            <div className='flex gap-4 sticky top-0 mb-2 max-w-dvw bg-slate-50/80 backdrop-blur drop-shadow-xl z-10 h-12 sm:h-16 overflow-hidden'>
+                <div>
+                    <img src="src/assets/logo-horizontal.png" className="h-full p-2" />
                 </div>
                 <div className="flex ml-auto">
                     {props.user ? <>
@@ -114,12 +103,9 @@ function Header(props) {
                             <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger className="flex gap-1 text-slate-50 text-2xl items-center outline-none">
                                     <>
-                                        {/* <div className="text-slate-50 text-2xl lg:hidden">{props.user.FirstName.at(0).toUpperCase() ?? "F"}{props.user.LastName.at(0).toUpperCase() ?? "L"}</div> */}
-                                        {/* <div className="text-slate-50 hidden text-3xl lg:block 2xl:hidden">{props.user.FirstName ?? "Firstname"} {props.user.LastName.at(0).toUpperCase() ?? "L"}.</div> */}
-                                        <div className="text-slate-50 text-2xl lg:block">{capitalize(user.Username) ?? "L"}</div>
-                                        {/* <div className="text-slate-50 hidden text-3xl 2xl:block">{props.user.FirstName ?? "Firstname"} {capitalize(props.user.LastName) ?? "Lastname"}</div> */}
+                                        <div className="text-slate-700 text-2xl lg:block">{capitalize(user.Username) ?? "L"}</div>
                                         <Avatar className="m-2 mr-4 size-9 sm:size-14 cursor-pointer" >
-                                            <AvatarImage src={`src/assets/${user.Type == "admin" ? "software-engineer" : "engineer"}.png`}/>
+                                            <AvatarImage src={`src/assets/${user.Type == "admin" ? "software-engineer" : "engineer"}.png`} />
                                             <AvatarFallback>User</AvatarFallback>
                                         </Avatar>
                                     </>
@@ -160,15 +146,15 @@ function Header(props) {
                                                 fetchEventLogs()
                                                 setEventlogsDialogOpen(true)
                                             }} disabled={user.Type != "admin"}>
-                                                    <FileClockIcon className="mr-2 h-4 w-4" />
-                                                    <span>System Event Logs</span>
+                                                <FileClockIcon className="mr-2 h-4 w-4" />
+                                                <span>System Event Logs</span>
                                             </DropdownMenuItem>
                                         </TooltipTrigger>
                                         {user.Type != "admin" ?
-                                        <TooltipContent>
-                                            <p>{capitalize(user.Type)} not authorized to view System Logs</p>
-                                        </TooltipContent> : 
-                                        null
+                                            <TooltipContent>
+                                                <p>{capitalize(user.Type)} not authorized to view System Logs</p>
+                                            </TooltipContent> :
+                                            null
                                         }
                                     </Tooltip>
                                     <DropdownMenuSeparator />

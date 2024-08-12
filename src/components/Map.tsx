@@ -364,12 +364,8 @@ function LoggerMapCard() {
         : null}
       {fullscreenMap ?
         <>
-          <div className='absolute bottom-8 left-8 flex gap-2 mx-2 justify-center items-center rounded-lg backdrop-blur-[2px] z-[400]'>
-            <Avatar className='z-[400] size-10 sm:size-14'>
-              <AvatarFallback>PIWAD</AvatarFallback>
-              <AvatarImage src='src/assets/piwad_logo.png' />
-            </Avatar>
-            <h2 className='text-xl sm:text-5xl font-sans font-extralight text-piwad-blue-400 z-[400]'>AquaOps</h2>
+          <div className='absolute bottom-4 left-4 p-2 rounded-full z-[400]'>
+            <img src='src/assets/logo-main.png' className='h-20'/>
           </div>
           <div className='flex justify-around space-y-2 w-full px-0 md:px-72'>
             <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-start-1 col-span-3 justify-center flex items-center backdrop-blur-[1px] z-[400]">

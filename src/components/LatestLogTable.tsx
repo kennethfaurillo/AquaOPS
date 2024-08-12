@@ -13,7 +13,7 @@ function LoggerTable(props) {
   const [loggerData, setLoggerData] = useState([])
   const [loading, setLoading] = useState(true)
   const setLatestLog = props?.setLatestLog
-  const pollMs = 6000
+  const pollMs = 60000
 
   const {setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo} = useDrawerDialogContext()
 
