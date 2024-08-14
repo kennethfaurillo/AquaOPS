@@ -111,7 +111,7 @@ export function DrawerDialogProvider({ children }) {
                             <Button variant="ghost" className="mx-1 px-1" onClick={async () => {
                                 if (logger) {
                                     await fetchLoggerInfo(logger.LoggerId).then((response) => {
-                                        setLoggerInfo(response[0])
+                                        setLoggerInfo(response)
                                         setLoggerDialogOpen(true)
                                     })
                                 }
