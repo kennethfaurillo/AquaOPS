@@ -103,10 +103,11 @@ function Header(props) {
                             <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger className="flex gap-1 text-slate-50 text-2xl items-center outline-none">
                                     <>
-                                        <div className="text-slate-700 text-2xl lg:block">{capitalize(user.Username) ?? "L"}</div>
+                                        <div className="text-slate-700 text-2xl lg:block">{user.Username.toUpperCase() ?? "L"}</div>
                                         <Avatar className="m-2 mr-4 size-9 sm:size-14 cursor-pointer" >
-                                            <AvatarImage src={`src/assets/${user.Type == "admin" ? "software-engineer" : "engineer"}.png`} />
-                                            <AvatarFallback>User</AvatarFallback>
+                                            {/* <AvatarImage src={`src/assets/${user.Type == "admin" ? "software-engineer" : "engineer"}.png`} /> */}
+                                            <AvatarImage src={`src/assets/piwad-logo.png`} />
+                                            <AvatarFallback>PIWAD</AvatarFallback>
                                         </Avatar>
                                     </>
                                 </DropdownMenuTrigger>
