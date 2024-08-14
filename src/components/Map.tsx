@@ -252,9 +252,6 @@ function LoggerMapCard() {
       mousemove(e) {
         setPosition({ lat: e.latlng.lat, lng: e.latlng.lng })
       },
-      // dblclick() {
-      //   map.toggleFullscreen()
-      // },
       keypress(e) {
         if (!(e.originalEvent.key == 'f' || e.originalEvent.key == 'F')) return
         map.toggleFullscreen()
@@ -264,7 +261,7 @@ function LoggerMapCard() {
   }
 
   const displayMap = (() => (
-    <MapContainer // @ts-ignore
+    <MapContainer 
       className='cursor-crosshair'
       center={[13.586680, 123.279893]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
       scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
@@ -325,11 +322,6 @@ function LoggerMapCard() {
                       },
                     }}>
                       <Tooltip permanent direction={'top'}>
-                        {/* {loggerData.CurrentPressure ?
-                          <>
-                          {loggerData.CurrentPressure < loggerData.}
-                          </>
-                          : null} */}
                         <div className='text-black font-bold'>
                           {loggerData.CurrentPressure ? <>{loggerData.CurrentPressure}<em> psi</em><br /></> : null}
                         </div>
@@ -337,8 +329,7 @@ function LoggerMapCard() {
                           {loggerData.CurrentFlow ? <>{loggerData.CurrentFlow}<em> lps</em></> : null}
                         </div>
                         <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
-                          {/* {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('M/D h:mm a')}<br /></> : null} */}
-                          {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('M/D h:mm a')}<br /></> : null}
+                          {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('MMM D h:mm a')}<br /></> : null}
                         </div>
                       </Tooltip>
                     </Marker>

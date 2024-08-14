@@ -67,18 +67,24 @@ function LogLineChart(props) {
         totalizerNegative: false,
     })
     const timeRange = props.timeRange
-    const loggerType = props.logger.Name.toLowerCase().includes("pressure") ? "pressure" : "flow"
-    const [average, setAverage] = useState('')
+    // TODO: fix logger table onclick
+    const loggerType = props.logger.Type ? props.logger.Type.split(',') : props.logger.Name.toLowerCase().includes("pressure") ? "pressure" : "flow"
+    const [average, setAverage] = useState({})
 
     useEffect(() => {
-        // console.log(logger)
         const fetchData = async () => {
             // { console.log(window.innerWidth) }
             let logResponse = null
             let totalizerResponse = null
-            if (loggerType == "pressure") {
+            if(loggerType.includes('pressure') && loggerType.includes('flow')){
+                logResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logs/`,{
+                    logTypes: loggerType,
+                    loggerId: props.logger.LoggerId
+                })
+                totalizerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/totalizer/${props.logger.LoggerId}`)
+            } else if (loggerType.includes('pressure')) {
                 logResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/pressure_log/${props.logger.LoggerId}`)
-            } else if (loggerType == "flow") {
+            } else if (loggerType.includes('flow')) {
                 logResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/flow_log/${props.logger.LoggerId}`)
                 totalizerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/totalizer/${props.logger.LoggerId}`)
             } else {
@@ -88,7 +94,7 @@ function LogLineChart(props) {
             if (totalizerResponse?.data.length) {
                 setTotalizerData(totalizerResponse.data)
             }
-            if (logResponse.data.length ) {
+            if (Object.keys(logResponse.data) ) {
                 // Filter logs here
                 setLogData(logResponse.data)
                 setFilteredLogData(logResponse.data.slice(-timeRange * LOG_COUNT))
@@ -97,7 +103,6 @@ function LogLineChart(props) {
                 console.log("NO LOGS")
             }
             setLoading(false)
-            // if (loggerType == "flow") console.log(totalizerResponse.data)
         }
         fetchData()
     }, [])
@@ -107,30 +112,34 @@ function LogLineChart(props) {
         if (logData) {
             const _filteredLogData = logData.slice(-timeRange * LOG_COUNT)
             setFilteredLogData(_filteredLogData)
-            // console.log(_filteredLogData)
         }
     }, [timeRange])
+
     // update average value
     useEffect(() => {
-        const _average = filteredLogData.length ? getAvg(filteredLogData, "") : 0
-        setAverage(_average)
-        // console.log(_average)
+        if(!filteredLogData.length) return
+        let tempAvg = {}
+        if(loggerType.includes("pressure")){
+            tempAvg = {pressure: getAvg(filteredLogData, 'pressure')}
+        }
+        if(loggerType.includes("flow")){
+            tempAvg = {...tempAvg, flow: getAvg(filteredLogData, 'flow')}
+        }
+        setAverage(tempAvg)
     }, [filteredLogData])
 
-    // helper function
     const getAvg = (data, datakey) => {
-        if (data[0]?.CurrentPressure) {
-            datakey = "CurrentPressure"
-        }
-        else if (data[0]?.CurrentFlow) {
-            datakey = "CurrentFlow"
+        if(datakey == 'pressure'){
+            datakey = 'CurrentPressure'
+        } else if(datakey == 'flow'){
+            datakey = 'CurrentFlow'
         }
         return (data.reduce((acc, curr) => acc + curr[datakey], 0) / data.length).toFixed(2)
     }
 
     return (
         <> {!loading ? <>
-            {loggerType=="flow" && logData.length ?
+            {loggerType.includes('flow') && logData.length ?
                 <ResponsiveContainer width={"95%"} height={150} className={"mx-auto mb-4"}>
                     <BarChart data={totalizerData}>
                         <XAxis dataKey={'Date'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).format('MMM D')} />
@@ -154,7 +163,7 @@ function LogLineChart(props) {
             }
             <ResponsiveContainer width={"95%"} height={!props.logger.CurrentFlow ? 550 : 400} className={"self-center "}>
                 <LineChart height={200} data={filteredLogData}  >
-                    <XAxis dataKey={'LogTime'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).utcOffset('+0000').format('H:mm')} />
+                    <XAxis dataKey={'LogTime'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).utcOffset('+0000').format('h:mm a')} />
                     <YAxis width={30} tick={{ fontSize: 10 }} domain={[-10, 'dataMax + 5']} allowDataOverflow />
                     <CartesianGrid strokeDasharray={"5 10"} />
                     <Legend onClick={(e) =>
@@ -167,7 +176,7 @@ function LogLineChart(props) {
                     <div className='text-blue-500' />
                     {props.logger.CurrentPressure ?
                         <>
-                            {average && !props.logger.CurrentFlow ? <ReferenceLine y={average} label={"Average Pressure: " + average} /> : null}
+                            {average.pressure ? <ReferenceLine y={average.pressure} label={"Average Pressure: " + average.pressure} /> : null}
                             <Line dataKey={'CurrentPressure'}
                                 name={"Pressure"}
                                 stroke='#73d25f'
@@ -179,7 +188,7 @@ function LogLineChart(props) {
                     }
                     {props.logger.CurrentFlow ?
                         <>
-                            {average ? <ReferenceLine y={average}  label={"Avg Flow: " + average}/> : null}
+                            {average.flow ? <ReferenceLine y={average.flow}  label={"Average Flow: " + average.flow}/> : null}
                             <Line dataKey={'CurrentFlow'}
                                 name={"Flow"}
                                 stroke='#3B82F6'
