@@ -1,4 +1,3 @@
-import { useAuth } from "@/hooks/useAuth"
 import axios from "axios"
 import { type ClassValue, clsx } from "clsx"
 import { addDays } from "date-fns"
@@ -16,12 +15,20 @@ export function capitalize(str) {
 export async function generateReport(loggerInfo, fields, dateRange, user) {
   const loggerId = loggerInfo.LoggerId
   let logTable = ''
-  console.log(dateRange)
-  if (loggerInfo.Name.toLowerCase().includes("flow")) logTable = "flow_log"
-  else if (loggerInfo.Name.toLowerCase().includes("pressure")) logTable = "pressure_log"
-  const response = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/${logTable}/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}`)
-  const data = response.data ?? []
-  if (data == "No logs found!") {
+  let data = []
+  if (loggerInfo.Type.includes('pressure') && loggerInfo.Type.includes('flow')) {
+    const logResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logs/?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}`, {
+      logTypes: loggerInfo.Type.split(','),
+      loggerId: loggerId,
+    })
+    data = logResponse.data
+  } else {
+    if (loggerInfo.Type.includes('flow')) logTable = "flow_log"
+    else if (loggerInfo.Type.includes('pressure')) logTable = "pressure_log"
+    const response = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/${logTable}/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}`)
+    data = response.data ?? []
+  }
+  if (!data || data == "No logs found!") {
     throw "No data available for the selected time range. Please choose a different period and try again."
   }
   if (data.length) {

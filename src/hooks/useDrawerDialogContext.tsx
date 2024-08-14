@@ -61,7 +61,7 @@ export function DrawerDialogProvider({ children }) {
 
     const fetchLoggerInfo = async (loggerId) => {
         const loggerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/${loggerId}`)
-        return loggerResponse.data
+        return loggerResponse.data[0]
     }
 
     const fetchLoggerDates = async (loggerId, loggerType = "pressure") => {
@@ -139,20 +139,17 @@ export function DrawerDialogProvider({ children }) {
                             </SelectContent>
                         </Select>
                         <Button className="bg-piwad-lightyellow-500 text-black" onClick={async () => {
-                            // setReportDialogOpen(true)
-                            await fetchLoggerInfo(logger.LoggerId).then((response) => {
-                                console.log(JSON.stringify(response))
-                                setLoggerInfo(response[0])
+                            const tempLoggerInfo = await fetchLoggerInfo(logger.LoggerId)
+                                setLoggerInfo(tempLoggerInfo)
                                 setReportDialogOpen(true)
-                            })
                             let latestLogs = []
                             const defaultDaysRange = 3
-                            if (logger.Name.toLowerCase().includes("flow")) {
+                            if (tempLoggerInfo.Type.includes("flow")) {
                                 await fetchLoggerDates(logger.LoggerId, "flow").then((response) => {
                                     setAllowedDates(response)
                                     latestLogs = response.slice(-defaultDaysRange)
                                 })
-                            } else if (logger.Name.toLowerCase().includes("pressure")) {
+                            } else if (tempLoggerInfo.Type.includes("pressure")) {
                                 await fetchLoggerDates(logger.LoggerId, "pressure").then((response) => {
                                     setAllowedDates(response)
                                     latestLogs = response.slice(-defaultDaysRange)
@@ -279,10 +276,9 @@ export function DrawerDialogProvider({ children }) {
                             {/* Checkbox Group */}
                             <TooltipProvider>
                                 <div className="mt-1">
-                                    {loggerInfo.Name.toLowerCase().includes("flow") ?
+                                    {loggerInfo.Type.includes("flow") ?
                                         <span className="space-x-1 mx-4">
                                             <Checkbox id="cbFlow" checked={reportChecked.flow} onCheckedChange={isChecked => {
-                                                console.log("flow", isChecked)
                                                 setReportChecked({
                                                     ...reportChecked,
                                                     flow: isChecked
@@ -297,31 +293,21 @@ export function DrawerDialogProvider({ children }) {
                                                 }
                                             }} />
                                             <Label htmlFor="cbFlow">Flow</Label>
-                                        </span> :
-                                        <Tooltip delayDuration={250}>
-                                            <TooltipTrigger ><Checkbox className="mx-1" disabled /><Label autoFocus={false}>Flow</Label></TooltipTrigger>
-                                            <TooltipContent>No log data</TooltipContent>
-                                        </Tooltip>
+                                        </span> : null
                                     }
-                                    {loggerInfo.Name.toLowerCase().includes("pressure") ?
+                                    {loggerInfo.Type.includes("pressure") ?
                                         <span className="space-x-1 mx-4">
                                             <Checkbox id="cbPressure" checked={reportChecked.pressure} onCheckedChange={isChecked => {
-                                                console.log("pressure", isChecked)
                                                 setReportChecked({
                                                     ...reportChecked,
                                                     pressure: isChecked
                                                 })
                                             }} />
                                             <Label htmlFor="cbPressure">Pressure</Label>
-                                        </span> :
-                                        <Tooltip delayDuration={250}>
-                                            <TooltipTrigger><Checkbox className="mx-1" disabled /><Label>Pressure</Label></TooltipTrigger>
-                                            <TooltipContent>No log data</TooltipContent>
-                                        </Tooltip>
+                                        </span> : null
                                     }
                                     <span className="space-x-1 mx-4">
                                         <Checkbox id="cbVoltage" checked={reportChecked.voltage} onCheckedChange={isChecked => {
-                                            console.log("voltage", isChecked)
                                             setReportChecked({
                                                 ...reportChecked,
                                                 voltage: isChecked
@@ -332,24 +318,23 @@ export function DrawerDialogProvider({ children }) {
                                 </div>
                                 {reportChecked.flow ?
                                     <>
+                                    {/* TODO: Totalizer should be a separate report */}
                                         <span className="space-x-1 mx-4">
                                             <Checkbox id="cbTotalizerPositive" checked={reportChecked.totalizerPositive} onCheckedChange={isChecked => {
-                                                console.log("totalizerPositive", isChecked)
                                                 setReportChecked({
                                                     ...reportChecked,
                                                     totalizerPositive: isChecked
                                                 })
-                                            }} />
+                                            }} disabled/>
                                             <Label htmlFor="cbTotalizerPositive">Totalizer Positive</Label>
                                         </span>
                                         <span className="space-x-1 mx-4">
                                             <Checkbox id="cbTotalizerNegative" checked={reportChecked.totalizerNegative} onCheckedChange={isChecked => {
-                                                console.log("totalizerNegative", isChecked)
                                                 setReportChecked({
                                                     ...reportChecked,
                                                     totalizerNegative: isChecked
                                                 })
-                                            }} />
+                                            }} disabled/>
                                             <Label htmlFor="cbTotalizerNegative">Totalizer Negative</Label>
                                         </span>
                                     </> : null

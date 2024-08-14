@@ -12,7 +12,6 @@ export const AuthProvider = ({ children }) => {
     const login = async (user, token) => {
         setUser(user)
         setToken(token)
-        console.log("redirected /")
         navigate("/", { replace: true })
     }
 
@@ -25,8 +24,6 @@ export const AuthProvider = ({ children }) => {
     }
 
     const validateToken = async (_user, _token) => {
-        console.log("valid token")
-        // console.log(_user, _token)
         const validateTokenResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/validate-token/`, {
             user: _user,
             token: _token

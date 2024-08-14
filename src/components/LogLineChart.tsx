@@ -2,7 +2,7 @@ import axios from 'axios'
 import { Loader2Icon } from 'lucide-react'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
-import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Label, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 const colorMap = {
     AverageVoltage: "text-red-500",
@@ -176,7 +176,7 @@ function LogLineChart(props) {
                     <div className='text-blue-500' />
                     {props.logger.CurrentPressure ?
                         <>
-                            {average.pressure ? <ReferenceLine y={average.pressure} label={"Average Pressure: " + average.pressure} /> : null}
+                            {average.pressure ? <ReferenceLine y={average.pressure}><Label position={'insideBottomLeft'}>{`Average Pressure: ${average.pressure}`}</Label></ReferenceLine>: null}
                             <Line dataKey={'CurrentPressure'}
                                 name={"Pressure"}
                                 stroke='#73d25f'
@@ -188,7 +188,7 @@ function LogLineChart(props) {
                     }
                     {props.logger.CurrentFlow ?
                         <>
-                            {average.flow ? <ReferenceLine y={average.flow}  label={"Average Flow: " + average.flow}/> : null}
+                            {average.flow ? <ReferenceLine y={average.flow}> <Label position={'insideTopRight'}>{`Average Flow: ${average.flow}`}</Label></ReferenceLine>: null}
                             <Line dataKey={'CurrentFlow'}
                                 name={"Flow"}
                                 stroke='#3B82F6'

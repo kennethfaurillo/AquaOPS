@@ -94,9 +94,9 @@ function Header(props) {
             </Dialog>
 
             <div className='flex gap-4 sticky top-0 mb-2 max-w-dvw bg-slate-50/80 backdrop-blur drop-shadow-xl z-10 h-12 sm:h-16 overflow-hidden'>
-                <div>
+                <a href="/">
                     <img src="src/assets/logo-horizontal.png" className="h-full p-2" />
-                </div>
+                </a>
                 <div className="flex ml-auto">
                     {props.user ? <>
                         <TooltipProvider>

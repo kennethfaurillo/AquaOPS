@@ -27,9 +27,6 @@ function DashboardPage() {
             }
         })()
     }, [])
-
-    console.log(isWideScreen)
-
     if (token && user) {
         return (
             <>
