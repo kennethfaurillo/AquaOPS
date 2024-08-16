@@ -21,12 +21,19 @@ import './Map.css';
 import { DataLog, Datalogger } from './Types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { hydrants } from '@/assets/shpHydrant';
+import { capitalize } from '@/lib/utils';
 
 import icWell from '../assets/water-well.png'
+import icPumpBox from '../assets/game.png'
+import icPump from '../assets/water-pump.png'
 import icSpring from '../assets/hot-spring.png'
 import icDam from '../assets/dam2.png'
 import icMeter from '../assets/meter.png'
+import icValve from '../assets/button.png'
+import icHydrant from '../assets/hydrant.png'
 import logoMain from '../assets/logo-main.png'
+
 
 
 const loggerIcon = new Icon({
@@ -35,8 +42,8 @@ const loggerIcon = new Icon({
 })
 
 const wellIcon = new Icon({
-  iconUrl: icWell,
-  iconSize: [20, 20],
+  iconUrl: icPump,
+  iconSize: [22, 22],
 })
 
 const springIcon = new Icon({
@@ -60,7 +67,12 @@ const damIcon = new Icon({
 })
 
 const valveIcon = new Icon({
-  iconUrl: "src/assets/valve.png",
+  iconUrl: icValve,
+  iconSize: [8, 8],
+})
+
+const hydrantIcon = new Icon({
+  iconUrl: icHydrant,
   iconSize: [12, 12],
 })
 
@@ -199,7 +211,7 @@ function LoggerMapCard() {
     if (feature.properties && feature.properties.ogr_fid) {
       layer.on('click', () => {
         console.log(feature.properties)
-        toast.info(`Pipeline #${feature.properties?.ogr_fid} ${feature.properties?.location.toUpperCase()}`, {
+        toast.info(`PIPELINE #${feature.properties?.ogr_fid} ${capitalize(feature.properties?.location)}`, {
           description: <>
             <span>Size: {feature?.properties.size}</span>
             <span> | Length: {feature?.properties.lenght.replace('.', '')}</span>
@@ -224,6 +236,7 @@ function LoggerMapCard() {
   const onEachWell = (feature, layer) => {
     layer.setIcon(wellIcon)
     layer.bindTooltip(feature.properties?.well_activ, { direction: 'top' })
+    // layer.bindTooltip(feature.properties?.well_activ, { direction: 'bottom', permanent: true })
   }
   
   const onEachSpring = (feature, layer) => {
@@ -246,6 +259,11 @@ function LoggerMapCard() {
   const onEachBlowOff = (feature, layer) => {
     layer.setIcon(valveIcon)
     layer.bindTooltip(feature.properties?.location.toUpperCase() + '\n' + feature.properties?.size, { direction: 'top' })
+  }
+
+  const onEachHydrant = (feature, layer) => {
+    layer.setIcon(hydrantIcon)
+    layer.bindTooltip('HYDRANT: ' + capitalize(feature.properties?.location) + '\n' + feature.properties?.size, { direction: 'top' })
   }
 
   const themeToggleOnclick = () => {
@@ -299,19 +317,20 @@ function LoggerMapCard() {
             onEachFeature={onEachPipeline}
           />
         </Overlay>
-        <Overlay name='Wells' checked>
-          <GeoJSON data={source_well} onEachFeature={onEachWell} />
+        <Overlay name='Fire Hydrants' checked>
+          <GeoJSON data={hydrants} onEachFeature={onEachHydrant}/>
         </Overlay>
         <Overlay name='Springs' checked>
           <GeoJSON data={source_spring} onEachFeature={onEachSpring} />
         </Overlay>
         <Overlay name='Surface Water' checked>
-          <GeoJSON data={source_surface} onEachFeature={onEachSurface} />
+          <GeoJSON data={source_surface} onEachFeature={onEachSurface}/>
         </Overlay>
         <Overlay name='Blow Off Valves' >
-          <GeoJSON data={valve_blowOff}  onEachFeature={onEachBlowOff}/>
+          <GeoJSON data={valve_blowOff} onEachFeature={onEachBlowOff}/>
         </Overlay>
-        <Overlay name='DMA Boundaries'>
+        <Overlay name='Pump Stations' checked>
+          <GeoJSON data={source_well} onEachFeature={onEachWell} />
         </Overlay>
         <Overlay name='Data Loggers' checked>
           <LayerGroup>
