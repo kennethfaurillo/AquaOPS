@@ -19,23 +19,28 @@ import { toast } from 'sonner';
 import { useDrawerDialogContext } from '../hooks/useDrawerDialogContext';
 import './Map.css';
 import { DataLog, Datalogger } from './Types';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
+import icWell from '../assets/water-well.png'
+import icSpring from '../assets/hot-spring.png'
+import icDam from '../assets/dam2.png'
+import icMeter from '../assets/meter.png'
+import logoMain from '../assets/logo-main.png'
+
 
 const loggerIcon = new Icon({
-  iconUrl: "src/assets/meter.png",
+  iconUrl: icMeter,
   iconSize: [24, 24],
 })
 
 const wellIcon = new Icon({
-  iconUrl: "src/assets/water-well2.png",
+  iconUrl: icWell,
   iconSize: [20, 20],
 })
 
 const springIcon = new Icon({
-  iconUrl: "src/assets/hot-spring.png",
+  iconUrl: icSpring,
   iconSize: [30, 30],
 })
 
@@ -50,7 +55,7 @@ const sumpIcon = new Icon({
 })
 
 const damIcon = new Icon({
-  iconUrl: "src/assets/dam2.png",
+  iconUrl: icDam,
   iconSize: [30, 30],
 })
 
@@ -356,7 +361,7 @@ function LoggerMapCard() {
       {fullscreenMap ?
         <>
           <div className='absolute bottom-4 left-4 p-2 rounded-full z-[400]'>
-            <img src='src/assets/logo-main.png' className='h-20'/>
+            <img src={logoMain} className='h-20'/>
           </div>
           <div className='flex justify-around space-y-2 w-full px-0 md:px-72'>
             <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-start-1 col-span-3 justify-center flex items-center backdrop-blur-[1px] z-[400]">

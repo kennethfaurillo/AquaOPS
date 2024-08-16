@@ -19,6 +19,11 @@ import { Switch } from "./ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
+import logoHorizontal from '../assets/logo-horizontal.png'
+import piwadLogo from '../assets/piwad-logo.png'
+import avatarSoftwareEng from '../assets/software-engineer.png'
+import avatarEng from '../assets/engineer.png'
+
 
 function Header(props) {
     const { user, token, logout } = useAuth()
@@ -95,7 +100,7 @@ function Header(props) {
 
             <div className='flex gap-4 sticky top-0 mb-2 max-w-dvw bg-slate-50/80 backdrop-blur drop-shadow-xl z-10 h-12 sm:h-16 overflow-hidden'>
                 <a href="/">
-                    <img src="src/assets/logo-horizontal.png" className="h-full p-2" />
+                    <img src={logoHorizontal} className="h-full p-2" />
                 </a>
                 <div className="flex ml-auto">
                     {props.user ? <>
@@ -105,8 +110,7 @@ function Header(props) {
                                     <>
                                         <div className="text-slate-700 text-2xl lg:block">{user.Username.toUpperCase() ?? "L"}</div>
                                         <Avatar className="m-2 mr-4 size-9 sm:size-14 cursor-pointer" >
-                                            {/* <AvatarImage src={`src/assets/${user.Type == "admin" ? "software-engineer" : "engineer"}.png`} /> */}
-                                            <AvatarImage src={`src/assets/piwad-logo.png`} />
+                                            <AvatarImage src={piwadLogo} />
                                             <AvatarFallback>PIWAD</AvatarFallback>
                                         </Avatar>
                                     </>
@@ -171,7 +175,7 @@ function Header(props) {
                                 <SheetHeader>
                                     <SheetTitle className="flex items-center text-2xl gap-2">
                                         <Avatar className="m-2 mr-2 size-14 sm:size-16">
-                                            <AvatarImage src={`src/assets/${user.Type == "admin" ? "software-engineer" : "engineer"}.png`} />
+                                            <AvatarImage src={user.Type == 'admin' ? avatarSoftwareEng : avatarEng}/>
                                             <AvatarFallback>User</AvatarFallback>
                                         </Avatar>
                                         <div className="grid grid-cols-2">
