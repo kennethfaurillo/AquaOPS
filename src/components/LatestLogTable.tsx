@@ -124,7 +124,7 @@ function LoggerTable(props) {
         )
       },
       cell: ({ row }) => {
-        if (parseFloat(row.getValue("CurrentPressure"))) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentPressure"))} <em>psi</em></div>
+        if (!Number.isNaN(parseFloat(row.getValue("CurrentPressure")))) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentPressure"))} <em>psi</em></div>
         return (<div className="text-gray-300 font-semibold text-right">NA</div>)
       }
     },
@@ -142,7 +142,7 @@ function LoggerTable(props) {
         )
       },
       cell: ({ row }) => {
-        if (parseFloat(row.getValue("CurrentFlow"))) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentFlow"))} <em>lps</em></div>
+        if (!Number.isNaN(parseFloat(row.getValue("CurrentFlow"))) ) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentFlow"))} <em>lps</em></div>
         return (<div className="text-gray-300 font-semibold text-right">NA</div>)
       }
     },

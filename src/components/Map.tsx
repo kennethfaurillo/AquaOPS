@@ -11,10 +11,10 @@ import { addDays, addHours } from 'date-fns';
 import { DivIcon, Icon } from 'leaflet';
 import 'leaflet.fullscreen/Control.FullScreen.css';
 import 'leaflet.fullscreen/Control.FullScreen.js';
-import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
+import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon, WashingMachineIcon } from 'lucide-react';
 import moment from 'moment';
 import { useCallback, useEffect, useState } from 'react';
-import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
+import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 import { toast } from 'sonner';
 import { useDrawerDialogContext } from '../hooks/useDrawerDialogContext';
 import './Map.css';
@@ -68,12 +68,12 @@ const damIcon = new Icon({
 
 const valveIcon = new Icon({
   iconUrl: icValve,
-  iconSize: [8, 8],
+  iconSize: [7, 7],
 })
 
 const hydrantIcon = new Icon({
   iconUrl: icHydrant,
-  iconSize: [12, 12],
+  iconSize: [8, 8],
 })
 
 const colorMap = {
@@ -207,11 +207,11 @@ function LoggerMapCard() {
   }
 
   const onEachPipeline = (feature, layer) => {
-    layer.bindTooltip(`Pipeline #${feature.properties?.ogr_fid} ${feature.properties?.location.toUpperCase()}`, { direction: 'center' })
+    layer.bindTooltip(`Pipeline: ${feature.properties?.location.toUpperCase()}`, { direction: 'center' })
     if (feature.properties && feature.properties.ogr_fid) {
       layer.on('click', () => {
         console.log(feature.properties)
-        toast.info(`PIPELINE #${feature.properties?.ogr_fid} ${capitalize(feature.properties?.location)}`, {
+        toast.info(`Pipeline #${feature.properties?.ogr_fid} ${capitalize(feature.properties?.location)}`, {
           description: <>
             <span>Size: {feature?.properties.size}</span>
             <span> | Length: {feature?.properties.lenght.replace('.', '')}</span>
@@ -236,19 +236,37 @@ function LoggerMapCard() {
   const onEachWell = (feature, layer) => {
     layer.setIcon(wellIcon)
     layer.bindTooltip(feature.properties?.well_activ, { direction: 'top' })
-    // layer.bindTooltip(feature.properties?.well_activ, { direction: 'bottom', permanent: true })
+    layer.bindPopup(() => `
+    <div class="popup-container">
+      <div class="popup-header flex space-x-2">
+        <img src=${icPump} alt="Icon" class="size-4" />
+        <div>${feature.properties?.well_activ || 'No Data'}</div>
+      </div>
+      <div class="popup-content">
+        <div><strong>Address:</strong> ${feature.properties?.address || 'No Data'}</div>
+        <div><strong>Date Installed:</strong> ${feature.properties?.date_installed || 'No Data'}</div>
+        <div><strong>Pressure Setting:</strong> ${feature.properties?.pressure_setting || 'No Data'}</div>
+        <div><strong>Pipe Size:</strong> ${feature.properties?.pipe_size || 'No Data'}</div>
+      </div>
+    </div>
+    ` , { 
+      className: 'custom-popup',
+      offset: [100, 150]
+     }
+    )
+
   }
-  
+
   const onEachSpring = (feature, layer) => {
     layer.setIcon(springIcon)
     layer.bindTooltip(feature.properties?.SPRING, { direction: 'top' })
   }
-  
+
   const onEachSurface = (feature, layer) => {
     layer.setIcon(damIcon)
     layer.bindTooltip(feature.properties?.SURFACE, { direction: 'top' })
   }
-  
+
   const onEachSpecificCapacity = (feature, layer) => {
     layer.bindTooltip(feature.properties?.cap, { direction: 'center' })
     layer.on('dblclick', () => {
@@ -258,12 +276,29 @@ function LoggerMapCard() {
 
   const onEachBlowOff = (feature, layer) => {
     layer.setIcon(valveIcon)
-    layer.bindTooltip(feature.properties?.location.toUpperCase() + '\n' + feature.properties?.size, { direction: 'top' })
+    layer.bindTooltip('Blow-off Valve: ' +feature.properties?.location.toUpperCase() + '\n' + feature.properties?.size, { direction: 'top' })
   }
 
   const onEachHydrant = (feature, layer) => {
     layer.setIcon(hydrantIcon)
-    layer.bindTooltip('HYDRANT: ' + capitalize(feature.properties?.location) + '\n' + feature.properties?.size, { direction: 'top' })
+    layer.bindTooltip('Hydrant: ' + capitalize(feature.properties?.location) + '\n', { direction: 'top' })
+    layer.bindPopup(() => `
+    <div class="popup-container">
+      <div class="popup-header flex space-x-2">
+        <img src=${icHydrant} alt="Icon" class="size-4" />
+        <div>${capitalize(feature.properties?.location) || 'No Data'}</div>
+      </div>
+      <div class="popup-content">
+        <div><strong>Date Installed:</strong> ${moment(feature.properties['year inst.'], true).format('MM-DD-YYYY') || 'No Data'}</div>
+        <div><strong>Type:</strong> ${capitalize(feature.properties?.type) || 'No Data'}</div>
+        <div><strong>Pipe Size:</strong> ${feature.properties?.size || 'No Data'}</div>
+      </div>
+    </div>
+    ` , { 
+      className: 'custom-popup',
+      offset: [100, 150]
+     }
+    )
   }
 
   const themeToggleOnclick = () => {
@@ -284,7 +319,7 @@ function LoggerMapCard() {
   }
 
   const displayMap = (() => (
-    <MapContainer 
+    <MapContainer
       className='cursor-crosshair'
       center={[13.586680, 123.279893]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
       scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
@@ -303,11 +338,11 @@ function LoggerMapCard() {
             attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
           />
         </BaseLayer>
-        <Overlay name='Baranggay Boundaries' checked>
+        <Overlay name='Baranggay Boundaries'>
           <GeoJSON data={piliBoundary} style={{ fillOpacity: 0, weight: 1, color: 'orange' }} onEachFeature={onEachArea} />
         </Overlay>
         <Overlay name='Specific Capacity'>
-          <GeoJSON data={specific_capacity} style={{ fillOpacity: 0, weight: 1, color: 'violet' }} onEachFeature={onEachSpecificCapacity}/>
+          <GeoJSON data={specific_capacity} style={{ fillOpacity: 0, weight: 1, color: 'violet' }} onEachFeature={onEachSpecificCapacity} />
         </Overlay>
         <Overlay name='Pipelines' checked>
           <GeoJSON data={pipelines} style={(feature) => ({
@@ -318,16 +353,16 @@ function LoggerMapCard() {
           />
         </Overlay>
         <Overlay name='Fire Hydrants' checked>
-          <GeoJSON data={hydrants} onEachFeature={onEachHydrant}/>
+          <GeoJSON data={hydrants} onEachFeature={onEachHydrant} />
         </Overlay>
         <Overlay name='Springs' checked>
           <GeoJSON data={source_spring} onEachFeature={onEachSpring} />
         </Overlay>
         <Overlay name='Surface Water' checked>
-          <GeoJSON data={source_surface} onEachFeature={onEachSurface}/>
+          <GeoJSON data={source_surface} onEachFeature={onEachSurface} />
         </Overlay>
         <Overlay name='Blow Off Valves' >
-          <GeoJSON data={valve_blowOff} onEachFeature={onEachBlowOff}/>
+          <GeoJSON data={valve_blowOff} onEachFeature={onEachBlowOff} />
         </Overlay>
         <Overlay name='Pump Stations' checked>
           <GeoJSON data={source_well} onEachFeature={onEachWell} />
@@ -347,10 +382,10 @@ function LoggerMapCard() {
                     }}>
                       <Tooltip permanent direction={'top'}>
                         <div className='text-black font-bold'>
-                          {loggerData.CurrentPressure ? <>{loggerData.CurrentPressure}<em> psi</em><br /></> : null}
+                          {loggerData.CurrentPressure != null ? <>{loggerData.CurrentPressure}<em> psi</em><br /></> : null}
                         </div>
                         <div className='text-black font-bold'>
-                          {loggerData.CurrentFlow ? <>{loggerData.CurrentFlow}<em> lps</em></> : null}
+                          {loggerData.CurrentFlow != null ? <>{loggerData.CurrentFlow}<em> lps</em></> : null}
                         </div>
                         <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
                           {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('MMM D h:mm a')}<br /></> : null}
@@ -380,7 +415,7 @@ function LoggerMapCard() {
       {fullscreenMap ?
         <>
           <div className='absolute bottom-4 left-4 p-2 rounded-full z-[400]'>
-            <img src={logoMain} className='h-20'/>
+            <img src={logoMain} className='h-12 sm:h-16 md:h-20' />
           </div>
           <div className='flex justify-around space-y-2 w-full px-0 md:px-72'>
             <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-start-1 col-span-3 justify-center flex items-center backdrop-blur-[1px] z-[400]">

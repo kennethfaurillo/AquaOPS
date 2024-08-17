@@ -1,13 +1,14 @@
 /* .leaflet-tooltip{
     border: 1px solid grey;
 } */
-.leaflet-tooltip-top:before, 
-.leaflet-tooltip-bottom:before, 
-.leaflet-tooltip-left:before, 
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
 .leaflet-tooltip-right:before {
     border: none !important;
 }
-.leaflet-tooltip-bottom{
+
+.leaflet-tooltip-bottom {
     border: none !important;
     padding: 0%;
     margin-top: 0.85rem;
@@ -23,11 +24,12 @@
     color: rgb(12, 47, 77);
     box-shadow: none;
     z-index: 500;
-    white-space: pre-wrap; 
+    white-space: pre-wrap;
     text-align: center;
     min-width: 16ch;
 }
-.leaflet-tooltip-top{
+
+.leaflet-tooltip-top {
     margin-top: -1.125rem;
     border-radius: 5px;
     /* font-family: Roboto, Oxygen, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; */
@@ -37,14 +39,69 @@
     background-color: rgba(238, 238, 238, 0.75);
     backdrop-filter: blur(3px);
     z-index: 501;
-  /* font-size: large; */
+    /* font-size: large; */
 }
-.logger-label-light{
+
+.custom-popup .leaflet-popup-content-wrapper {
+    padding: 0;
+    background: none;
+    border-radius: 5px;
+    box-shadow: none;
+}
+
+.custom-popup .leaflet-popup-tip {
+    background: #1e90ff;
+    color: #333;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+
+.custom-popup .leaflet-popup-tip-container {
+    display: none;
+}
+
+.custom-popup .leaflet-popup-content {
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+}
+
+.popup-container {
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+    color: black;
+}
+
+.popup-header {
+    background-color: #1e90ff;
+    color: white;
+    padding: 6px;
+    border-radius: 5px 5px 0 0;
+    font-weight: bold;
+    text-align: center;
+}
+
+.popup-content {
+    padding: 10px;
+}
+
+.popup-content div {
+    margin-bottom: 5px;
+}
+
+.popup-content div:last-child {
+    margin-bottom: 0;
+}
+
+.logger-label-light {
     color: rgb(12, 47, 77);
     -webkit-text-stroke: 0.15px rgb(170, 170, 170);
     text-shadow: 2px 2px rgb(223, 223, 223);
 }
-.logger-label-dark{
+
+.logger-label-dark {
     color: rgb(232, 255, 24);
     -webkit-text-stroke: 0.25px rgb(49, 49, 49);
     text-shadow: 2px 2px rgb(0, 0, 0);
@@ -58,9 +115,11 @@
     0% {
         opacity: 1;
     }
+
     50% {
         opacity: 0;
     }
+
     100% {
         opacity: 1;
     }
@@ -73,6 +132,7 @@
         font-weight: 500;
     }
 }
+
 @media (min-width: 1600px) {
     .leaflet-tooltip-bottom {
         font-size: small;
