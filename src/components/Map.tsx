@@ -1,38 +1,36 @@
+import { valve_blowOff } from '@/assets/shpBlowOff';
+import { hydrants } from '@/assets/shpHydrant';
 import { piliBoundary } from '@/assets/shpPiliBoundary';
 import { pipelines } from '@/assets/shpPipelines';
-import { source_well } from '@/assets/shpSourceWell';
 import { source_spring } from '@/assets/shpSourceSpring';
 import { source_surface } from '@/assets/shpSourceSurface';
-import { specific_capacity } from '@/assets/shpSpecificCapacity'
-import { valve_blowOff } from '@/assets/shpBlowOff'
+import { source_well } from '@/assets/shpSourceWell';
+import { specific_capacity } from '@/assets/shpSpecificCapacity';
+import { capitalize } from '@/lib/utils';
 import ResetViewControl from '@20tab/react-leaflet-resetview';
 import axios from 'axios';
-import { addDays, addHours } from 'date-fns';
+import { addHours } from 'date-fns';
 import { DivIcon, Icon } from 'leaflet';
 import 'leaflet.fullscreen/Control.FullScreen.css';
 import 'leaflet.fullscreen/Control.FullScreen.js';
-import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon, WashingMachineIcon } from 'lucide-react';
+import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
 import moment from 'moment';
 import { useCallback, useEffect, useState } from 'react';
-import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
+import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 import { toast } from 'sonner';
 import { useDrawerDialogContext } from '../hooks/useDrawerDialogContext';
 import './Map.css';
 import { DataLog, Datalogger } from './Types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { hydrants } from '@/assets/shpHydrant';
-import { capitalize } from '@/lib/utils';
 
-import icWell from '../assets/water-well.png'
-import icPumpBox from '../assets/game.png'
-import icPump from '../assets/water-pump.png'
-import icSpring from '../assets/hot-spring.png'
-import icDam from '../assets/dam2.png'
-import icMeter from '../assets/meter.png'
-import icValve from '../assets/button.png'
-import icHydrant from '../assets/hydrant.png'
-import logoMain from '../assets/logo-main.png'
+import icValve from '../assets/button.png';
+import icDam from '../assets/dam2.png';
+import icSpring from '../assets/hot-spring.png';
+import icHydrant from '../assets/hydrant.png';
+import logoMain from '../assets/logo-main.png';
+import icMeter from '../assets/meter.png';
+import icPump from '../assets/water-pump.png';
 
 
 
@@ -127,7 +125,6 @@ function LoggerMapCard() {
   const { setLogger, setChartDrawerOpen, } = useDrawerDialogContext()
   const { BaseLayer, Overlay } = LayersControl
   const scaleFactor = 1
-  const pollMs = 60000
 
   useEffect(() => {
     if (!map) return
@@ -184,10 +181,21 @@ function LoggerMapCard() {
       }
     }
     fetchData()
-    const poll = setInterval(() => {
+    // Setup SSE Listener for new logs
+    const sse = new EventSource(`//${import.meta.env.VITE_SSE_HOST}:${import.meta.env.VITE_SSE_PORT}/sse`);
+    const sseLog = () => {
+      console.log("New Log!")
       fetchData()
-    }, pollMs)
-    return () => clearInterval(poll)
+    }
+    if (sse) {
+      sse.addEventListener('LogEvent', sseLog)
+    }
+    return () => {
+      if (sse) {
+        sse.removeEventListener('LogEvent', sseLog)
+      }
+      sse.close()
+    }
   }, [])
 
   const DisplayPosition = ({ map }) => {
@@ -249,10 +257,10 @@ function LoggerMapCard() {
         <div><strong>Pipe Size:</strong> ${feature.properties?.pipe_size || 'No Data'}</div>
       </div>
     </div>
-    ` , { 
+    ` , {
       className: 'custom-popup',
       offset: [100, 150]
-     }
+    }
     )
 
   }
@@ -276,7 +284,7 @@ function LoggerMapCard() {
 
   const onEachBlowOff = (feature, layer) => {
     layer.setIcon(valveIcon)
-    layer.bindTooltip('Blow-off Valve: ' +feature.properties?.location.toUpperCase() + '\n' + feature.properties?.size, { direction: 'top' })
+    layer.bindTooltip('Blow-off Valve: ' + feature.properties?.location.toUpperCase() + '\n' + feature.properties?.size, { direction: 'top' })
   }
 
   const onEachHydrant = (feature, layer) => {
@@ -294,10 +302,10 @@ function LoggerMapCard() {
         <div><strong>Pipe Size:</strong> ${feature.properties?.size || 'No Data'}</div>
       </div>
     </div>
-    ` , { 
+    ` , {
       className: 'custom-popup',
       offset: [100, 150]
-     }
+    }
     )
   }
 

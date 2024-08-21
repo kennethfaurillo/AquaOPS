@@ -30,16 +30,16 @@ function DashboardPage() {
     if (token && user) {
         return (
             <>
-                <div className='h-[80dvh] sm:h-[88dvh] bg-slate-100'>
+                <div className='h-[cmd80dvh] sm:h-[100dvh] overflow-hidden bg-slate-100'>
                     <Header user={{ "FirstName": "Piwad", "LastName": user.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
                     <DrawerDialogProvider>
                         {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (
-                            <ResizablePanelGroup direction="horizontal" className="h-">
-                                <ResizablePanel minSize={25} className="mr-2">
+                            <ResizablePanelGroup direction="horizontal">
+                                <ResizablePanel minSize={25} className="mx-2">
                                     <TableCard/>
                                 </ResizablePanel>
                                 <ResizableHandle withHandle />
-                                <ResizablePanel defaultSize={76} minSize={45} className="ml-2">
+                                <ResizablePanel defaultSize={76} minSize={45} className="mx-2">
                                     <LoggerMapCard/>
                                 </ResizablePanel>
                             </ResizablePanelGroup>

@@ -19,4 +19,5 @@ export default defineConfig({
     host: true,
     open: true
   },
+  base: '/aquaops'
 })

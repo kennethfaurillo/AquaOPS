@@ -13,9 +13,8 @@ function LoggerTable(props) {
   const [loggerData, setLoggerData] = useState([])
   const [loading, setLoading] = useState(true)
   const setLatestLog = props?.setLatestLog
-  const pollMs = 60000
 
-  const {setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo} = useDrawerDialogContext()
+  const { setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo } = useDrawerDialogContext()
 
   const latestLogsColumns: ColumnDef<Datalogger>[] = [
     {
@@ -96,17 +95,24 @@ function LoggerTable(props) {
       accessorKey: "LogTime",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" className="px-1" onClick={() => {
+          <div className="text-right">
+          <Button variant="ghost"  className="px-1" onClick={() => {
             column.toggleSorting(column.getIsSorted() === "asc")
           }}>
             <Clock4Icon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
             Time
             {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
           </Button>
+          </div>
         )
       },
       cell: ({ row }) => {
-        if (row.getValue("LogTime")) return <div className="text-center">{(moment(row.getValue("LogTime").replace('Z',''), true).format("M/D/YY H:mm:ss"))}</div>
+        if (row.getValue("LogTime")) return(
+        <div className="text-right">
+          {(moment(row.getValue("LogTime").replace('Z', ''), true).format("M/D/YY "))}
+          <br/>
+          {(moment(row.getValue("LogTime").replace('Z', ''), true).format("H:mm A"))}
+        </div>)
         return (<div className="text-gray-300 font-semibold">NA</div>)
       }
     },
@@ -114,13 +120,15 @@ function LoggerTable(props) {
       accessorKey: "CurrentPressure",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" className="px-0" onClick={() => {
-            column.toggleSorting(column.getIsSorted() === "asc")
-          }}>
-            <CircleGaugeIcon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
-            Pressure
-            {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
-          </Button>
+          <div className="text-right">
+            <Button variant="ghost" className="px-0" onClick={() => {
+              column.toggleSorting(column.getIsSorted() === "asc")
+            }}>
+              <CircleGaugeIcon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
+              Pressure
+              {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
+            </Button>
+          </div>
         )
       },
       cell: ({ row }) => {
@@ -132,17 +140,19 @@ function LoggerTable(props) {
       accessorKey: "CurrentFlow",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" className="px-0" onClick={() => {
-            column.toggleSorting(column.getIsSorted() === "asc")
-          }}>
-            <WavesIcon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
-            Flow
-            {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
-          </Button>
+          <div className="text-right">
+            <Button variant="ghost" className="px-0" onClick={() => {
+              column.toggleSorting(column.getIsSorted() === "asc")
+            }}>
+              <WavesIcon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
+              Flow
+              {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
+            </Button>
+          </div>
         )
       },
       cell: ({ row }) => {
-        if (!Number.isNaN(parseFloat(row.getValue("CurrentFlow"))) ) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentFlow"))} <em>lps</em></div>
+        if (!Number.isNaN(parseFloat(row.getValue("CurrentFlow")))) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentFlow"))} <em>lps</em></div>
         return (<div className="text-gray-300 font-semibold text-right">NA</div>)
       }
     },
@@ -191,10 +201,21 @@ function LoggerTable(props) {
       })
     }
     fetchData()
-    const poll = setInterval(() => {
+    // Setup SSE Listener for new logs
+    const sse = new EventSource(`//${import.meta.env.VITE_SSE_HOST}:${import.meta.env.VITE_SSE_PORT}/sse`);
+    const sseLog = () => {
+      console.log('New Log!')
       fetchData()
-    }, pollMs)
-    return () => clearInterval(poll)
+    }
+    if (sse) {
+      sse.addEventListener('LogEvent', sseLog)
+    }
+    return () => {
+      if (sse) {
+        sse.removeEventListener('LogEvent', sseLog)
+      }
+      sse.close()
+    }
   }, [])
 
   const initialState = {
