@@ -1,36 +1,36 @@
-import { valve_blowOff } from '@/assets/shpBlowOff';
-import { hydrants } from '@/assets/shpHydrant';
-import { piliBoundary } from '@/assets/shpPiliBoundary';
-import { pipelines } from '@/assets/shpPipelines';
-import { source_spring } from '@/assets/shpSourceSpring';
-import { source_surface } from '@/assets/shpSourceSurface';
-import { source_well } from '@/assets/shpSourceWell';
-import { specific_capacity } from '@/assets/shpSpecificCapacity';
-import { capitalize } from '@/lib/utils';
-import ResetViewControl from '@20tab/react-leaflet-resetview';
-import axios from 'axios';
-import { addHours } from 'date-fns';
-import { DivIcon, Icon } from 'leaflet';
-import 'leaflet.fullscreen/Control.FullScreen.css';
-import 'leaflet.fullscreen/Control.FullScreen.js';
-import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
-import moment from 'moment';
-import { useCallback, useEffect, useState } from 'react';
-import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
-import { toast } from 'sonner';
-import { useDrawerDialogContext } from '../hooks/useDrawerDialogContext';
-import './Map.css';
-import { DataLog, Datalogger } from './Types';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import valve_blowOff from '@/assets/geoBlowOff.json'
+import piliBoundary from '@/assets/geoBoundary.json'
+import hydrants from '@/assets/geoHdyrant.json'
+import pipelines from '@/assets/geoPipeline.json'
+import source_spring from '@/assets/geoSourceSpring.json'
+import source_surface from '@/assets/geoSourceSurface.json'
+import source_well from '@/assets/geoSourceWell.json'
+import specific_capacity from '@/assets/geoSpecificCapacity.json'
+import { capitalize } from '@/lib/utils'
+import ResetViewControl from '@20tab/react-leaflet-resetview'
+import axios from 'axios'
+import { addHours } from 'date-fns'
+import { DivIcon, Icon } from 'leaflet'
+import 'leaflet.fullscreen/Control.FullScreen.css'
+import 'leaflet.fullscreen/Control.FullScreen.js'
+import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react'
+import moment from 'moment'
+import { useCallback, useEffect, useState } from 'react'
+import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet'
+import { toast } from 'sonner'
+import { useDrawerDialogContext } from '../hooks/useDrawerDialogContext'
+import './Map.css'
+import { DataLog, Datalogger } from './Types'
+import { Button } from './ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 
-import icValve from '../assets/button.png';
-import icDam from '../assets/dam2.png';
-import icSpring from '../assets/hot-spring.png';
-import icHydrant from '../assets/hydrant.png';
-import logoMain from '../assets/logo-main.png';
-import icMeter from '../assets/meter.png';
-import icPump from '../assets/water-pump.png';
+import icValve from '../assets/button.png'
+import icDam from '../assets/dam2.png'
+import icSpring from '../assets/hot-spring.png'
+import icHydrant from '../assets/hydrant.png'
+import logoMain from '../assets/logo-main.png'
+import icMeter from '../assets/meter.png'
+import icPump from '../assets/water-pump.png'
 
 
 
@@ -165,7 +165,10 @@ function LoggerMapCard() {
             if (logger.LoggerId == log.LoggerId) {
               tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
               // Count as Active if last log within 3 days 
-              if (new Date(log.LogTime) > addHours(new Date(), -24)) {
+              if(log.Name.toLowerCase().includes('old')){
+                tempLoggersStatus.Disabled++
+              }
+              else if (new Date(log.LogTime) > addHours(new Date(), -24)) {
                 tempLoggersStatus.Active++
               } else {
                 tempLoggersStatus.Inactive++
@@ -184,7 +187,7 @@ function LoggerMapCard() {
     // Setup SSE Listener for new logs
     const sse = new EventSource(`//${import.meta.env.VITE_SSE_HOST}:${import.meta.env.VITE_SSE_PORT}/sse`);
     const sseLog = () => {
-      console.log("New Log!")
+      console.log('New Log!')
       fetchData()
     }
     if (sse) {

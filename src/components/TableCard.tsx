@@ -1,6 +1,7 @@
 import { PlusCircleIcon } from "lucide-react";
 import { useState } from "react";
 import LatestLogTable from "./LatestLogTable";
+import StationTable from "./PumpStationTable";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Separator } from "./ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
@@ -28,7 +29,7 @@ function TableCard() {
                                         <TooltipContent>Add New Logger</TooltipContent>
                                     </Tooltip>
                                     <CardDescription className="text-white/80">View and manage data loggers</CardDescription>
-                                <Separator />
+                                    <Separator />
                                 </div>
                             </CardHeader>
                             <CardContent>
@@ -45,13 +46,13 @@ function TableCard() {
                                         <TooltipTrigger asChild><PlusCircleIcon color="white" className="absolute right-1 top-1 text-slate-900 cursor-pointer" /></TooltipTrigger>
                                         <TooltipContent>Add New Source</TooltipContent>
                                     </Tooltip>
-                                    
+
                                     <CardDescription className="text-white/80">Update water source information</CardDescription>
-                                <Separator />
+                                    <Separator />
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <LatestLogTable setLatestLog={setLatestLog} />
+                                {/* <LatestLogTable setLatestLog={setLatestLog} /> */}
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -64,13 +65,14 @@ function TableCard() {
                                         <TooltipTrigger asChild><PlusCircleIcon color="white" className="absolute right-1 top-1 text-slate-900 cursor-pointer" /></TooltipTrigger>
                                         <TooltipContent>Add New Station</TooltipContent>
                                     </Tooltip>
-                                    
+
                                     <CardDescription className="text-white/80">Configure pump station settings</CardDescription>
-                                <Separator />
+                                    <Separator />
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <LatestLogTable setLatestLog={setLatestLog} />
+                                <StationTable />
+                                {/* <LatestLogTable setLatestLog={setLatestLog} /> */}
                             </CardContent>
                         </Card>
                     </TabsContent>

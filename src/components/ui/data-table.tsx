@@ -14,8 +14,8 @@ interface DataTableProps<TData, TValue, TInitState, TLoading> {
 
 export function DataTable<TData, TValue, TInitState, TLoading>({ columns, data, initialState, loading }: DataTableProps<TData, TValue, TInitState, TLoading>) {
   const [sorting, setSorting] = useState<SortingState>([{
-    id: "LogTime",
-    desc: true, // Adjust the sorting order if needed
+    id: "Name",
+    desc: false, // Adjust the sorting order if needed
   }])
   const test = {
     pagination: {

@@ -42,3 +42,12 @@ export type DataLog = {
     CurrentPressure: number,
     CurrentFlow: number
 }
+
+export type Station = {
+    SourceId: string,
+    Name: string,
+    Lat: number,
+    Long: number,
+    Capacity: number,
+    Elevation: number
+}
