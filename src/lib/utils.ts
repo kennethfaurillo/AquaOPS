@@ -72,3 +72,14 @@ export function jsonToCSV(jsonArr, header) {
   link.href = url;
   return link
 }
+
+// Check a value against a given limit (csv - low,high)
+// true - in range, false - outside
+export function isValueInRange (limits, value){
+  const [low, high] = limits.split(',').map(Number);
+  return value >= low && value <= high;
+};
+
+export function lerp(min, max, val){
+  return (val-min)/(max-min)*100
+}

@@ -181,7 +181,7 @@ function LogLineChart(props) {
                     <div className='text-blue-500' />
                     {props.logger.CurrentPressure != null ?
                         <>
-                            {average.pressure ? <ReferenceLine y={average.pressure}><Label position={'insideBottomLeft'}>{`Average Pressure: ${average.pressure}`}</Label></ReferenceLine> : null}
+                            {average.pressure ? <ReferenceLine y={average.pressure} stroke='#73d25f' strokeOpacity={.3}><Label position={'insideBottomLeft'}>{`Average Pressure: ${average.pressure}`}</Label></ReferenceLine> : null}
                             <Line dataKey={'CurrentPressure'}
                                 name={"Pressure"}
                                 stroke='#73d25f'
@@ -193,7 +193,7 @@ function LogLineChart(props) {
                     }
                     {props.logger.CurrentFlow != null ?
                         <>
-                            {average.flow ? <ReferenceLine y={average.flow}> <Label position={'insideTopRight'}>{`Average Flow: ${average.flow}`}</Label></ReferenceLine> : null}
+                            {average.flow ? <ReferenceLine y={average.flow} stroke='#3B82F6' strokeOpacity={.3}> <Label position={'insideTopRight'} className='text-red-500'>{`Average Flow: ${average.flow}`}</Label></ReferenceLine> : null}
                             <Line dataKey={'CurrentFlow'}
                                 name={"Flow"}
                                 stroke='#3B82F6'

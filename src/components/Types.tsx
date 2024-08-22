@@ -6,6 +6,7 @@ export type Datalogger = {
     Latitude: number,
     Longitude: number,
     VoltageLimit: string,
+    PressureLimit: string,
     FlowLimit: string,
     Imei: number,
     Sim: number
@@ -50,4 +51,24 @@ export type Station = {
     Long: number,
     Capacity: number,
     Elevation: number
+}
+
+export type LoggerLog = {
+    LoggerId: number,
+    Name: string,
+    Model: string,
+    FwVersion: string,
+    Latitude: number,
+    Longitude: number,
+    VoltageLimit: string,
+    PressureLimit: string,
+    FlowLimit: string,
+    Imei: number,
+    Sim: number,
+    LogId: number,
+    Timestamp: Date,
+    LogTime: Date,
+    AverageVoltage: number,
+    CurrentPressure: number,
+    CurrentFlow: number
 }

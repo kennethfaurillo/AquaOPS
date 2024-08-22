@@ -6,21 +6,21 @@ import source_spring from '@/assets/geoSourceSpring.json'
 import source_surface from '@/assets/geoSourceSurface.json'
 import source_well from '@/assets/geoSourceWell.json'
 import specific_capacity from '@/assets/geoSpecificCapacity.json'
-import { capitalize } from '@/lib/utils'
+import { capitalize, isValueInRange, lerp } from '@/lib/utils'
 import ResetViewControl from '@20tab/react-leaflet-resetview'
 import axios from 'axios'
 import { addHours } from 'date-fns'
 import { DivIcon, Icon } from 'leaflet'
 import 'leaflet.fullscreen/Control.FullScreen.css'
 import 'leaflet.fullscreen/Control.FullScreen.js'
-import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react'
+import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, BellOffIcon, BellRingIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
 import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet'
 import { toast } from 'sonner'
 import { useDrawerDialogContext } from '../hooks/useDrawerDialogContext'
 import './Map.css'
-import { DataLog, Datalogger } from './Types'
+import { DataLog, Datalogger, LoggerLog } from './Types'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 
@@ -31,8 +31,6 @@ import icHydrant from '../assets/hydrant.png'
 import logoMain from '../assets/logo-main.png'
 import icMeter from '../assets/meter.png'
 import icPump from '../assets/water-pump.png'
-
-
 
 const loggerIcon = new Icon({
   iconUrl: icMeter,
@@ -113,6 +111,22 @@ const basemaps: Basemap[] = [
   },
 ]
 
+function checkVoltage(voltage: number, voltageLimit: string): 'unknown' | 'critical' | 'low' | 'medium' | 'high' | 'full' {
+  let [min, max] = voltageLimit.split(',')
+  const perc = lerp(min, max, voltage)
+  if (perc >= 83) {
+    return 'full'
+  } else if (perc >= 58) {
+    return 'high'
+  } else if (perc >= 33) {
+    return 'medium'
+  } else if (perc >= 16) {
+    return 'low'
+  } else {
+    return 'critical'
+  }
+}
+
 function LoggerMapCard() {
   const [loggersLatest, setLoggersLatest] = useState(new Map())
   const [map, setMap] = useState(null)
@@ -121,6 +135,8 @@ function LoggerMapCard() {
   const [loggersStatus, setLoggersStatus] = useState({ Active: 0, Inactive: 0, Disabled: 0 })
   const [position, setPosition] = useState({ lat: 13.586680, lng: 123.279893 })
   const [fullscreenMap, setFullscreenMap] = useState(false)
+  const [alarm, setAlarm] = useState({})
+  const [showAlarm, setShowAlarm] = useState(true)
 
   const { setLogger, setChartDrawerOpen, } = useDrawerDialogContext()
   const { BaseLayer, Overlay } = LayersControl
@@ -152,6 +168,30 @@ function LoggerMapCard() {
     };
   }, [map]);
 
+  // Check for alarms
+  useEffect(() => {
+    if (loggersLatest.size) {
+      let _alarm = { ...alarm }
+      loggersLatest.forEach((logger: LoggerLog, key) => {
+        const loggerId = logger.LoggerId
+        _alarm = { ..._alarm, [loggerId]: { Voltage: false, Pressure: false, Flow: false } }
+        // check voltage
+        if (!isValueInRange(logger.VoltageLimit, logger.AverageVoltage)) {
+          _alarm[loggerId].Voltage = true
+        }
+        // check pressure
+        if (logger.PressureLimit && !isValueInRange(logger.PressureLimit, logger.CurrentPressure)) {
+          _alarm[loggerId].Pressure = true
+        }
+        // check voltage
+        if (logger.FlowLimit && !isValueInRange(logger.FlowLimit, logger.CurrentFlow)) {
+          _alarm[loggerId].Flow = true
+        }
+      })
+      setAlarm(_alarm)
+    }
+  }, [loggersLatest])
+
   // Initial load
   useEffect(() => {
     async function fetchData() {
@@ -165,7 +205,7 @@ function LoggerMapCard() {
             if (logger.LoggerId == log.LoggerId) {
               tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
               // Count as Active if last log within 3 days 
-              if(log.Name.toLowerCase().includes('old')){
+              if (log.Name.toLowerCase().includes('old')) {
                 tempLoggersStatus.Disabled++
               }
               else if (new Date(log.LogTime) > addHours(new Date(), -24)) {
@@ -187,7 +227,6 @@ function LoggerMapCard() {
     // Setup SSE Listener for new logs
     const sse = new EventSource(`//${import.meta.env.VITE_SSE_HOST}:${import.meta.env.VITE_SSE_PORT}/sse`);
     const sseLog = () => {
-      console.log('New Log!')
       fetchData()
     }
     if (sse) {
@@ -392,10 +431,20 @@ function LoggerMapCard() {
                       },
                     }}>
                       <Tooltip permanent direction={'top'}>
-                        <div className='text-black font-bold'>
-                          {loggerData.CurrentPressure != null ? <>{loggerData.CurrentPressure}<em> psi</em><br /></> : null}
+                        {checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit) == 'full' ?
+                          <BatteryFullIcon color='green' className='size-4' /> : null}
+                        {checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit) == 'high' ?
+                          <BatteryMediumIcon color='green' className='size-4' /> : null}
+                        {checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit) == 'medium' ?
+                          <BatteryMediumIcon color='orange' className='size-4' /> : null}
+                        {checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit) == 'low' ?
+                          <BatteryLowIcon color='red' className='size-4' /> : null}
+                        {checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit) == 'critical' ?
+                          <BatteryWarningIcon color='red' className='size-4 animate-pulse'/> : null}
+                        <div className={`${showAlarm && Object.keys(alarm).length && alarm[loggerId].Pressure ? '!text-red-500' : '!text-piwad-blue-600'} font-bold`}>
+                          {loggerData.CurrentPressure != null ? <>{loggerData.CurrentPressure.toFixed(1)}<em> psi</em><br /></> : null}
                         </div>
-                        <div className='text-black font-bold'>
+                        <div className={`${showAlarm && Object.keys(alarm).length && alarm[loggerId].Flow ? '!text-red-500' : null} font-bold`}>
                           {loggerData.CurrentFlow != null ? <>{loggerData.CurrentFlow}<em> lps</em></> : null}
                         </div>
                         <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
@@ -418,6 +467,9 @@ function LoggerMapCard() {
         </Overlay>
       </LayersControl>
       <MapEvents />
+      {showAlarm ? <Button className='absolute bottom-24 right-4 z-[401] size-12 p-0 rounded-full opacity-80' onClick={() => setShowAlarm(!showAlarm)}><BellRingIcon /></Button>
+        : <Button className='absolute bottom-24 right-4 z-[401] size-12 p-0 rounded-full opacity-100' onClick={() => setShowAlarm(!showAlarm)}><BellOffIcon /></Button>}
+
       {basemap ?
         basemap.name == "osmLight" ?
           <Button className='absolute bottom-8 right-4 z-[401] size-12 p-0 rounded-full opacity-80' onClick={themeToggleOnclick}><MoonIcon /></Button>
@@ -475,3 +527,5 @@ function LoggerMapCard() {
 }
 
 export default LoggerMapCard;
+
+

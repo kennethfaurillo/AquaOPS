@@ -205,7 +205,6 @@ function LoggerTable(props) {
     // Setup SSE Listener for new logs
     const sse = new EventSource(`//${import.meta.env.VITE_SSE_HOST}:${import.meta.env.VITE_SSE_PORT}/sse`);
     const sseLog = () => {
-      console.log('New Log!')
       fetchData()
     }
     if (sse) {

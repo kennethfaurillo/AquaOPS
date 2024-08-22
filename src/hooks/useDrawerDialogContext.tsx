@@ -128,10 +128,10 @@ export function DrawerDialogProvider({ children }) {
                                 <SelectValue placeholder="Time Range" />
                             </SelectTrigger>
                             <SelectContent className="h-48">
-                                <SelectItem value="3">Last 3 Hours</SelectItem>
                                 <SelectItem value="6">Last 6 Hours</SelectItem>
                                 <SelectItem value="12">Last 12 Hours</SelectItem>
                                 <SelectItem value="24">Last Day</SelectItem>
+                                <SelectItem value="72">Last 3 Days</SelectItem>
                                 <SelectItem value={`${24 * 7}`}>Last Week</SelectItem>
                                 <SelectItem value={`${24 * 30}`}>Last Month</SelectItem>
                                 <SelectItem value={`${24 * 90}`}>Last 3 Months</SelectItem>
@@ -140,8 +140,8 @@ export function DrawerDialogProvider({ children }) {
                         </Select>
                         <Button className="bg-piwad-lightyellow-500 text-black" onClick={async () => {
                             const tempLoggerInfo = await fetchLoggerInfo(logger.LoggerId)
-                                setLoggerInfo(tempLoggerInfo)
-                                setReportDialogOpen(true)
+                            setLoggerInfo(tempLoggerInfo)
+                            setReportDialogOpen(true)
                             let latestLogs = []
                             const defaultDaysRange = 3
                             if (tempLoggerInfo.Type.includes("flow")) {
@@ -198,7 +198,7 @@ export function DrawerDialogProvider({ children }) {
                                         onChange={(e) => setLoggerConfig({ ...loggerConfig, Longitude: e.target.value })} disabled />
                                 </div>
                             </div>
-                            <div className="my-2"/>
+                            <div className="my-2" />
                             <p className="text-xl text-left font-semibold">Logger Alarm Limits</p>
                             <div className="text-md font-medium">Voltage</div>
                             <div className="flex items-center gap-x-4 mt-1">
@@ -212,19 +212,19 @@ export function DrawerDialogProvider({ children }) {
                             <div className="text-md font-medium mt-1">Flow</div>
                             <div className="flex items-center space-x-2 mt-1">
                                 <Label htmlFor="flowLow" className="text-slate-600">Lower Limit</Label>
-                                <Input id={"flowLow"} placeholder={loggerInfo?.FlowLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.FlowLimit || user.Type != 'admin'}
+                                <Input id={"flowLow"} placeholder={loggerInfo?.FlowLimit?.split(',')[0] ?? "N/A"} disabled={user.Type != 'admin'}
                                     onChange={(e) => setLoggerConfig({ ...loggerConfig, FlowLow: e.target.value })} />
                                 <Label htmlFor="flowHigh" className="text-slate-600">Upper Limit</Label>
-                                <Input id={"flowHigh"} placeholder={loggerInfo?.FlowLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.FlowLimit || user.Type != 'admin'}
+                                <Input id={"flowHigh"} placeholder={loggerInfo?.FlowLimit?.split(',')[1] ?? "N/A"} disabled={user.Type != 'admin'}
                                     onChange={(e) => setLoggerConfig({ ...loggerConfig, FlowHigh: e.target.value })} />
                             </div>
                             <div className="text-md font-medium mt-1">Pressure</div>
                             <div className="flex items-center space-x-2 mt-1">
                                 <Label htmlFor="pressureLow" className="text-slate-600">Lower Limit</Label>
-                                <Input id={"pressureLow"} placeholder={loggerInfo?.PressureLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.PressureLimit || user.Type != 'admin'}
+                                <Input id={"pressureLow"} placeholder={loggerInfo?.PressureLimit?.split(',')[0] ?? "N/A"} disabled={user.Type != 'admin'}
                                     onChange={(e) => setLoggerConfig({ ...loggerConfig, PressureLow: e.target.value })} />
                                 <Label htmlFor="pressureHigh" className="text-slate-600">Upper Limit</Label>
-                                <Input id={"pressureHigh"} placeholder={loggerInfo?.PressureLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.PressureLimit || user.Type != 'admin'}
+                                <Input id={"pressureHigh"} placeholder={loggerInfo?.PressureLimit?.split(',')[1] ?? "N/A"} disabled={user.Type != 'admin'}
                                     onChange={(e) => setLoggerConfig({ ...loggerConfig, PressureHigh: e.target.value })} />
                             </div>
                         </div> : <Loader2Icon className="animate-spin m-auto size-16" />}
@@ -250,14 +250,18 @@ export function DrawerDialogProvider({ children }) {
                                 })
                                 setTimeout(() => {
                                     toast.dismiss()
-                                    toast.success("Limits Changed!", { description: "The logger configuration limits have been successfully updated." })}, 500)
+                                    toast.success("Limits Changed!", { description: "The logger configuration limits have been successfully updated." })
+                                    setloadingConfigChange(false)
+                                    setLoggerDialogOpen(false)
+                                }, 500)
                             } catch (e) {
                                 setTimeout(() => {
                                     toast.dismiss()
-                                    toast.error("Invalid Limits!", { description: "There was an error updating the logger configuration limits. Please check the values and try again." })}, 500)
+                                    toast.error("Invalid Limits!", { description: "There was an error updating the logger configuration limits. Please check the values and try again." })
+                                    setloadingConfigChange(false)
+                                    setLoggerDialogOpen(false)
+                                }, 500)
                             }
-                            setloadingConfigChange(false)
-                            // setLoggerDialogOpen(false)
                         }} disabled={loadingConfigChange}>Save</Button>
                         : <Button className="bg-green-500"> <Loader2Icon className="animate-spin" /></Button>
                     }
@@ -268,7 +272,7 @@ export function DrawerDialogProvider({ children }) {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle className="text-piwad-blue-500">Datalog Report Generation</DialogTitle>
-                        {loggerInfo ? <DialogDescription>For {loggerInfo.Name?.replaceAll('-', ' ').replaceAll('=','-').split('_').slice(2)} Logger</DialogDescription> : null}
+                        {loggerInfo ? <DialogDescription>For {loggerInfo.Name?.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)} Logger</DialogDescription> : null}
                     </DialogHeader>
                     {loggerInfo ?
                         <div className="text-center">
@@ -318,14 +322,14 @@ export function DrawerDialogProvider({ children }) {
                                 </div>
                                 {reportChecked.flow ?
                                     <>
-                                    {/* TODO: Totalizer should be a separate report */}
+                                        {/* TODO: Totalizer should be a separate report */}
                                         <span className="space-x-1 mx-4">
                                             <Checkbox id="cbTotalizerPositive" checked={reportChecked.totalizerPositive} onCheckedChange={isChecked => {
                                                 setReportChecked({
                                                     ...reportChecked,
                                                     totalizerPositive: isChecked
                                                 })
-                                            }} disabled/>
+                                            }} disabled />
                                             <Label htmlFor="cbTotalizerPositive">Totalizer Positive</Label>
                                         </span>
                                         <span className="space-x-1 mx-4">
@@ -334,7 +338,7 @@ export function DrawerDialogProvider({ children }) {
                                                     ...reportChecked,
                                                     totalizerNegative: isChecked
                                                 })
-                                            }} disabled/>
+                                            }} disabled />
                                             <Label htmlFor="cbTotalizerNegative">Totalizer Negative</Label>
                                         </span>
                                     </> : null
