@@ -111,7 +111,7 @@ const basemaps: Basemap[] = [
   },
 ]
 
-function checkVoltage(voltage: number, voltageLimit: string): 'unknown' | 'critical' | 'low' | 'medium' | 'high' | 'full' {
+function checkVoltage(voltage: number, voltageLimit: string): 'critical' | 'low' | 'medium' | 'high' | 'full' {
   let [min, max] = voltageLimit.split(',')
   const perc = lerp(min, max, voltage)
   if (perc >= 83) {
@@ -125,6 +125,24 @@ function checkVoltage(voltage: number, voltageLimit: string): 'unknown' | 'criti
   } else {
     return 'critical'
   }
+}
+
+function checkPressure(pressure: number, pressureLimit: string): 'red' | 'yellow' | 'normal' {
+  let [min, max] = pressureLimit.split(',').map((val) => +val)
+  // ( ,  5)  red
+  // [5,  10) yellow
+  // [10, 40) normal
+  // [40,   ) red
+  if (pressure >= max) {
+    return 'red'
+  } else if (pressure >= min) {
+    return 'normal'
+  } else if (pressure >= (min - 5)) {
+    return 'yellow'
+  } else {
+    return 'red'
+  }
+
 }
 
 function LoggerMapCard() {
@@ -440,10 +458,45 @@ function LoggerMapCard() {
                         {checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit) == 'low' ?
                           <BatteryLowIcon color='red' className='size-4' /> : null}
                         {checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit) == 'critical' ?
-                          <BatteryWarningIcon color='red' className='size-4 animate-pulse'/> : null}
+                          <BatteryWarningIcon color='red' className='size-4 animate-pulse' /> : null}
+                        {/* <div className={`${showAlarm && Object.keys(alarm).length && alarm[loggerId].Pressure ? '!text-red-500' : '!text-piwad-blue-600'} font-bold`}>
+                          {loggerData.CurrentPressure != null ? <>{loggerData.CurrentPressure.toFixed(1)}<em> psi</em><br /></> : null}
+                        </div> */}
+                        {loggerData.CurrentPressure == null ? null :
+                          <>
+                            {loggerData.PressureLimit == null ? <>{loggerData.CurrentPressure.toFixed(1)}<em> psi</em><br /></> :
+                              <>
+                                {checkPressure(loggerData.CurrentPressure, loggerData.PressureLimit) == 'red' ?
+                                  <div className={'!text-red-500 font-bold'}>
+                                    <>{loggerData.CurrentPressure.toFixed(1)}<em> psi</em><br /></>
+                                  </div> : null}
+                                {checkPressure(loggerData.CurrentPressure, loggerData.PressureLimit) == 'normal' ?
+                                  <div className={'!text-piwad-blue-600 font-bold'}>
+                                    <>{loggerData.CurrentPressure.toFixed(1)}<em> psi</em><br /></>
+                                  </div> : null}
+                                {checkPressure(loggerData.CurrentPressure, loggerData.PressureLimit) == 'yellow' ?
+                                  <div className={'!text-yellow-500 font-bold'}>
+                                    <>{loggerData.CurrentPressure.toFixed(1)}<em> psi</em><br /></>
+                                  </div> : null}
+                              </>
+                            }
+                          </>
+                        }
+                        {/* {loggerData.CurrentPressure != null ? (loggerData.PressureLimit ? 
+                        <>
+                        {console.log(loggerData.pressureLimit)}
+                          {checkPressure(loggerData.CurrentPressure, loggerData.pressureLimit) == 'red' ?
+                          <div className={`text-red-500 font-bold`}>
+                            <>{loggerData.CurrentPressure.toFixed(1)}<em> psi</em><br /></>
+                          </div> : null}
+                        </>
+                        : <>{loggerData.CurrentPressure.toFixed(1)}<em> psi</em><br /></>)
+                        : null} */}
+                        {/* <div className={`${showAlarm && Object.keys(alarm).length && alarm[loggerId].Pressure ? '!text-red-500' : '!text-piwad-blue-600'} font-bold`}></div>checkPressure(loggerData.CurrentPressure, loggerData.PressureLimit) : loggerData.CurrentPressure != null ? <>{loggerData.CurrentPressure.toFixed(1)}<em> psi</em><br /></> : null}
                         <div className={`${showAlarm && Object.keys(alarm).length && alarm[loggerId].Pressure ? '!text-red-500' : '!text-piwad-blue-600'} font-bold`}>
                           {loggerData.CurrentPressure != null ? <>{loggerData.CurrentPressure.toFixed(1)}<em> psi</em><br /></> : null}
-                        </div>
+                          {loggerData.PressureLimit ? checkPressure(loggerData.CurrentPressure, loggerData.PressureLimit) : null}
+                        </div> */}
                         <div className={`${showAlarm && Object.keys(alarm).length && alarm[loggerId].Flow ? '!text-red-500' : null} font-bold`}>
                           {loggerData.CurrentFlow != null ? <>{loggerData.CurrentFlow}<em> lps</em></> : null}
                         </div>
