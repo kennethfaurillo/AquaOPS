@@ -45,7 +45,7 @@ const CustomTotalizerBarTooltip = ({ active, payload, label }) => {
                 {payload.map((val, index) => (
                     <div key={index}>
                         <p className={`${colorMap[val.dataKey]} font-semibold`}>
-                            {val.dataKey == 'DailyFlowPositive' ? "Total Positive Flow" : "Total Negative Flow"}:
+                            {val.dataKey == 'DailyFlowPositive' ? "Total Forward Flow" : "Total Reverse Flow"}:
                             <span className="ml-2">{val.value} <em>{val.unit}</em></span>
                         </p>
                     </div>
