@@ -152,8 +152,11 @@ function checkVoltage(voltage: number, voltageLimit: string): 'critical' | 'low'
 
 function checkPressure(pressure: number, pressureLimit: string): 'red' | 'yellow' | 'normal' {
   let [min, max] = pressureLimit.split(',').map((val) => +val)
-  if (pressure >= max) {
+  pressure = +pressure.toFixed(1)
+  if (pressure >= max + 20) {
     return 'red'
+  } else if (pressure >= max) {
+    return 'yellow'
   } else if (pressure >= min) {
     return 'normal'
   } else if (pressure >= (min - 5)) {
