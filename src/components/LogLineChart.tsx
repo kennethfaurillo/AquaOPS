@@ -70,7 +70,6 @@ function LogLineChart(props) {
         totalizerNegative: false,
     })
     const timeRange = props.timeRange
-    // TODO: fix logger table onclick
     const loggerType = props.logger.Type ? props.logger.Type.split(',') : props.logger.Name.toLowerCase().includes("pressure") ? "pressure" : "flow"
     const [average, setAverage] = useState({})
 
