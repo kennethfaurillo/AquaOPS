@@ -53,7 +53,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                         <TabsTrigger value="history">History</TabsTrigger>
                     </TabsList>
                     {loggerInfo ? <>
-                        <TabsContent value="config" forceMount hidden={activeTab != "config"}>
+                        <TabsContent value="config">
                             <Card>
                                 <CardHeader className="py-4">
                                     <CardTitle>Logger Information</CardTitle>
@@ -73,12 +73,12 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                         <div>
                                             <Label htmlFor="loggerLat" className="text-slate-600">Latitude</Label>
                                             <Input id={"loggerLat"} placeholder={loggerInfo.Latitude}
-                                                onChange={(e) => setLoggerConfig({ ...loggerConfig, Latitude: e.target.value })} disabled />
+                                                onChange={(e) => setLoggerConfig({ ...loggerConfig, Latitude: e.target.value })} />
                                         </div>
                                         <div>
                                             <Label htmlFor="loggerLong" className="text-slate-600">Longitude</Label>
                                             <Input id={"loggerLong"} placeholder={loggerInfo.Longitude}
-                                                onChange={(e) => setLoggerConfig({ ...loggerConfig, Longitude: e.target.value })} disabled />
+                                                onChange={(e) => setLoggerConfig({ ...loggerConfig, Longitude: e.target.value })} />
                                         </div>
                                         <div>
                                             <Label className="text-slate-600">Parameters</Label><br />
@@ -97,7 +97,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                 </CardContent>
                             </Card>
                         </TabsContent>
-                        <TabsContent value="alarms" forceMount hidden={activeTab != "limits"}>
+                        <TabsContent value="limits">
                             <Card>
                                 <CardHeader className="py-4">
                                     <CardTitle>Alarm Settings</CardTitle>
@@ -136,7 +136,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                 </CardContent>
                             </Card>
                         </TabsContent>
-                        <TabsContent value="history" forceMount hidden={activeTab != "history"}>
+                        <TabsContent value="history">
                             <Card>
                                 <CardHeader className="py-4">
                                     <CardTitle>Configuration History</CardTitle>
@@ -150,7 +150,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                             {configLogs.length ? configLogs.map((log, index) => (
                                                 <div key={index}>
                                                     <h4 className="text-sm font-medium">{moment(log.Timestamp).format('YYYY-MM-DD h:mm A')}</h4>
-                                                    <p className="text-sm text-muted-foreground">{log.Username}: changed {log.Parameter} [{log.ChangedValues}]</p>
+                                                    <p className="text-sm text-muted-foreground">[{log.Username}]: changed {log.Parameter} ({log.ChangedValues})</p>
                                                     {index < configLogs.length - 1 && <Separator className="my-2" />}
                                                 </div>
                                             )) : null}
@@ -166,32 +166,57 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                     <Button className="bg-green-500" onClick={async () => {
                         setloadingConfigChange(true)
                         toast.loading("Updating Limits")
+                        const _loggerLimits = {}
                         const _loggerConfig = {}
                         if (loggerConfig.VoltageLow && loggerConfig.VoltageHigh) {
-                            _loggerConfig.VoltageLimit = loggerConfig.VoltageLow + ',' + loggerConfig.VoltageHigh
+                            _loggerLimits.VoltageLimit = loggerConfig.VoltageLow + ',' + loggerConfig.VoltageHigh
                         }
                         if (loggerConfig.FlowLow && loggerConfig.FlowHigh) {
-                            _loggerConfig.FlowLimit = loggerConfig.FlowLow + ',' + loggerConfig.FlowHigh
+                            _loggerLimits.FlowLimit = loggerConfig.FlowLow + ',' + loggerConfig.FlowHigh
                         }
                         if (loggerConfig.PressureLow && loggerConfig.PressureHigh) {
-                            _loggerConfig.PressureLimit = loggerConfig.PressureLow + ',' + loggerConfig.PressureHigh
+                            _loggerLimits.PressureLimit = loggerConfig.PressureLow + ',' + loggerConfig.PressureHigh
+                        }
+                        if (loggerConfig.Latitude && loggerConfig.Longitude) {
+                            _loggerConfig.Coordinates = loggerConfig.Latitude + ',' + loggerConfig.Longitude
                         }
                         // Update logger config
                         try {
-                            const changeConfigResponse = await axios.patch(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger_limits/${loggerInfo.LoggerId}`, {
-                                ..._loggerConfig,
-                                user
-                            })
-                            setTimeout(() => {
-                                toast.dismiss()
-                                toast.success("Limits Changed!", { description: "The logger configuration limits have been successfully updated." })
-                                setloadingConfigChange(false)
-                                setLoggerDialogOpen(false)
-                            }, 500)
+                            if (Object.keys(_loggerLimits).length){
+                                const changeConfigResponse = await axios.patch(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger_limits/${loggerInfo.LoggerId}`, {
+                                    ..._loggerLimits,
+                                    user
+                                })
+                                setTimeout(() => {
+                                    toast.dismiss()
+                                    toast.success("Limits Changed!", { description: "The logger alarm limits have been successfully updated." })
+                                    setloadingConfigChange(false)
+                                    setLoggerDialogOpen(false)
+                                }, 500)
+                            } else if(Object.keys(_loggerConfig).length){
+                                const changeConfigResponse = await axios.patch(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger_config/${loggerInfo.LoggerId}`, {
+                                    ..._loggerConfig,
+                                    user
+                                })
+                                setTimeout(() => {
+                                    toast.dismiss()
+                                    toast.success("Limits Changed!", { description: "The logger configuration has been successfully updated." })
+                                    setloadingConfigChange(false)
+                                    setLoggerDialogOpen(false)
+                                }, 500)
+                            } else {
+                                setTimeout(() => {
+                                    toast.dismiss()
+                                    toast.success("Config Unchanged!", { description: "No change has been done to the logger configuration." })
+                                    setloadingConfigChange(false)
+                                    setLoggerDialogOpen(false)
+                                }, 125)
+                            }
                         } catch (e) {
+                            console.log(e)
                             setTimeout(() => {
                                 toast.dismiss()
-                                toast.error("Invalid Limits!", { description: "There was an error updating the logger configuration limits. Please check the values and try again." })
+                                toast.error(e?.response?.data ?? "Invalid Config!", { description: "There was an error updating the logger configuration. Please check the values and try again." })
                                 setloadingConfigChange(false)
                                 setLoggerDialogOpen(false)
                             }, 500)
