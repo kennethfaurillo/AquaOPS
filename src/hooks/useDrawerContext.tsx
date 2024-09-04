@@ -10,31 +10,18 @@ import { Button } from "../components/ui/button"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "../components/ui/drawer"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { useAuth } from "./useAuth"
+import { useSharedStateContext } from "./useSharedStateContext"
 
-const DrawerDialogContext = createContext()
+const DrawerContext = createContext()
 
-export function DrawerDialogProvider({ children }) {
-    // Modal drawer for charts    
-    const [chartDrawerOpen, setChartDrawerOpen] = useState(false)
-    // Basic Logger Info with latest log
-    const [logger, setLogger] = useState(null)
-    // Complete logger info (limits, coords,...)
-    const [loggerInfo, setLoggerInfo] = useState(null)
-    // Modal dialog state for logger config
-    const [loggerDialogOpen, setLoggerDialogOpen] = useState(false)
-    // Modal dialog state for report generation
-    const [reportDialogOpen, setReportDialogOpen] = useState(false)
-    // Time interval for chart display
+export function DrawerProvider({ children }) {
+    // // Time interval for chart display
     const [chartTimeRange, setChartTimeRange] = useState("12")
     // Allowed dates for report generation
     const [allowedDates, setAllowedDates] = useState([])
-    const today = new Date((new Date()).toDateString())
-    // Time interval for report generation
-    const [date, setDate] = useState<DateRange | undefined>({
-        from: addDays(today, -1),
-        to: today,
-    })
     const { user, token } = useAuth()
+    const { chartDrawerOpen, setChartDrawerOpen, loggerDialogOpen, setLoggerDialogOpen, reportDialogOpen, setReportDialogOpen,
+        logger, setLogger, loggerInfo, setLoggerInfo} = useSharedStateContext()
 
     const fetchLoggerInfo = async (loggerId) => {
         const loggerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/${loggerId}`)
@@ -46,18 +33,16 @@ export function DrawerDialogProvider({ children }) {
             throw ("Invalid Logger Type")
         }
         const logDatesResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/${loggerType}_log_dates/${loggerId}`)
-        const temp = logDatesResponse.data
         return logDatesResponse.data
     }
 
 
     const value = useMemo(() => ({
-        chartDrawerOpen, setChartDrawerOpen, logger, setLogger, loggerInfo, setLoggerInfo, loggerDialogOpen, setLoggerDialogOpen, fetchLoggerInfo
-    }), [chartDrawerOpen, loggerDialogOpen, logger, loggerInfo])
+    }), [])
 
     return (
         // Logger Chart Drawer
-        <DrawerDialogContext.Provider value={value}>
+        <DrawerContext.Provider value={value}>
             <Drawer open={chartDrawerOpen} onOpenChange={setChartDrawerOpen}>
                 <DrawerContent>
                     <DrawerHeader className="relative">
@@ -110,10 +95,6 @@ export function DrawerDialogProvider({ children }) {
                                     latestLogs = response.slice(-defaultDaysRange)
                                 })
                             }
-                            setDate({
-                                from: new Date(latestLogs.at(0)),
-                                to: new Date(latestLogs.at(-1)),
-                            })
                         }}>Generate Report</Button>
                         <DrawerClose asChild>
                             <Button>Close</Button>
@@ -126,8 +107,8 @@ export function DrawerDialogProvider({ children }) {
             {/* Report Generation Dialog */}
             <ReportDialog reportDialogOpen={reportDialogOpen} setReportDialogOpen={setReportDialogOpen} loggerInfo={loggerInfo} allowedDates={allowedDates} />
             {children}
-        </DrawerDialogContext.Provider >
+        </DrawerContext.Provider >
     )
 }
 
-export const useDrawerDialogContext = () => useContext(DrawerDialogContext)
+export const useDrawerContext = () => useContext(DrawerContext)

@@ -17,7 +17,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
     const today = new Date((new Date()).toDateString())
     // Time interval for report generation
     const [date, setDate] = useState<DateRange | undefined>({
-        from: addDays(today, -1),
+        from: addDays(today, -2),
         to: today,
     })
     // Allowed dates for report generation
@@ -34,7 +34,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
         totalizerNegative: false
     })
     const { user, token } = useAuth()
-
+    
     useEffect(() => {
         // cleanup when closing report dialog
         if(!reportDialogOpen){

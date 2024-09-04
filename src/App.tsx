@@ -6,14 +6,17 @@ import { Toaster } from "sonner"
 import { AuthProvider } from "./hooks/useAuth"
 import DashboardPage from "./pages/Dashboard"
 import { LoginPage } from "./pages/Login"
+import { SharedStateProvider } from "./hooks/useSharedStateContext"
 
 function App() {
   return (
     <AuthProvider>
-      <Routes>
-        <Route path="/*" element={<><DashboardPage/><Toaster richColors/></>} />
-        <Route path="/login" element={<LoginPage/>} />
-      </Routes>
+      <SharedStateProvider>
+        <Routes>
+          <Route path="/*" element={<><DashboardPage /><Toaster richColors /></>} />
+          <Route path="/login" element={<LoginPage />} />
+        </Routes>
+      </SharedStateProvider>
     </AuthProvider>
   )
 }

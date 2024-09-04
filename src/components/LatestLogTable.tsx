@@ -1,4 +1,5 @@
-import { ColumnDef, sortingFns } from "@tanstack/react-table"
+import { useSharedStateContext } from "@/hooks/useSharedStateContext"
+import { ColumnDef } from "@tanstack/react-table"
 import axios from 'axios'
 import { ArrowDownIcon, ArrowUpIcon, CircleGaugeIcon, Clock4Icon, MoreHorizontal, RouterIcon, ScatterChartIcon, SettingsIcon, WavesIcon } from "lucide-react"
 import moment from "moment"
@@ -7,14 +8,13 @@ import { Datalogger, } from "./Types"
 import { Button } from "./ui/button"
 import { DataTable } from "./ui/data-table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
-import { useDrawerDialogContext } from "../hooks/useDrawerDialogContext"
 
 function LoggerTable(props) {
   const [loggerData, setLoggerData] = useState([])
   const [loading, setLoading] = useState(true)
   const setLatestLog = props?.setLatestLog
 
-  const { setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo } = useDrawerDialogContext()
+  const { setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo } = useSharedStateContext()
 
   const latestLogsColumns: ColumnDef<Datalogger>[] = [
     {

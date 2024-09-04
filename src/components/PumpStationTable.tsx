@@ -1,9 +1,9 @@
+import { useSharedStateContext } from "@/hooks/useSharedStateContext"
 import { ColumnDef } from "@tanstack/react-table"
 import axios from 'axios'
 import { ArrowDownIcon, ArrowUpIcon, FactoryIcon, MapPinnedIcon, MountainSnowIcon, RadiusIcon, RouterIcon } from "lucide-react"
 import moment from "moment"
 import { useEffect, useState } from "react"
-import { useDrawerDialogContext } from "../hooks/useDrawerDialogContext"
 import { Station } from "./Types"
 import { Button } from "./ui/button"
 import { DataTable } from "./ui/data-table"
@@ -13,7 +13,7 @@ function StationTable(props) {
   const [loading, setLoading] = useState(true)
   const setLatestLog = props?.setLatestLog
 
-  const { setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo } = useDrawerDialogContext()
+  const { setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo } = useSharedStateContext()
 
   const StationColumns: ColumnDef<Station>[] = [
     {

@@ -18,19 +18,19 @@ import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
 import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet'
 import { toast } from 'sonner'
-import { useDrawerDialogContext } from '../hooks/useDrawerDialogContext'
 import './Map.css'
 import { DataLog, Datalogger, LoggerLog } from './Types'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 
-import icValve from '../assets/button.png'
-import icDam from '../assets/dam2.png'
-import icSpring from '../assets/hot-spring.png'
-import icHydrant from '../assets/hydrant.png'
+import { useSharedStateContext } from '@/hooks/useSharedStateContext'
+import icDam from '../assets/Filter.svg'
+import icHydrant from '../assets/Hydrant.svg'
 import logoMain from '../assets/logo-main.png'
 import icMeter from '../assets/meter.png'
-import icPump from '../assets/water-pump.png'
+import icPump from '../assets/Station.svg'
+import icSpring from '../assets/Tank.svg'
+import icValve from '../assets/Tube.svg'
 
 const loggerIcon = new Icon({
   iconUrl: icMeter,
@@ -44,7 +44,7 @@ const wellIcon = new Icon({
 
 const springIcon = new Icon({
   iconUrl: icSpring,
-  iconSize: [30, 30],
+  iconSize: [24, 24],
 })
 
 const riverIcon = new Icon({
@@ -59,7 +59,7 @@ const sumpIcon = new Icon({
 
 const damIcon = new Icon({
   iconUrl: icDam,
-  iconSize: [30, 30],
+  iconSize: [24, 24],
 })
 
 const valveIcon = new Icon({
@@ -69,7 +69,7 @@ const valveIcon = new Icon({
 
 const hydrantIcon = new Icon({
   iconUrl: icHydrant,
-  iconSize: [8, 8],
+  iconSize: [10, 10],
 })
 
 const colorMap = {
@@ -177,7 +177,7 @@ function LoggerMapCard() {
   const [alarm, setAlarm] = useState({})
   const [showAlarm, setShowAlarm] = useState(true)
 
-  const { setLogger, setChartDrawerOpen, } = useDrawerDialogContext()
+  const { setChartDrawerOpen, setLogger } = useSharedStateContext()
   const { BaseLayer, Overlay } = LayersControl
   const scaleFactor = 1
 
@@ -233,40 +233,11 @@ function LoggerMapCard() {
 
   // Initial load
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const loggersInfoResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
-        const latestLogsResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`)
-        let tempLoggersLatest = new Map()
-        const tempLoggersStatus = { Active: 0, Inactive: 0, Disabled: 0 }
-        loggersInfoResponse.data.map((logger: Datalogger) => {
-          latestLogsResponse.data.map((log: DataLog) => {
-            if (logger.LoggerId == log.LoggerId) {
-              tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
-              // Count as Active if last log within 3 days 
-              if (log.Name.toLowerCase().includes('old')) {
-                tempLoggersStatus.Disabled++
-              }
-              else if (new Date(log.LogTime) > addHours(new Date(), -24)) {
-                tempLoggersStatus.Active++
-              } else {
-                tempLoggersStatus.Inactive++
-              }
-            }
-          })
-        })
-        setLoggersStatus(tempLoggersStatus)
-        setLoggersLatest(tempLoggersLatest)
-      }
-      catch (error) {
-        console.log(error)
-      }
-    }
-    fetchData()
+    fetchLatestLogsInfo()
     // Setup SSE Listener for new logs
     const sse = new EventSource(`//${import.meta.env.VITE_SSE_HOST}:${import.meta.env.VITE_SSE_PORT}/sse`);
     const sseLog = () => {
-      fetchData()
+      fetchLatestLogsInfo()
     }
     if (sse) {
       sse.addEventListener('LogEvent', sseLog)
@@ -278,6 +249,39 @@ function LoggerMapCard() {
       sse.close()
     }
   }, [])
+
+  /**
+   * Fetch latest logs and info/config for each datalogger
+   */
+  async function fetchLatestLogsInfo() {
+    try {
+      const loggersInfoResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
+      const latestLogsResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`)
+      let tempLoggersLatest = new Map()
+      const tempLoggersStatus = { Active: 0, Inactive: 0, Disabled: 0 }
+      loggersInfoResponse.data.map((logger: Datalogger) => {
+        latestLogsResponse.data.map((log: DataLog) => {
+          if (logger.LoggerId == log.LoggerId) {
+            tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
+            // Count as Active if last log within 3 days 
+            if (log.Name.toLowerCase().includes('old')) {
+              tempLoggersStatus.Disabled++
+            }
+            else if (new Date(log.LogTime) > addHours(new Date(), -24)) {
+              tempLoggersStatus.Active++
+            } else {
+              tempLoggersStatus.Inactive++
+            }
+          }
+        })
+      })
+      setLoggersStatus(tempLoggersStatus)
+      setLoggersLatest(tempLoggersLatest)
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
 
   const DisplayPosition = ({ map }) => {
     const center = [13.586680, 123.279893]
@@ -332,10 +336,10 @@ function LoggerMapCard() {
         <div>${feature.properties?.well_activ || 'No Data'}</div>
       </div>
       <div class="popup-content">
-        <div><strong>Address:</strong> ${feature.properties?.address || 'No Data'}</div>
-        <div><strong>Date Installed:</strong> ${feature.properties?.date_installed || 'No Data'}</div>
-        <div><strong>Pressure Setting:</strong> ${feature.properties?.pressure_setting || 'No Data'}</div>
-        <div><strong>Pipe Size:</strong> ${feature.properties?.pipe_size || 'No Data'}</div>
+        <div><strong>Water Permit #:</strong> ${feature.properties?.pressure_setting || '25302'}</div> 
+        <div><strong>Capacity:</strong> ${feature.properties?.capacity || '30 LPS'}</div>
+        <div><strong>HP Rating:</strong> ${feature.properties?.hp_rating || '30 HP'}</div>
+        <div><strong>Supply Voltage:</strong> ${feature.properties?.supply_voltage || '460 V'}</div>
       </div>
     </div>
     ` , {
