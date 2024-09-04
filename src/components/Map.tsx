@@ -262,16 +262,17 @@ function LoggerMapCard() {
       loggersInfoResponse.data.map((logger: Datalogger) => {
         latestLogsResponse.data.map((log: DataLog) => {
           if (logger.LoggerId == log.LoggerId) {
-            tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
             // Count as Active if last log within 3 days 
-            if (log.Name.toLowerCase().includes('old')) {
+            if (log.Name.toLowerCase().includes('disabled')) {
               tempLoggersStatus.Disabled++
+              return
             }
             else if (new Date(log.LogTime) > addHours(new Date(), -24)) {
               tempLoggersStatus.Active++
             } else {
               tempLoggersStatus.Inactive++
             }
+            tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
           }
         })
       })

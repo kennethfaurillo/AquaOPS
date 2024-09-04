@@ -194,7 +194,7 @@ function LoggerTable(props) {
         })
         setLatestLog(latestLog)
         setLoggerData(response.data)
-        setLoggerData(response.data.filter((logger) => !logger.Name.toLowerCase().includes('old')))
+        setLoggerData(response.data.filter((logger) => !logger.Name.toLowerCase().includes('disabled')))
       }, error => {
         console.log(error.toString())
       }).finally(() => {
