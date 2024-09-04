@@ -2,6 +2,7 @@ export type Datalogger = {
     LoggerId: number,
     Name: string,
     Model: string,
+    Enabled: boolean,
     FwVersion: string,
     Latitude: number,
     Longitude: number,

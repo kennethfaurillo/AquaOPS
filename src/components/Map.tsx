@@ -257,16 +257,16 @@ function LoggerMapCard() {
     try {
       const loggersInfoResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
       const latestLogsResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`)
-      let tempLoggersLatest = new Map()
       const tempLoggersStatus = { Active: 0, Inactive: 0, Disabled: 0 }
+      let tempLoggersLatest = new Map()
       loggersInfoResponse.data.map((logger: Datalogger) => {
         latestLogsResponse.data.map((log: DataLog) => {
           if (logger.LoggerId == log.LoggerId) {
-            // Count as Active if last log within 3 days 
-            if (log.Name.toLowerCase().includes('disabled')) {
+            if(!logger.Enabled){
               tempLoggersStatus.Disabled++
               return
             }
+            // Count as Active if last log within 24 hours
             else if (new Date(log.LogTime) > addHours(new Date(), -24)) {
               tempLoggersStatus.Active++
             } else {
@@ -415,7 +415,7 @@ function LoggerMapCard() {
   const displayMap = (() => (
     <MapContainer
       className='cursor-crosshair'
-      center={[13.586680, 123.279893]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
+      center={[13.589451, 123.2871642]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
       scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
       maxBounds={[[13.676173, 123.111745], [13.516072, 123.456730]]}>
       <ResetViewControl title="Reset View" icon={"🔍"} />

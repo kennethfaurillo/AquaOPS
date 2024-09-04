@@ -4,7 +4,7 @@ import axios from 'axios'
 import { ArrowDownIcon, ArrowUpIcon, CircleGaugeIcon, Clock4Icon, MoreHorizontal, RouterIcon, ScatterChartIcon, SettingsIcon, WavesIcon } from "lucide-react"
 import moment from "moment"
 import { useEffect, useState } from "react"
-import { Datalogger, } from "./Types"
+import { DataLog, Datalogger, } from "./Types"
 import { Button } from "./ui/button"
 import { DataTable } from "./ui/data-table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
@@ -96,23 +96,23 @@ function LoggerTable(props) {
       header: ({ column }) => {
         return (
           <div className="text-right">
-          <Button variant="ghost"  className="px-1" onClick={() => {
-            column.toggleSorting(column.getIsSorted() === "asc")
-          }}>
-            <Clock4Icon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
-            Time
-            {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
-          </Button>
+            <Button variant="ghost" className="px-1" onClick={() => {
+              column.toggleSorting(column.getIsSorted() === "asc")
+            }}>
+              <Clock4Icon className="hidden sm:block xl:hidden 2xl:block mr-1 h-5 w-5" />
+              Time
+              {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
+            </Button>
           </div>
         )
       },
       cell: ({ row }) => {
-        if (row.getValue("LogTime")) return(
-        <div className="text-right">
-          {(moment(row.getValue("LogTime").replace('Z', ''), true).format("M/D/YY "))}
-          <br/>
-          {(moment(row.getValue("LogTime").replace('Z', ''), true).format("H:mm A"))}
-        </div>)
+        if (row.getValue("LogTime")) return (
+          <div className="text-right">
+            {(moment(row.getValue("LogTime").replace('Z', ''), true).format("M/D/YY "))}
+            <br />
+            {(moment(row.getValue("LogTime").replace('Z', ''), true).format("H:mm A"))}
+          </div>)
         return (<div className="text-gray-300 font-semibold">NA</div>)
       }
     },
@@ -170,7 +170,6 @@ function LoggerTable(props) {
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem onClick={async () => {
                 const newLogger = (await fetchLoggerInfo(row.original.LoggerId))[0]
-                // console.log(newLogger)
                 setLoggerInfo(newLogger)
                 setLoggerDialogOpen(true)
               }}><SettingsIcon className="size-1/6 mr-1" />Edit Logger Info</DropdownMenuItem>
@@ -188,18 +187,27 @@ function LoggerTable(props) {
 
   useEffect(() => {
     async function fetchData() {
-      axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`).then(response => {
-        const latestLog = response.data.reduce((latest, current) => {
+      try {
+        const loggersInfoResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
+        const latestLogsResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`)
+        let tempLoggersLatest: {}[] = []
+        const latestLog = latestLogsResponse.data.reduce((latest, current) => {
           return new Date(current.LogTime) > new Date(latest.LogTime) ? current : latest
         })
         setLatestLog(latestLog)
-        setLoggerData(response.data)
-        setLoggerData(response.data.filter((logger) => !logger.Name.toLowerCase().includes('disabled')))
-      }, error => {
-        console.log(error.toString())
-      }).finally(() => {
+        loggersInfoResponse.data.map((logger: Datalogger) => {
+          latestLogsResponse.data.map((log: DataLog) => {
+            if (logger.LoggerId == log.LoggerId) {
+              tempLoggersLatest.push({ ...logger, ...log })
+            }
+          })
+        })
+        setLoggerData(tempLoggersLatest.filter((logger) => logger.Enabled))
         setLoading(false)
-      })
+      }
+      catch (error) {
+        console.log(error)
+      }
     }
     fetchData()
     // Setup SSE Listener for new logs
