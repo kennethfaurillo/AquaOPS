@@ -448,27 +448,29 @@ function LoggerMapCard() {
           <GeoJSON data={valve_blowOff} onEachFeature={onEachBlowOff} />
         </Overlay>
         <Overlay name='Pump Stations' checked>
-          {sources.length ?
-            sources.map((source: Source, index) => (
-              <div key={index}>
-                <Marker position={[source.Latitude, source.Longitude]} icon={wellIcon}>
-                  <Popup className='custom-popup'>
-                    <div className="popup-container">
-                      <div className="popup-header flex space-x-2">
-                        <img src={icPump} alt="Icon" className="size-6"/>
-                        <div className='my-auto'>PS {source.SourceIdNo} {source.Name}</div>
+          <LayerGroup>
+            {sources.length ?
+              sources.map((source: Source, index) => (
+                <div key={index}>
+                  <Marker position={[source.Latitude, source.Longitude]} icon={wellIcon}>
+                    <Popup className='custom-popup'>
+                      <div className="popup-container">
+                        <div className="popup-header flex space-x-2">
+                          <img src={icPump} alt="Icon" className="size-6"/>
+                          <div className='my-auto'>PS {source.SourceIdNo} {source.Name}</div>
+                        </div>
+                        <div className="popup-content">
+                          <div><strong>Water Permit:</strong> {source.WaterPermitNo}</div>
+                          <div><strong>Capacity:</strong> {source.Capacity} <em>lps</em></div>
+                          <div><strong>HP Rating:</strong> {source.HpRating} <em>hp</em></div>
+                          <div><strong>Supply Voltage:</strong> {source.SupplyVoltage} <em>V</em></div>
+                        </div>
                       </div>
-                      <div className="popup-content">
-                        <div><strong>Water Permit:</strong> {source.WaterPermitNo}</div>
-                        <div><strong>Capacity:</strong> {source.Capacity} <em>lps</em></div>
-                        <div><strong>HP Rating:</strong> {source.HpRating} <em>hp</em></div>
-                        <div><strong>Supply Voltage:</strong> {source.SupplyVoltage} <em>V</em></div>
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              </div>
-            )) : null}
+                    </Popup>
+                  </Marker>
+                </div>
+              )) : null}
+          </LayerGroup>
         </Overlay>
         <Overlay name='Data Loggers' checked>
           <LayerGroup>
