@@ -60,6 +60,8 @@
 }
 
 .custom-popup .leaflet-popup-content {
+    width: max-content;
+    max-width: 200px;
     margin: 0;
     padding: 0;
     text-align: left;

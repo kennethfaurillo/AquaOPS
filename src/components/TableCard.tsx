@@ -14,10 +14,10 @@ function TableCard() {
         <>
             <TooltipProvider delayDuration={200}>
                 <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} >
-                    <TabsList className="grid grid-cols-3 w-full mr-1 bg-slate-200/80">
+                    <TabsList className="grid grid-cols-2 w-full mr-1 bg-slate-200/80">
                         <TabsTrigger value="loggers">Loggers</TabsTrigger>
-                        <TabsTrigger value="sources">Sources</TabsTrigger>
-                        <TabsTrigger value="stations">Stations</TabsTrigger>
+                        {/* <TabsTrigger value="sources">Sources</TabsTrigger> */}
+                        <TabsTrigger value="stations">Pump Stations</TabsTrigger>
                     </TabsList>
                     <TabsContent value="loggers" forceMount hidden={activeTab != "loggers"}>
                         <Card>
@@ -66,7 +66,7 @@ function TableCard() {
                                         <TooltipContent>Add New Station</TooltipContent>
                                     </Tooltip>
 
-                                    <CardDescription className="text-white/80">Configure pump station settings</CardDescription>
+                                    <CardDescription className="text-white/80">Pump station overview</CardDescription>
                                     <Separator />
                                 </div>
                             </CardHeader>

@@ -1,5 +1,5 @@
 import { useSharedStateContext } from "@/hooks/useSharedStateContext"
-import { ColumnDef } from "@tanstack/react-table"
+import { ColumnDef, SortingState } from "@tanstack/react-table"
 import axios from 'axios'
 import { ArrowDownIcon, ArrowUpIcon, CircleGaugeIcon, Clock4Icon, MoreHorizontal, RouterIcon, ScatterChartIcon, SettingsIcon, WavesIcon } from "lucide-react"
 import moment from "moment"
@@ -11,8 +11,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 
 function LoggerTable(props) {
   const [loggerData, setLoggerData] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const setLatestLog = props?.setLatestLog
+  const [sorting, setSorting] = useState<SortingState>([{
+    id: "Name",
+    desc: false, // Adjust the sorting order if needed
+  }])
 
   const { setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo } = useSharedStateContext()
 
@@ -186,7 +190,8 @@ function LoggerTable(props) {
   ]
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchLatestLogsInfo() {
+      setLoading(true)
       try {
         const loggersInfoResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
         const latestLogsResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`)
@@ -209,11 +214,11 @@ function LoggerTable(props) {
         console.log(error)
       }
     }
-    fetchData()
+    fetchLatestLogsInfo()
     // Setup SSE Listener for new logs
     const sse = new EventSource(`//${import.meta.env.VITE_SSE_HOST}:${import.meta.env.VITE_SSE_PORT}/sse`);
     const sseLog = () => {
-      fetchData()
+      fetchLatestLogsInfo()
     }
     if (sse) {
       sse.addEventListener('LogEvent', sseLog)
@@ -237,7 +242,7 @@ function LoggerTable(props) {
 
   return (
     <>
-      <DataTable columns={latestLogsColumns} data={loggerData} initialState={initialState} loading={loading} />
+      <DataTable columns={latestLogsColumns} data={loggerData} initialState={initialState} sorting={sorting} setSorting={setSorting} loading={loading} />
     </>
   )
 }

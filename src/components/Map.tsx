@@ -16,10 +16,10 @@ import 'leaflet.fullscreen/Control.FullScreen.js'
 import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, BellOffIcon, BellRingIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
-import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, TileLayer, Tooltip, useMapEvents } from 'react-leaflet'
+import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMapEvents } from 'react-leaflet'
 import { toast } from 'sonner'
 import './Map.css'
-import { DataLog, Datalogger, LoggerLog } from './Types'
+import { DataLog, Datalogger, LoggerLog, Source } from './Types'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 
@@ -171,6 +171,7 @@ function LoggerMapCard() {
   const [map, setMap] = useState(null)
   const [weight, setWeight] = useState(5)
   const [basemap, setBasemap] = useState(basemaps.at(0))
+  const [sources, setSources] = useState([])
   const [loggersStatus, setLoggersStatus] = useState({ Active: 0, Inactive: 0, Disabled: 0 })
   const [position, setPosition] = useState({ lat: 13.586680, lng: 123.279893 })
   const [fullscreenMap, setFullscreenMap] = useState(false)
@@ -233,6 +234,7 @@ function LoggerMapCard() {
 
   // Initial load
   useEffect(() => {
+    fetchSources()
     fetchLatestLogsInfo()
     // Setup SSE Listener for new logs
     const sse = new EventSource(`//${import.meta.env.VITE_SSE_HOST}:${import.meta.env.VITE_SSE_PORT}/sse`);
@@ -251,7 +253,7 @@ function LoggerMapCard() {
   }, [])
 
   /**
-   * Fetch latest logs and info/config for each datalogger
+   * Fetch latest logs with Datalogger Information
    */
   async function fetchLatestLogsInfo() {
     try {
@@ -262,7 +264,7 @@ function LoggerMapCard() {
       loggersInfoResponse.data.map((logger: Datalogger) => {
         latestLogsResponse.data.map((log: DataLog) => {
           if (logger.LoggerId == log.LoggerId) {
-            if(!logger.Enabled){
+            if (!logger.Enabled) {
               tempLoggersStatus.Disabled++
               return
             }
@@ -280,6 +282,18 @@ function LoggerMapCard() {
       setLoggersLatest(tempLoggersLatest)
     }
     catch (error) {
+      console.log(error)
+    }
+  }
+
+  /**
+   * Fetch Pump Station Information
+   */
+  async function fetchSources() {
+    try {
+      const sourceInfo = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/source/`)
+      setSources(sourceInfo.data)
+    } catch (error) {
       console.log(error)
     }
   }
@@ -304,7 +318,6 @@ function LoggerMapCard() {
     layer.bindTooltip(`Pipeline: ${feature.properties?.location.toUpperCase()}`, { direction: 'center' })
     if (feature.properties && feature.properties.ogr_fid) {
       layer.on('click', () => {
-        console.log(feature.properties)
         toast.info(`Pipeline #${feature.properties?.ogr_fid} ${capitalize(feature.properties?.location)}`, {
           description: <>
             <span>Size: {feature?.properties.size}</span>
@@ -316,7 +329,7 @@ function LoggerMapCard() {
         })
       });
     }
-  };
+  }
 
   const onEachArea = (feature, layer) => {
     if (feature.properties && feature.properties.Name) {
@@ -325,30 +338,6 @@ function LoggerMapCard() {
         toast.info(`Baranggay: ${feature.properties?.Name}`)
       });
     }
-  };
-
-  const onEachWell = (feature, layer) => {
-    layer.setIcon(wellIcon)
-    layer.bindTooltip(feature.properties?.well_activ, { direction: 'top' })
-    layer.bindPopup(() => `
-    <div class="popup-container">
-      <div class="popup-header flex space-x-2">
-        <img src=${icPump} alt="Icon" class="size-4" />
-        <div>${feature.properties?.well_activ || 'No Data'}</div>
-      </div>
-      <div class="popup-content">
-        <div><strong>Water Permit #:</strong> ${feature.properties?.pressure_setting || '25302'}</div> 
-        <div><strong>Capacity:</strong> ${feature.properties?.capacity || '30 LPS'}</div>
-        <div><strong>HP Rating:</strong> ${feature.properties?.hp_rating || '30 HP'}</div>
-        <div><strong>Supply Voltage:</strong> ${feature.properties?.supply_voltage || '460 V'}</div>
-      </div>
-    </div>
-    ` , {
-      className: 'custom-popup',
-      offset: [100, 150]
-    }
-    )
-
   }
 
   const onEachSpring = (feature, layer) => {
@@ -379,8 +368,8 @@ function LoggerMapCard() {
     layer.bindPopup(() => `
     <div class="popup-container">
       <div class="popup-header flex space-x-2">
-        <img src=${icHydrant} alt="Icon" class="size-4" />
-        <div>${capitalize(feature.properties?.location) || 'No Data'}</div>
+        <img src=${icHydrant} alt="Icon" class="size-6" />
+        <div class='my-auto'>${capitalize(feature.properties?.location) || 'No Data'}</div>
       </div>
       <div class="popup-content">
         <div><strong>Date Installed:</strong> ${moment(feature.properties['year inst.'], true).format('MM-DD-YYYY') || 'No Data'}</div>
@@ -459,7 +448,27 @@ function LoggerMapCard() {
           <GeoJSON data={valve_blowOff} onEachFeature={onEachBlowOff} />
         </Overlay>
         <Overlay name='Pump Stations' checked>
-          <GeoJSON data={source_well} onEachFeature={onEachWell} />
+          {sources.length ?
+            sources.map((source: Source, index) => (
+              <div key={index}>
+                <Marker position={[source.Latitude, source.Longitude]} icon={wellIcon}>
+                  <Popup className='custom-popup'>
+                    <div className="popup-container">
+                      <div className="popup-header flex space-x-2">
+                        <img src={icPump} alt="Icon" className="size-6"/>
+                        <div className='my-auto'>PS {source.SourceIdNo} {source.Name}</div>
+                      </div>
+                      <div className="popup-content">
+                        <div><strong>Water Permit:</strong> {source.WaterPermitNo}</div>
+                        <div><strong>Capacity:</strong> {source.Capacity} <em>lps</em></div>
+                        <div><strong>HP Rating:</strong> {source.HpRating} <em>hp</em></div>
+                        <div><strong>Supply Voltage:</strong> {source.SupplyVoltage} <em>V</em></div>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              </div>
+            )) : null}
         </Overlay>
         <Overlay name='Data Loggers' checked>
           <LayerGroup>

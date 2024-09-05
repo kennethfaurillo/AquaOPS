@@ -45,13 +45,17 @@ export type DataLog = {
     CurrentFlow: number
 }
 
-export type Station = {
+export type Source = {
     SourceId: string,
+    SourceIdNo: string,
+    WaterPermitNo: string,
     Name: string,
-    Lat: number,
-    Long: number,
     Capacity: number,
-    Elevation: number
+    HpRating: number,
+    SupplyVoltage: number,
+    Latitude: number,
+    Longitude: number,
+    Location: number,
 }
 
 export type LoggerLog = {

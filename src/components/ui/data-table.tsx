@@ -5,18 +5,16 @@ import { Skeleton } from "./skeleton"
 import { Button } from "./button"
 
 
-interface DataTableProps<TData, TValue, TInitState, TLoading> {
+interface DataTableProps<TData, TValue, TInitState, TSorting, TSetSorting, TLoading> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  initialState: TInitState
+  initialState: TInitState,
+  sorting: TSorting,
+  setSorting: TSetSorting,
   loading: TLoading
 }
 
-export function DataTable<TData, TValue, TInitState, TLoading>({ columns, data, initialState, loading }: DataTableProps<TData, TValue, TInitState, TLoading>) {
-  const [sorting, setSorting] = useState<SortingState>([{
-    id: "Name",
-    desc: false, // Adjust the sorting order if needed
-  }])
+export function DataTable<TData, TValue, TInitState, TSorting, TSetSorting, TLoading>({ columns, data, initialState, sorting, setSorting, loading }: DataTableProps<TData, TValue, TInitState, TSorting, TSetSorting, TLoading>) {
   const test = {
     pagination: {
       pageSize: 8,
@@ -73,28 +71,23 @@ export function DataTable<TData, TValue, TInitState, TLoading>({ columns, data, 
                 </TableRow>
               ))
             )
-              : (
+              : !loading ?
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
                     No results.
                   </TableCell>
                 </TableRow>
-              )}
+                : null
+            }
             {loading ? Array(5).fill(null).map((item, index) => (
               <TableRow key={index}>
                 <TableCell className="font-medium"><Skeleton className="w-[80px] h-[20px] rounded-full" /></TableCell>
-                <TableCell className="font-medium"><Skeleton className="w-[80px] h-[20px] rounded-full" /></TableCell>
-                <TableCell className="font-medium"><Skeleton className="w-[80px] h-[20px] rounded-full" /></TableCell>
+                <TableCell className="font-medium"><Skeleton className="w-[50px] h-[20px] rounded-full" /></TableCell>
+                <TableCell className="font-medium"><Skeleton className="w-[50px] h-[20px] rounded-full" /></TableCell>
                 <TableCell className="font-medium"><Skeleton className="w-[50px] h-[20px] rounded-full" /></TableCell>
                 <TableCell className="font-medium"><Skeleton className="w-[50px] h-[20px] rounded-full" /></TableCell>
               </TableRow>)
-            ) :
-              // TableRow>
-              //   <TableCell colSpan={columns.length} className="h-24 text-center">
-              //     No results.
-              //   </TableCell>
-              // </TableRow>
-              <></>}
+            ) : null}
           </TableBody>
         </Table>
       </div>
