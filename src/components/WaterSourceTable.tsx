@@ -1,14 +1,12 @@
-import { useSharedStateContext } from "@/hooks/useSharedStateContext"
 import { ColumnDef, SortingState } from "@tanstack/react-table"
 import axios from 'axios'
-import { ArrowDownIcon, ArrowUpIcon, FactoryIcon, MapPinnedIcon, MountainSnowIcon, PlugZapIcon, RadiusIcon, RouterIcon } from "lucide-react"
-import moment from "moment"
+import { ArrowDownIcon, ArrowUpIcon, FactoryIcon, MapPinnedIcon } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Station } from "./Types"
+import { Source } from "./Types"
 import { Button } from "./ui/button"
 import { DataTable } from "./ui/data-table"
 
-function StationTable(props) {
+function WaterSourceTable() {
   const [sourceInfo, setSourceInfo] = useState([])
   const [sorting, setSorting] = useState<SortingState>([{
     id: "SourceIdNo",
@@ -16,7 +14,7 @@ function StationTable(props) {
   }])
   const [loading, setLoading] = useState(false)
 
-  const StationColumns: ColumnDef<Station>[] = [
+  const WaterSourceColumns: ColumnDef<Source>[] = [
     {
       accessorKey: "SourceIdNo",
       header: ({ column }) => {
@@ -54,7 +52,7 @@ function StationTable(props) {
             <Button variant={"link"} onClick={() => {
             }} className="p-0 block text-left whitespace-pre-wrap max-w-24 h-fit">
               <p className="font-bold">{row.getValue("Name")}</p>
-              <p className="text-muted-foreground">PS {row.getValue("SourceIdNo")}</p>
+              <p className="text-muted-foreground">{row.original.Type == 'well' ? 'PS '+row.getValue("SourceIdNo") : null}</p>
             </Button>
           </>
         )
@@ -183,9 +181,9 @@ function StationTable(props) {
 
   return (
     <>
-      <DataTable columns={StationColumns} data={sourceInfo} initialState={initialState} sorting={sorting} setSorting={setSorting} loading={loading} />
+      <DataTable columns={WaterSourceColumns} data={sourceInfo} initialState={initialState} sorting={sorting} setSorting={setSorting} loading={loading} />
     </>
   )
 }
 
-export default StationTable;
+export default WaterSourceTable;

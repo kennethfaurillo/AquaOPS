@@ -2,9 +2,6 @@ import valve_blowOff from '@/assets/geoBlowOff.json'
 import piliBoundary from '@/assets/geoBoundary.json'
 import hydrants from '@/assets/geoHdyrant.json'
 import pipelines from '@/assets/geoPipeline.json'
-import source_spring from '@/assets/geoSourceSpring.json'
-import source_surface from '@/assets/geoSourceSurface.json'
-import source_well from '@/assets/geoSourceWell.json'
 import specific_capacity from '@/assets/geoSpecificCapacity.json'
 import { capitalize, isValueInRange, lerp } from '@/lib/utils'
 import ResetViewControl from '@20tab/react-leaflet-resetview'
@@ -47,17 +44,7 @@ const springIcon = new Icon({
   iconSize: [24, 24],
 })
 
-const riverIcon = new Icon({
-  iconUrl: "src/assets/river.png",
-  iconSize: [30, 30],
-})
-
-const sumpIcon = new Icon({
-  iconUrl: "src/assets/sump.png",
-  iconSize: [30, 30],
-})
-
-const damIcon = new Icon({
+const surfaceIcon = new Icon({
   iconUrl: icDam,
   iconSize: [24, 24],
 })
@@ -95,6 +82,69 @@ const pressureClassMap = {
   red: '!text-red-500 font-bold',
   normal: '!text-piwad-blue-600 font-bold',
   yellow: '!text-yellow-600 font-bold'
+}
+interface Props {
+  source: Source
+}
+
+function SourceMarker({ source }: Props) {
+  if (source.Type == 'well')
+    return (
+      <Marker position={[source.Latitude, source.Longitude]} icon={wellIcon}>
+        <Popup className='custom-popup'>
+          <div className="popup-container">
+            <div className="popup-header flex space-x-2">
+              <img src={icPump} alt="Icon" className="size-6" />
+              <div className='my-auto'>PS {source.SourceIdNo} {source.Name}</div>
+            </div>
+            <div className="popup-content">
+              <div><strong>Water Permit:</strong> {source.WaterPermitNo}</div>
+              <div><strong>Capacity:</strong> {source.Capacity} <em>lps</em></div>
+              <div><strong>HP Rating:</strong> {source.HpRating} <em>hp</em></div>
+              <div><strong>Supply Voltage:</strong> {source.SupplyVoltage} <em>V</em></div>
+            </div>
+          </div>
+        </Popup>
+      </Marker>
+    )
+  if (source.Type == 'spring')
+    return (
+      <Marker position={[source.Latitude, source.Longitude]} icon={springIcon}>
+        <Popup className='custom-popup'>
+          <div className="popup-container">
+            <div className="popup-header flex space-x-2">
+              <img src={icPump} alt="Icon" className="size-6" />
+              <div className='my-auto'>PS {source.SourceIdNo} {source.Name}</div>
+            </div>
+            <div className="popup-content">
+              <div><strong>Water Permit:</strong> {source.WaterPermitNo}</div>
+              <div><strong>Capacity:</strong> {source.Capacity} <em>lps</em></div>
+              <div><strong>HP Rating:</strong> {source.HpRating} <em>hp</em></div>
+              <div><strong>Supply Voltage:</strong> {source.SupplyVoltage} <em>V</em></div>
+            </div>
+          </div>
+        </Popup>
+      </Marker>
+    )
+  if (source.Type == 'surface')
+    return (
+      <Marker position={[source.Latitude, source.Longitude]} icon={surfaceIcon}>
+        <Popup className='custom-popup'>
+          <div className="popup-container">
+            <div className="popup-header flex space-x-2">
+              <img src={icPump} alt="Icon" className="size-6" />
+              <div className='my-auto'>PS {source.SourceIdNo} {source.Name}</div>
+            </div>
+            <div className="popup-content">
+              <div><strong>Water Permit:</strong> {source.WaterPermitNo}</div>
+              <div><strong>Capacity:</strong> {source.Capacity} <em>lps</em></div>
+              <div><strong>HP Rating:</strong> {source.HpRating} <em>hp</em></div>
+              <div><strong>Supply Voltage:</strong> {source.SupplyVoltage} <em>V</em></div>
+            </div>
+          </div>
+        </Popup>
+      </Marker>
+    )
 }
 
 const pressureDisplay = (currentPressure: number, pressureLimit: string) => {
@@ -340,16 +390,6 @@ function LoggerMapCard() {
     }
   }
 
-  const onEachSpring = (feature, layer) => {
-    layer.setIcon(springIcon)
-    layer.bindTooltip(feature.properties?.SPRING, { direction: 'top' })
-  }
-
-  const onEachSurface = (feature, layer) => {
-    layer.setIcon(damIcon)
-    layer.bindTooltip(feature.properties?.SURFACE, { direction: 'top' })
-  }
-
   const onEachSpecificCapacity = (feature, layer) => {
     layer.bindTooltip(feature.properties?.cap, { direction: 'center' })
     layer.on('dblclick', () => {
@@ -438,12 +478,6 @@ function LoggerMapCard() {
         <Overlay name='Fire Hydrants' checked>
           <GeoJSON data={hydrants} onEachFeature={onEachHydrant} />
         </Overlay>
-        <Overlay name='Springs' checked>
-          <GeoJSON data={source_spring} onEachFeature={onEachSpring} />
-        </Overlay>
-        <Overlay name='Surface Water' checked>
-          <GeoJSON data={source_surface} onEachFeature={onEachSurface} />
-        </Overlay>
         <Overlay name='Blow Off Valves' >
           <GeoJSON data={valve_blowOff} onEachFeature={onEachBlowOff} />
         </Overlay>
@@ -452,22 +486,7 @@ function LoggerMapCard() {
             {sources.length ?
               sources.map((source: Source, index) => (
                 <div key={index}>
-                  <Marker position={[source.Latitude, source.Longitude]} icon={wellIcon}>
-                    <Popup className='custom-popup'>
-                      <div className="popup-container">
-                        <div className="popup-header flex space-x-2">
-                          <img src={icPump} alt="Icon" className="size-6"/>
-                          <div className='my-auto'>PS {source.SourceIdNo} {source.Name}</div>
-                        </div>
-                        <div className="popup-content">
-                          <div><strong>Water Permit:</strong> {source.WaterPermitNo}</div>
-                          <div><strong>Capacity:</strong> {source.Capacity} <em>lps</em></div>
-                          <div><strong>HP Rating:</strong> {source.HpRating} <em>hp</em></div>
-                          <div><strong>Supply Voltage:</strong> {source.SupplyVoltage} <em>V</em></div>
-                        </div>
-                      </div>
-                    </Popup>
-                  </Marker>
+                  <SourceMarker source={source} />
                 </div>
               )) : null}
           </LayerGroup>

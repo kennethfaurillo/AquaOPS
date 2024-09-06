@@ -53,6 +53,7 @@ export type Source = {
     Capacity: number,
     HpRating: number,
     SupplyVoltage: number,
+    Type: string,
     Latitude: number,
     Longitude: number,
     Location: number,
