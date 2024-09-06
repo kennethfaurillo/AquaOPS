@@ -223,6 +223,7 @@ function LoggerMapCard() {
   const [fullscreenMap, setFullscreenMap] = useState(false)
   const [alarm, setAlarm] = useState({})
   const [showAlarm, setShowAlarm] = useState(true)
+  const [showVoltage, setShowVoltage] = useState(true)
 
   const { setChartDrawerOpen, setLogger } = useSharedStateContext()
   const { BaseLayer, Overlay } = LayersControl
@@ -500,7 +501,7 @@ function LoggerMapCard() {
                         setLogger(loggerData)
                       },
                     }}>
-                      <Tooltip permanent direction={'top'}>
+                      <Tooltip permanent direction={'top'} interactive={true}>
                         <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
                           {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('MMM D h:mm a')}<br /></> : null}
                         </div>
@@ -508,7 +509,11 @@ function LoggerMapCard() {
                           {loggerData.CurrentPressure == null ? null :
                             pressureDisplay(loggerData.CurrentPressure, loggerData.PressureLimit)
                           }
-                          {voltageIconMap[checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit)]}
+                          <div className='absolute bottom-2 right-2 text-red-500 font-bold' hidden={showVoltage}>{loggerData.AverageVoltage}</div>
+                          <div onMouseEnter={() =>{
+                            setShowVoltage(true)
+                            toast.info("Voltage: "+loggerData.AverageVoltage)
+                          }}>{voltageIconMap[checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit)]}</div>
                         </div>
                         {loggerData.CurrentFlow == null ? null :
                           <div className='font-bold'>{loggerData.CurrentFlow}<em> lps</em></div>
