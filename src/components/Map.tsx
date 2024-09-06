@@ -477,7 +477,7 @@ function LoggerMapCard() {
         <Overlay name='Blow Off Valves' >
           <GeoJSON data={valve_blowOff} onEachFeature={onEachBlowOff} />
         </Overlay>
-        <Overlay name='Pump Stations' checked>
+        <Overlay name='Water Sources' checked>
           <LayerGroup>
             {sources.length ?
               sources.map((source: Source, index) => (
@@ -501,7 +501,10 @@ function LoggerMapCard() {
                       },
                     }}>
                       <Tooltip permanent direction={'top'}>
-                        <div className='flex justify-between'>
+                        <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
+                          {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('MMM D h:mm a')}<br /></> : null}
+                        </div>
+                        <div className='flex justify-between space-x-2'>
                           {loggerData.CurrentPressure == null ? null :
                             pressureDisplay(loggerData.CurrentPressure, loggerData.PressureLimit)
                           }
@@ -510,9 +513,6 @@ function LoggerMapCard() {
                         {loggerData.CurrentFlow == null ? null :
                           <div className='font-bold'>{loggerData.CurrentFlow}<em> lps</em></div>
                         }
-                        <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
-                          {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('MMM D h:mm a')}<br /></> : null}
-                        </div>
                       </Tooltip>
                     </Marker>
                     <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>

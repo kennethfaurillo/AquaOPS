@@ -1,6 +1,6 @@
 import { ColumnDef, SortingState } from "@tanstack/react-table"
 import axios from 'axios'
-import { ArrowDownIcon, ArrowUpIcon, FactoryIcon, MapPinnedIcon } from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon, DropletsIcon, FactoryIcon, MapPinnedIcon, RadiusIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Source } from "./Types"
 import { Button } from "./ui/button"
@@ -39,8 +39,8 @@ function WaterSourceTable() {
             <Button variant="ghost" className="px-2" onClick={() => {
               // column.toggleSorting(column.getIsSorted() === "asc")
             }}>
-              <FactoryIcon className="mr-1 h-5 w-5" />
-              Station
+              <DropletsIcon className="mr-1 h-5 w-5" />
+              Source
               {column?.getIsSorted() ? ((column.getIsSorted() === "asc") ? <ArrowUpIcon className="ml-1 h-4 w-4" /> : <ArrowDownIcon className="ml-1 h-4 w-4" />) : <></>}
             </Button>
           </>
@@ -88,7 +88,7 @@ function WaterSourceTable() {
       },
       cell: ({ row }) => {
         if (row.getValue("Capacity")) return (
-          <div className="font-semibold text-right">
+          <div className="font-semibold text-center">
             {row.getValue("Capacity")} <em>lps</em>
           </div>)
         return (<div className="text-gray-300 font-semibold">NA</div>)
@@ -110,7 +110,7 @@ function WaterSourceTable() {
         )
       },
       cell: ({ row }) => {
-        if (row.getValue("HpRating")) return (<div className="font-semibold text-right">
+        if (row.getValue("HpRating")) return (<div className="font-semibold text-center">
           {row.getValue("HpRating")} <em>hp</em>
         </div>)
         return (<div className="text-gray-300 font-semibold text-right">NA</div>)
@@ -132,7 +132,7 @@ function WaterSourceTable() {
         )
       },
       cell: ({ row }) => {
-        if (row.getValue("SupplyVoltage")) return (<div className="font-semibold text-right">
+        if (row.getValue("SupplyVoltage")) return (<div className="font-semibold text-center">
           {row.getValue("SupplyVoltage")} <em>V</em>
         </div>)
         return (<div className="text-gray-300 font-semibold text-right">NA</div>)
