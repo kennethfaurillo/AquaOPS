@@ -61,7 +61,7 @@
 
 .custom-popup .leaflet-popup-content {
     width: max-content;
-    max-width: 200px;
+    max-width: 180px;
     margin: 0;
     padding: 0;
     text-align: left;
@@ -77,7 +77,8 @@
 }
 
 .popup-header {
-    background-color: #1e90ff;
+    /* background-color: #1e90ff; */
+    background-color: #1f63a7;
     color: white;
     padding: 6px;
     border-radius: 5px 5px 0 0;

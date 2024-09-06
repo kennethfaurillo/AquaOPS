@@ -21,21 +21,21 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 
 import { useSharedStateContext } from '@/hooks/useSharedStateContext'
-import icDam from '../assets/Filter.svg'
+import icSurface from '../assets/Filter.svg'
 import icHydrant from '../assets/Hydrant.svg'
 import logoMain from '../assets/logo-main.png'
-import icMeter from '../assets/meter.png'
-import icPump from '../assets/Station.svg'
+import icLogger from '../assets/meter.png'
+import icStation from '../assets/Station.svg'
 import icSpring from '../assets/Tank.svg'
 import icValve from '../assets/Tube.svg'
 
 const loggerIcon = new Icon({
-  iconUrl: icMeter,
+  iconUrl: icLogger,
   iconSize: [24, 24],
 })
 
-const wellIcon = new Icon({
-  iconUrl: icPump,
+const StationIcon = new Icon({
+  iconUrl: icStation,
   iconSize: [22, 22],
 })
 
@@ -45,7 +45,7 @@ const springIcon = new Icon({
 })
 
 const surfaceIcon = new Icon({
-  iconUrl: icDam,
+  iconUrl: icSurface,
   iconSize: [24, 24],
 })
 
@@ -90,11 +90,11 @@ interface Props {
 function SourceMarker({ source }: Props) {
   if (source.Type == 'well')
     return (
-      <Marker position={[source.Latitude, source.Longitude]} icon={wellIcon}>
+      <Marker position={[source.Latitude, source.Longitude]} icon={StationIcon}>
         <Popup className='custom-popup'>
           <div className="popup-container">
             <div className="popup-header flex space-x-2">
-              <img src={icPump} alt="Icon" className="size-6" />
+              <img src={icStation} alt="Icon" className="size-6" />
               <div className='my-auto'>PS {source.SourceIdNo} {source.Name}</div>
             </div>
             <div className="popup-content">
@@ -113,14 +113,12 @@ function SourceMarker({ source }: Props) {
         <Popup className='custom-popup'>
           <div className="popup-container">
             <div className="popup-header flex space-x-2">
-              <img src={icPump} alt="Icon" className="size-6" />
-              <div className='my-auto'>PS {source.SourceIdNo} {source.Name}</div>
+              <img src={icSpring} alt="Icon" className="size-6" />
+              <div className='my-auto'>{source.Name}</div>
             </div>
             <div className="popup-content">
               <div><strong>Water Permit:</strong> {source.WaterPermitNo}</div>
               <div><strong>Capacity:</strong> {source.Capacity} <em>lps</em></div>
-              <div><strong>HP Rating:</strong> {source.HpRating} <em>hp</em></div>
-              <div><strong>Supply Voltage:</strong> {source.SupplyVoltage} <em>V</em></div>
             </div>
           </div>
         </Popup>
@@ -132,14 +130,12 @@ function SourceMarker({ source }: Props) {
         <Popup className='custom-popup'>
           <div className="popup-container">
             <div className="popup-header flex space-x-2">
-              <img src={icPump} alt="Icon" className="size-6" />
-              <div className='my-auto'>PS {source.SourceIdNo} {source.Name}</div>
+              <img src={icSurface} alt="Icon" className="size-6" />
+              <div className='my-auto'>{source.Name}</div>
             </div>
             <div className="popup-content">
               <div><strong>Water Permit:</strong> {source.WaterPermitNo}</div>
               <div><strong>Capacity:</strong> {source.Capacity} <em>lps</em></div>
-              <div><strong>HP Rating:</strong> {source.HpRating} <em>hp</em></div>
-              <div><strong>Supply Voltage:</strong> {source.SupplyVoltage} <em>V</em></div>
             </div>
           </div>
         </Popup>
