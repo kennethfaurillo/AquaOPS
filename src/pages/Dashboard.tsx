@@ -9,6 +9,7 @@ import '../App.css';
 import Header from "../components/Header";
 import LoggerMapCard from "../components/Map";
 import '../index.css';
+import { DialogProvider } from "@/hooks/useDialogContext";
 
 
 function DashboardPage() {
@@ -31,6 +32,7 @@ function DashboardPage() {
         return (
             <div className='h-[cmd80dvh] sm:h-[100dvh] overflow-hidden bg-slate-100'>
                 <Header user={{ "FirstName": "Piwad", "LastName": user.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
+                <DialogProvider>
                 <DrawerProvider>
                     {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (
                         <ResizablePanelGroup direction="horizontal">
@@ -57,6 +59,7 @@ function DashboardPage() {
                         </div>
                     )}
                 </DrawerProvider>
+                </DialogProvider>
             </div>
         )
     }
