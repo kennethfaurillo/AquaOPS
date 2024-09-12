@@ -19,6 +19,7 @@ import './Map.css'
 import { DataLog, Datalogger, LoggerLog, Source } from './Types'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { Tooltip as HoverTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
 import { useSharedStateContext } from '@/hooks/useSharedStateContext'
 import icSurface from '../assets/Filter.svg'
@@ -81,7 +82,8 @@ const voltageIconMap = {
 const pressureClassMap = {
   red: '!text-red-500 font-bold',
   normal: '!text-piwad-blue-600 font-bold',
-  yellow: '!text-yellow-600 font-bold'
+  yellow: '!text-yellow-600 font-bold',
+  invalid: 'hidden'
 }
 interface Props {
   source: Source
@@ -145,7 +147,7 @@ function SourceMarker({ source }: Props) {
 
 const pressureDisplay = (currentPressure: number, pressureLimit: string) => {
   if (pressureLimit == null)
-    return <div className='font-bold'>{currentPressure.toFixed(1)}</div>
+    return <div className='font-bold'>{currentPressure.toFixed(1)} <em> psi</em><br /></div>
   return (
     <div className={pressureClassMap[checkPressure(currentPressure, pressureLimit)]}>
       <>{currentPressure.toFixed(1)}<em> psi</em><br /></>
@@ -196,9 +198,12 @@ function checkVoltage(voltage: number, voltageLimit: string): 'critical' | 'low'
   }
 }
 
-function checkPressure(pressure: number, pressureLimit: string): 'red' | 'yellow' | 'normal' {
+function checkPressure(pressure: number, pressureLimit: string): 'red' | 'yellow' | 'normal' | 'invalid' {
   let [min, max] = pressureLimit.split(',').map((val) => +val)
   pressure = +pressure.toFixed(1)
+  if (pressure < -10) {
+    return 'invalid'
+  }
   if (pressure >= max + 20) {
     return 'red'
   } else if (pressure >= max) {
@@ -439,126 +444,144 @@ function LoggerMapCard() {
   }
 
   const displayMap = (() => (
-    <MapContainer
-      className='cursor-crosshair'
-      center={[13.589451, 123.2871642]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
-      scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
-      maxBounds={[[13.676173, 123.111745], [13.516072, 123.456730]]}>
-      <ResetViewControl title="Reset View" icon={"🔍"} />
-      <LayersControl position='topright'>
-        <BaseLayer name='Street Map' checked>
-          <TileLayer
-            url={basemap ? basemap.url : "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"}
-            attribution={basemap.name == 'osmLight' ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' : '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
-          />
-        </BaseLayer>
-        <BaseLayer name='Satellite Map'>
-          <TileLayer
-            url={"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}
-            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-          />
-        </BaseLayer>
-        <Overlay name='Baranggay Boundaries'>
-          <GeoJSON data={piliBoundary} style={{ fillOpacity: 0, weight: 1, color: 'orange' }} onEachFeature={onEachArea} />
-        </Overlay>
-        <Overlay name='Specific Capacity'>
-          <GeoJSON data={specific_capacity} style={{ fillOpacity: 0, weight: 1, color: 'violet' }} onEachFeature={onEachSpecificCapacity} />
-        </Overlay>
-        <Overlay name='Pipelines' checked>
-          <GeoJSON data={pipelines} style={(feature) => ({
-            color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",
-            weight: weight,
-          })}
-            onEachFeature={onEachPipeline}
-          />
-        </Overlay>
-        <Overlay name='Fire Hydrants' checked>
-          <GeoJSON data={hydrants} onEachFeature={onEachHydrant} />
-        </Overlay>
-        <Overlay name='Blow Off Valves' >
-          <GeoJSON data={valve_blowOff} onEachFeature={onEachBlowOff} />
-        </Overlay>
-        <Overlay name='Water Sources' checked>
-          <LayerGroup>
-            {sources.length ?
-              sources.map((source: Source, index) => (
-                <div key={index}>
-                  <SourceMarker source={source} />
-                </div>
-              )) : null}
-          </LayerGroup>
-        </Overlay>
-        <Overlay name='Data Loggers' checked>
-          <LayerGroup>
-            {loggersLatest.size ?
-              <>
-                {Array.from(loggersLatest, ([loggerId, loggerData]) => (
-                  <div key={loggerId}>
-                    <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={loggerIcon} eventHandlers={{
-                      click: () => {
-                        if (fullscreenMap) map.toggleFullscreen()
-                        setChartDrawerOpen(true)
-                        setLogger(loggerData)
-                      },
-                    }}>
-                      <Tooltip permanent direction={'top'} interactive={true}>
-                        <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
-                          {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('MMM D h:mm a')}<br /></> : null}
-                        </div>
-                        <div className='flex justify-between space-x-2'>
-                          {loggerData.CurrentPressure == null ? null :
-                            pressureDisplay(loggerData.CurrentPressure, loggerData.PressureLimit)
-                          }
-                          <div className='absolute bottom-2 right-2 text-red-500 font-bold' hidden={showVoltage}>{loggerData.AverageVoltage}</div>
-                          <div onMouseEnter={() =>{
-                            setShowVoltage(true)
-                            toast.info("Voltage: "+loggerData.AverageVoltage)
-                          }}>{voltageIconMap[checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit)]}</div>
-                        </div>
-                        {loggerData.CurrentFlow == null ? null :
-                          <div className='font-bold'>{loggerData.CurrentFlow}<em> lps</em></div>
-                        }
-                      </Tooltip>
-                    </Marker>
-                    <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
-                      {basemap?.name == "stdDark" ?
-                        <div><Tooltip permanent direction='bottom' className='logger-label-dark'>{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip></div> :
-                        <Tooltip permanent direction='bottom'>{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip>
-                      }
-                    </Marker>
+    <TooltipProvider>
+      <MapContainer
+        className='cursor-crosshair'
+        center={[13.589451, 123.2871642]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
+        scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
+        maxBounds={[[13.676173, 123.111745], [13.516072, 123.456730]]}>
+        <ResetViewControl title="Reset View" icon={"🔍"} />
+        <LayersControl position='topright'>
+          <BaseLayer name='Street Map' checked>
+            <TileLayer
+              url={basemap ? basemap.url : "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"}
+              attribution={basemap.name == 'osmLight' ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' : '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
+            />
+          </BaseLayer>
+          <BaseLayer name='Satellite Map'>
+            <TileLayer
+              url={"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"}
+              attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            />
+          </BaseLayer>
+          <Overlay name='Baranggay Boundaries'>
+            <GeoJSON data={piliBoundary} style={{ fillOpacity: 0, weight: 1, color: 'orange' }} onEachFeature={onEachArea} />
+          </Overlay>
+          <Overlay name='Specific Capacity'>
+            <GeoJSON data={specific_capacity} style={{ fillOpacity: 0, weight: 1, color: 'violet' }} onEachFeature={onEachSpecificCapacity} />
+          </Overlay>
+          <Overlay name='Pipelines' checked>
+            <GeoJSON data={pipelines} style={(feature) => ({
+              color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",
+              weight: weight,
+            })}
+              onEachFeature={onEachPipeline}
+            />
+          </Overlay>
+          <Overlay name='Fire Hydrants' checked>
+            <GeoJSON data={hydrants} onEachFeature={onEachHydrant} />
+          </Overlay>
+          <Overlay name='Blow Off Valves' >
+            <GeoJSON data={valve_blowOff} onEachFeature={onEachBlowOff} />
+          </Overlay>
+          <Overlay name='Water Sources' checked>
+            <LayerGroup>
+              {sources.length ?
+                sources.map((source: Source, index) => (
+                  <div key={index}>
+                    <SourceMarker source={source} />
                   </div>
-                ))}
-              </>
-              : null
-            }
-          </LayerGroup>
-        </Overlay>
-      </LayersControl>
-      <MapEvents />
-      {showAlarm ? <Button className='absolute bottom-24 right-4 z-[401] size-12 p-0 rounded-full opacity-80' onClick={() => setShowAlarm(!showAlarm)}><BellRingIcon /></Button>
-        : <Button className='absolute bottom-24 right-4 z-[401] size-12 p-0 rounded-full opacity-100' onClick={() => setShowAlarm(!showAlarm)}><BellOffIcon /></Button>}
-
-      {basemap ?
-        basemap.name == "osmLight" ?
-          <Button className='absolute bottom-8 right-4 z-[401] size-12 p-0 rounded-full opacity-80' onClick={themeToggleOnclick}><MoonIcon /></Button>
-          : <Button className='absolute bottom-8 right-4 z-[401] size-12 p-0 rounded-full opacity-80' variant={"secondary"} onClick={themeToggleOnclick}><SunIcon /></Button>
-        : null}
-      {fullscreenMap ?
-        <>
-          <div className='absolute bottom-4 left-4 p-2 rounded-full z-[400]'>
-            <img src={logoMain} className='h-12 sm:h-16 md:h-20' />
-          </div>
-          <div className='flex justify-around space-y-2 w-full px-0 md:px-72'>
-            <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-start-1 col-span-3 justify-center flex items-center backdrop-blur-[1px] z-[400]">
-              {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
-            <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center backdrop-blur-[1px] z-[400]">
-              {loggersStatus.Inactive}&nbsp;<BadgeAlertIcon className='sm:mx-1' color='yellow' />&nbsp;Inactive</div>
-            <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-2 justify-center flex items-center backdrop-blur-[1px] z-[400]">
-              {loggersStatus.Disabled}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Disabled</div>
-          </div>
-        </>
-        : null}
-    </MapContainer>
+                )) : null}
+            </LayerGroup>
+          </Overlay>
+          <Overlay name='Data Loggers' checked>
+            <LayerGroup>
+              {loggersLatest.size ?
+                <>
+                  {Array.from(loggersLatest, ([loggerId, loggerData]) => (
+                    <div key={loggerId}>
+                      <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={loggerIcon} eventHandlers={{
+                        click: () => {
+                          if (fullscreenMap) map.toggleFullscreen()
+                          setChartDrawerOpen(true)
+                          setLogger(loggerData)
+                        },
+                      }}>
+                        <Tooltip permanent direction={'top'} interactive={true}>
+                          <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
+                            {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('MMM D h:mm a')}<br /></> : null}
+                          </div>
+                          <div className='flex justify-between space-x-2'>
+                            {loggerData.CurrentPressure == null ? null :
+                              pressureDisplay(loggerData.CurrentPressure, loggerData.PressureLimit)
+                            }
+                            <HoverTooltip delayDuration={75}>
+                              <TooltipTrigger >
+                                {loggerData.Type.includes('pressure') ? voltageIconMap[checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit)] : null}
+                              </TooltipTrigger>
+                              <TooltipContent side='right' className='text-red-600 text-xs'>
+                                <>
+                                  <strong>{loggerData.AverageVoltage} <em>V</em></strong>
+                                </>
+                              </TooltipContent>
+                            </HoverTooltip>
+                          </div>
+                          <div className='flex justify-between space-x-2'>
+                            {loggerData.CurrentFlow == null ? null :
+                              <div className='font-bold'>{loggerData.CurrentFlow}<em> lps</em> </div>
+                            }
+                            <HoverTooltip delayDuration={75}>
+                              <TooltipTrigger >
+                                {loggerData.Type.includes('flow') && !loggerData.Type.includes('pressure') ? voltageIconMap[checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit)] : null}
+                              </TooltipTrigger>
+                              <TooltipContent side='right' className='text-red-600 text-xs'>
+                                <>
+                                  <strong>{loggerData.AverageVoltage} <em>V</em></strong>
+                                </>
+                              </TooltipContent>
+                            </HoverTooltip>
+                          </div>
+                        </Tooltip>
+                      </Marker>
+                      <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
+                        {basemap?.name == "stdDark" ?
+                          <div><Tooltip permanent direction='bottom' className='logger-label-dark'>{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip></div> :
+                          <Tooltip permanent direction='bottom'>{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip>
+                        }
+                      </Marker>
+                    </div>
+                  ))}
+                </>
+                : null
+              }
+            </LayerGroup>
+          </Overlay>
+        </LayersControl>
+        <MapEvents />
+        {showAlarm ? <Button className='absolute bottom-24 right-4 z-[401] size-12 p-0 rounded-full opacity-80' onClick={() => setShowAlarm(!showAlarm)}><BellRingIcon /></Button>
+          : <Button className='absolute bottom-24 right-4 z-[401] size-12 p-0 rounded-full opacity-100' onClick={() => setShowAlarm(!showAlarm)}><BellOffIcon /></Button>}
+        {basemap ?
+          basemap.name == "osmLight" ?
+            <Button className='absolute bottom-8 right-4 z-[401] size-12 p-0 rounded-full opacity-80' onClick={themeToggleOnclick}><MoonIcon /></Button>
+            : <Button className='absolute bottom-8 right-4 z-[401] size-12 p-0 rounded-full opacity-80' variant={"secondary"} onClick={themeToggleOnclick}><SunIcon /></Button>
+          : null}
+        {fullscreenMap ?
+          <>
+            <div className='absolute bottom-4 left-4 p-2 rounded-full z-[400]'>
+              <img src={logoMain} className='h-12 sm:h-16 md:h-20' />
+            </div>
+            <div className='flex justify-around space-y-2 w-full px-0 md:px-72'>
+              <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-start-1 col-span-3 justify-center flex items-center backdrop-blur-[1px] z-[400]">
+                {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
+              <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center backdrop-blur-[1px] z-[400]">
+                {loggersStatus.Inactive}&nbsp;<BadgeAlertIcon className='sm:mx-1' color='yellow' />&nbsp;Inactive</div>
+              <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-2 justify-center flex items-center backdrop-blur-[1px] z-[400]">
+                {loggersStatus.Disabled}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Disabled</div>
+            </div>
+          </>
+          : null}
+      </MapContainer>
+    </TooltipProvider>
   ))
 
   return (

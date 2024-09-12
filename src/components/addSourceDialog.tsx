@@ -16,10 +16,7 @@ function AddSourceDialog({ addSourceDialogOpen, setAddSourceDialogOpen }) {
     const [activeTab, setActiveTab] = useState<"config" | "limits" | "history">("config")
     const [configLogs, setConfigLogs] = useState([])
 
-
-
     useEffect(() => {
-        console.log("addsourcedialog")
     }, [])
 
     return (<>

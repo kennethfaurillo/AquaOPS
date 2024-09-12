@@ -1,6 +1,7 @@
 import axios from "axios"
 import { type ClassValue, clsx } from "clsx"
 import { addDays } from "date-fns"
+import moment from "moment"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -35,7 +36,7 @@ export async function generateReport(loggerInfo, fields, dateRange, user) {
   if (data.length) {
     const newData = data.reduce((newData, currentLog) => {
       let newLog = {
-        LogTime: currentLog.LogTime.replace('Z', '')
+        LogTime: moment(currentLog.LogTime.replace('Z', '')).format('MM/DD/YYYY, hh:mm A')
       }
       for (const [field, includeField] of Object.entries(fields)) {
         if (!includeField) continue
