@@ -54,7 +54,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                 totalizerNegative: false
             })
             setLink(null)
-            setReportFileType('xls')
+            setReportFileType('xlsx')
         }
     }, [reportDialogOpen])
 
