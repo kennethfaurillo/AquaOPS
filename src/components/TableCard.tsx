@@ -25,10 +25,6 @@ function TableCard() {
                             <CardHeader className="py-4 rounded-t-lg bg-piwad-lightblue-600">
                                 <div className="relative flex-row">
                                     <CardTitle className="text-piwad-lightyellow-400 ">Data Loggers</CardTitle>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild><PlusCircleIcon color="white" className="absolute right-1 top-1 text-slate-900 cursor-pointer" /></TooltipTrigger>
-                                        <TooltipContent>Add New Logger</TooltipContent>
-                                    </Tooltip>
                                     <CardDescription className="text-white/80">View and manage data loggers</CardDescription>
                                     <Separator />
                                 </div>

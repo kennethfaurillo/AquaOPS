@@ -54,6 +54,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                 totalizerNegative: false
             })
             setLink(null)
+            setWorkbook(XLSX.utils.book_new())
             setReportFileType('xlsx')
         }
     }, [reportDialogOpen])
