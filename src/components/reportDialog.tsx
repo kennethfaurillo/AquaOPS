@@ -272,7 +272,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                 <Button className="bg-piwad-lightyellow-500 text-black" disabled><Loader2Icon className="animate-spin size-4 mr-2" />Generating Report</Button> :
                                 <Button className="bg-piwad-lightyellow-500 text-black" disabled>Generate Report</Button>)
                         }
-                        {link ? <Button className="bg-green-500" onClick={() => {
+                        {link && !loadingReport ? <Button className="bg-green-500" onClick={() => {
                             if (reportFileType == 'csv') {
                                 // console.log(JSON.stringify(link))
                                 link.csv.click()
