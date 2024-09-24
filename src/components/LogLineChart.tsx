@@ -4,6 +4,8 @@ import moment from 'moment'
 import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Label, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Separator } from './ui/separator'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { DataLog } from './Types'
 
 const colorMap = {
     AverageVoltage: "text-red-500",
@@ -13,6 +15,12 @@ const colorMap = {
     TotalFlowNegative: "text-indigo-600",
     DailyFlowPositive: "text-green-500",
     DailyFlowNegative: "text-[#e70077]",
+}
+
+type MetricStatistics = {
+    average: number | null | string,
+    min: DataLog | null,
+    max: DataLog | null
 }
 
 const CustomCombinedLineTooltip = ({ active, payload, label }) => {
@@ -71,7 +79,9 @@ function LogLineChart(props) {
     })
     const timeRange = props.timeRange
     const loggerType = props.logger.Type ? props.logger.Type.split(',') : props.logger.Name.toLowerCase().includes("pressure") ? "pressure" : "flow"
-    const [average, setAverage] = useState({})
+    // const [average, setAverage] = useState({})
+    const [pressureStatistics, setPressureStatistics] = useState({})
+    const [flowStatistics, setFlowStatistics] = useState({})
 
     useEffect(() => {
         const fetchData = async () => {
@@ -120,29 +130,75 @@ function LogLineChart(props) {
     // update average value
     useEffect(() => {
         if (!filteredLogData.length) return
-        let tempAvg = {}
         if (loggerType.includes("pressure")) {
-            tempAvg = { pressure: getAvg(filteredLogData, 'pressure') }
+            const tempPressureStatistics = getStatistics(filteredLogData, 'pressure')
+            setPressureStatistics(tempPressureStatistics)
         }
         if (loggerType.includes("flow")) {
-            tempAvg = { ...tempAvg, flow: getAvg(filteredLogData, 'flow') }
+            const tempFlowStatistics = getStatistics(filteredLogData, 'flow')
+            setFlowStatistics(tempFlowStatistics)
         }
-        setAverage(tempAvg)
     }, [filteredLogData])
 
-    const getAvg = (data, datakey) => {
+    const getStatistics = (datalogs, datakey) => {
+        let stats = {
+            avg: 0,
+            min: datalogs[0],
+            max: datalogs[0]
+        }
         if (datakey == 'pressure') {
             datakey = 'CurrentPressure'
         } else if (datakey == 'flow') {
             datakey = 'CurrentFlow'
         }
-        return (data.reduce((acc, curr) => acc + curr[datakey], 0) / data.length).toFixed(2)
+        for (const datalog of datalogs) {
+            if(datalog[datakey] > stats.max[datakey]){
+                stats.max = datalog
+            }
+            if(datalog[datakey] < stats.min[datakey]){
+                stats.min = datalog
+            }
+            stats.avg += datalog[datakey]
+        }
+        stats.avg = (stats.avg/datalogs.length).toFixed(2)
+        console.log(stats)
+        return stats
+    }
+
+    function StatCard({ title, value, unit, timestamp }: { title: string, value: string, unit: string, timestamp: string }) {
+        return (
+            <Card className='bg-piwad-blue-50 p-4'>
+                <CardHeader className="flex flex-row items-center justify-between p-0 pb-1">
+                    <CardTitle className="text-xs md:text-sm font-medium ">{title}</CardTitle>
+                </CardHeader>
+                <CardContent className='px-4 p-0'>
+                    <div className="text-lg md:text-2xl font-bold">{value}<span className="text-sm font-medium ml-1"><em>{unit}</em></span></div>
+                    <div className="text-xs text-muted-foreground mt-1">{timestamp ?? null}</div>
+                </CardContent>
+            </Card>
+        )
     }
 
     return (
         <> {!loading ? <>
+            <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 mb-4 mx-8">
+                {loggerType.includes('pressure') && pressureStatistics.avg ?
+                    <>
+                        <StatCard title='Avg Pressure' value={pressureStatistics.avg} unit='psi' />
+                        <StatCard title='Min Pressure' value={pressureStatistics.min['CurrentPressure']} unit='psi' timestamp={moment(pressureStatistics.min.LogTime.slice(0,-1)).format('YYYY-MM-DD H:mm A')}/>
+                        <StatCard title='Max Pressure' value={pressureStatistics.max['CurrentPressure']} unit='psi' timestamp={moment(pressureStatistics.max.LogTime.slice(0,-1)).format('YYYY-MM-DD H:mm A')}/>
+                    </> : null
+                }
+                {loggerType.includes('flow') && flowStatistics.avg ?
+                    <>
+                        <StatCard title='Avg Flow' value={flowStatistics.avg} unit='lps'/>
+                        <StatCard title='Min Flow' value={flowStatistics.min['CurrentFlow']} unit='lps' timestamp={moment(flowStatistics.min.LogTime.slice(0,-1)).format('YYYY-MM-DD H:mm A')}/>
+                        <StatCard title='Max Flow' value={flowStatistics.max['CurrentFlow']} unit='lps' timestamp={moment(flowStatistics.max.LogTime.slice(0,-1)).format('YYYY-MM-DD H:mm A')}/>
+                    </> : null
+                }
+            </div>
             {loggerType.includes('flow') && logData.length ?
-                <ResponsiveContainer width={"95%"} height={150} className={"mx-auto mb-4"}>
+                <ResponsiveContainer width={"95%"} height={150} className={"mx-auto"}>
                     <BarChart data={totalizerData}>
                         <XAxis dataKey={'Date'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).format('MMM D')} />
                         <YAxis width={30} tick={{ fontSize: 10 }} domain={[-10, 'dataMax + 5']} allowDataOverflow />
@@ -165,10 +221,10 @@ function LogLineChart(props) {
                 </ResponsiveContainer>
                 : <></>
             }
-            <ResponsiveContainer width={"95%"} height={!props.logger.CurrentFlow ? 550 : 400} className={"self-center "}>
+            <ResponsiveContainer width={"95%"} height={!props.logger.CurrentFlow ? 450 : 300} className={"self-center "}>
                 <LineChart height={200} data={filteredLogData}  >
                     <XAxis dataKey={'LogTime'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).utcOffset('+0000').format('h:mm a')} />
-                    <YAxis width={30} tick={{ fontSize: 10 }} domain={[-10, 'dataMax + 5']} allowDataOverflow />
+                    <YAxis width={30} tick={{ fontSize: 10 }} domain={["dataMin-5", "auto"]} allowDecimals={false} allowDataOverflow={true} />
                     <CartesianGrid strokeDasharray={"5 10"} />
                     <Legend onClick={(e) =>
                         setHideLine({
@@ -180,7 +236,7 @@ function LogLineChart(props) {
                     <div className='text-blue-500' />
                     {props.logger.CurrentPressure != null ?
                         <>
-                            {average.pressure ? <ReferenceLine y={average.pressure} stroke='#73d25f' strokeOpacity={.3}><Label position={'insideBottomLeft'}>{`Average Pressure: ${average.pressure}`}</Label></ReferenceLine> : null}
+                            {pressureStatistics.average ? <ReferenceLine y={pressureStatistics.average} stroke='#73d25f' strokeOpacity={.3}><Label position={'insideBottomLeft'}>{`Average Pressure: ${pressureStatistics.average}`}</Label></ReferenceLine> : null}
                             <Line dataKey={'CurrentPressure'}
                                 name={"Pressure"}
                                 stroke='#73d25f'
@@ -192,7 +248,7 @@ function LogLineChart(props) {
                     }
                     {props.logger.CurrentFlow != null ?
                         <>
-                            {average.flow ? <ReferenceLine y={average.flow} stroke='#3B82F6' strokeOpacity={.3}> <Label position={'insideTopRight'} className='text-red-500'>{`Average Flow: ${average.flow}`}</Label></ReferenceLine> : null}
+                            {flowStatistics.average ? <ReferenceLine y={flowStatistics.average} stroke='#3B82F6' strokeOpacity={.3}> <Label position={'insideTopRight'} className='text-red-500'>{`Average Flow: ${flowStatistics.average}`}</Label></ReferenceLine> : null}
                             <Line dataKey={'CurrentFlow'}
                                 name={"Flow"}
                                 stroke='#3B82F6'

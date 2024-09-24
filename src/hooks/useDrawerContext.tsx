@@ -44,7 +44,7 @@ export function DrawerProvider({ children }) {
         // Logger Chart Drawer
         <DrawerContext.Provider value={value}>
             <Drawer open={chartDrawerOpen} onOpenChange={setChartDrawerOpen}>
-                <DrawerContent>
+                <DrawerContent className="w-full lg:w-[1024px] mx-auto">
                     <DrawerHeader className="relative">
                         <DrawerTitle className="text-piwad-lightblue-500 text-3xl inline-flex">
                             {logger?.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2) ?? "Unnamed"} LOGGER

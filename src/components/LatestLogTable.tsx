@@ -115,7 +115,7 @@ function LoggerTable(props) {
           <div className="text-right">
             {(moment(row.getValue("LogTime").replace('Z', ''), true).format("M/D/YY "))}
             <br />
-            {(moment(row.getValue("LogTime").replace('Z', ''), true).format("H:mm A"))}
+            {(moment(row.getValue("LogTime").replace('Z', ''), true).format("h:mm A"))}
           </div>)
         return (<div className="text-gray-300 font-semibold">NA</div>)
       }

@@ -13,6 +13,7 @@ import { ScrollArea } from "./ui/scroll-area"
 import { Separator } from "./ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
+import { Switch } from "./ui/switch"
 
 
 function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
@@ -56,12 +57,18 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                         <TabsContent value="config">
                             <Card>
                                 <CardHeader className="py-4">
-                                    <CardTitle>Logger Information</CardTitle>
+                                    <CardTitle>
+                                        Logger Information
+                                    </CardTitle>
                                     <CardDescription>Only Admins can modify logger configuration and information</CardDescription>
                                     <Separator />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-2 gap-x-4">
+                                    <div className="flex items-center justify-center space-x-2 col-span-2">
+                                        <Switch id="showOnMap" checked>Test</Switch>
+                                        <Label htmlFor="showOnMap" >Show on Map</Label>
+                                    </div>
                                         <div>
                                             <Label htmlFor="loggerName" className="text-slate-600">Logger Name</Label>
                                             <Input id={"loggerName"} placeholder={loggerInfo.Name?.split('_').slice(2)} disabled />
@@ -182,7 +189,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                         }
                         // Update logger config
                         try {
-                            if (Object.keys(_loggerLimits).length){
+                            if (Object.keys(_loggerLimits).length) {
                                 const changeConfigResponse = await axios.patch(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger_limits/${loggerInfo.LoggerId}`, {
                                     ..._loggerLimits,
                                     user
@@ -193,7 +200,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                     setloadingConfigChange(false)
                                     setLoggerDialogOpen(false)
                                 }, 500)
-                            } else if(Object.keys(_loggerConfig).length){
+                            } else if (Object.keys(_loggerConfig).length) {
                                 const changeConfigResponse = await axios.patch(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger_config/${loggerInfo.LoggerId}`, {
                                     ..._loggerConfig,
                                     user
