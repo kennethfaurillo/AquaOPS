@@ -3,6 +3,7 @@ import piliBoundary from '@/assets/geoBoundary.json'
 import hydrants from '@/assets/geoHdyrant.json'
 import pipelines from '@/assets/geoPipeline.json'
 import specific_capacity from '@/assets/geoSpecificCapacity.json'
+import proposed_wellsite from '@/assets/geoProposedWellSite.json'
 import { capitalize, isValueInRange, lerp } from '@/lib/utils'
 import ResetViewControl from '@20tab/react-leaflet-resetview'
 import axios from 'axios'
@@ -29,6 +30,7 @@ import icLogger from '../assets/meter.png'
 import icStation from '../assets/Station.svg'
 import icSpring from '../assets/Tank.svg'
 import icValve from '../assets/Tube.svg'
+import icProposedWellsite from '../assets/button.png'
 
 const loggerIcon = new Icon({
   iconUrl: icLogger,
@@ -58,6 +60,11 @@ const valveIcon = new Icon({
 const hydrantIcon = new Icon({
   iconUrl: icHydrant,
   iconSize: [10, 10],
+})
+
+const proposedWellsiteIcon = new Icon({
+  iconUrl: icProposedWellsite,
+  iconSize: [10, 10]
 })
 
 const colorMap = {
@@ -404,6 +411,11 @@ function LoggerMapCard() {
     layer.bindTooltip('Blow-off Valve: ' + feature.properties?.location.toUpperCase() + '\n' + feature.properties?.size, { direction: 'top' })
   }
 
+  const onEachProposedWellsite = (feature, layer) => {
+    layer.setIcon(proposedWellsiteIcon)
+    layer.bindTooltip('Proposed Well Site: ' + capitalize(feature.properties?.location.toUpperCase()) + '\n', { direction: 'top' })
+  }
+
   const onEachHydrant = (feature, layer) => {
     layer.setIcon(hydrantIcon)
     layer.bindTooltip('Hydrant: ' + capitalize(feature.properties?.location) + '\n', { direction: 'top' })
@@ -493,6 +505,9 @@ function LoggerMapCard() {
                   </div>
                 )) : null}
             </LayerGroup>
+          </Overlay>
+          <Overlay name='Proposed Well Sites' checked>
+            <GeoJSON data = {proposed_wellsite} onEachFeature={onEachProposedWellsite}/>
           </Overlay>
           <Overlay name='Data Loggers' checked>
             <LayerGroup>

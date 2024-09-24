@@ -2,10 +2,10 @@ import axios from 'axios'
 import { Loader2Icon } from 'lucide-react'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
-import { Bar, BarChart, CartesianGrid, Label, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Label, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { Separator } from './ui/separator'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { DataLog } from './Types'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
 const colorMap = {
     AverageVoltage: "text-red-500",
@@ -15,12 +15,6 @@ const colorMap = {
     TotalFlowNegative: "text-indigo-600",
     DailyFlowPositive: "text-green-500",
     DailyFlowNegative: "text-[#e70077]",
-}
-
-type MetricStatistics = {
-    average: number | null | string,
-    min: DataLog | null,
-    max: DataLog | null
 }
 
 const CustomCombinedLineTooltip = ({ active, payload, label }) => {
@@ -143,24 +137,30 @@ function LogLineChart(props) {
     const getStatistics = (datalogs, datakey) => {
         let stats = {
             avg: 0,
-            min: datalogs[0],
-            max: datalogs[0]
+            min: datalogs.at(-1),
+            max: datalogs.at(-1)
         }
+        let lengthCounter = 0
         if (datakey == 'pressure') {
             datakey = 'CurrentPressure'
         } else if (datakey == 'flow') {
             datakey = 'CurrentFlow'
         }
         for (const datalog of datalogs) {
-            if(datalog[datakey] > stats.max[datakey]){
+            if(!datalog[datakey]){
+                continue
+            }
+            if (datalog[datakey] > stats.max[datakey]) {
                 stats.max = datalog
             }
-            if(datalog[datakey] < stats.min[datakey]){
+            if (datalog[datakey] < stats.min[datakey]) {
                 stats.min = datalog
             }
             stats.avg += datalog[datakey]
+            lengthCounter++
+            !datalog[datakey] ? console.log(datalog) : null
         }
-        stats.avg = (stats.avg/datalogs.length).toFixed(2)
+        stats.avg = (stats.avg / lengthCounter).toFixed(2)
         console.log(stats)
         return stats
     }
@@ -185,15 +185,15 @@ function LogLineChart(props) {
                 {loggerType.includes('pressure') && pressureStatistics.avg ?
                     <>
                         <StatCard title='Avg Pressure' value={pressureStatistics.avg} unit='psi' />
-                        <StatCard title='Min Pressure' value={pressureStatistics.min['CurrentPressure']} unit='psi' timestamp={moment(pressureStatistics.min.LogTime.slice(0,-1)).format('YYYY-MM-DD H:mm A')}/>
-                        <StatCard title='Max Pressure' value={pressureStatistics.max['CurrentPressure']} unit='psi' timestamp={moment(pressureStatistics.max.LogTime.slice(0,-1)).format('YYYY-MM-DD H:mm A')}/>
+                        <StatCard title='Min Pressure' value={pressureStatistics.min['CurrentPressure']} unit='psi' timestamp={moment(pressureStatistics.min.LogTime.slice(0, -1)).format('YYYY-MM-DD H:mm A')} />
+                        <StatCard title='Max Pressure' value={pressureStatistics.max['CurrentPressure']} unit='psi' timestamp={moment(pressureStatistics.max.LogTime.slice(0, -1)).format('YYYY-MM-DD H:mm A')} />
                     </> : null
                 }
                 {loggerType.includes('flow') && flowStatistics.avg ?
                     <>
-                        <StatCard title='Avg Flow' value={flowStatistics.avg} unit='lps'/>
-                        <StatCard title='Min Flow' value={flowStatistics.min['CurrentFlow']} unit='lps' timestamp={moment(flowStatistics.min.LogTime.slice(0,-1)).format('YYYY-MM-DD H:mm A')}/>
-                        <StatCard title='Max Flow' value={flowStatistics.max['CurrentFlow']} unit='lps' timestamp={moment(flowStatistics.max.LogTime.slice(0,-1)).format('YYYY-MM-DD H:mm A')}/>
+                        <StatCard title='Avg Flow' value={flowStatistics.avg} unit='lps' />
+                        <StatCard title='Min Flow' value={flowStatistics.min['CurrentFlow']} unit='lps' timestamp={moment(flowStatistics.min.LogTime.slice(0, -1)).format('YYYY-MM-DD H:mm A')} />
+                        <StatCard title='Max Flow' value={flowStatistics.max['CurrentFlow']} unit='lps' timestamp={moment(flowStatistics.max.LogTime.slice(0, -1)).format('YYYY-MM-DD H:mm A')} />
                     </> : null
                 }
             </div>
@@ -204,7 +204,7 @@ function LogLineChart(props) {
                         <YAxis width={30} tick={{ fontSize: 10 }} domain={[-10, 'dataMax + 5']} allowDataOverflow />
                         <CartesianGrid strokeDasharray={"5 10"} />
                         <Legend />
-                        <Tooltip content={<CustomTotalizerBarTooltip />} />
+                        <ChartTooltip content={<CustomTotalizerBarTooltip />} />
                         <Bar dataKey={'DailyFlowPositive'}
                             name={"Totalizer Positive"}
                             fill='#22c55e'
@@ -232,11 +232,10 @@ function LogLineChart(props) {
                             [e.dataKey]: !hideLine[e.dataKey]
                         })
                     } />
-                    <Tooltip content={<CustomCombinedLineTooltip />} />
+                    <ChartTooltip content={<CustomCombinedLineTooltip />} />
                     <div className='text-blue-500' />
                     {props.logger.CurrentPressure != null ?
                         <>
-                            {pressureStatistics.average ? <ReferenceLine y={pressureStatistics.average} stroke='#73d25f' strokeOpacity={.3}><Label position={'insideBottomLeft'}>{`Average Pressure: ${pressureStatistics.average}`}</Label></ReferenceLine> : null}
                             <Line dataKey={'CurrentPressure'}
                                 name={"Pressure"}
                                 stroke='#73d25f'
@@ -248,7 +247,6 @@ function LogLineChart(props) {
                     }
                     {props.logger.CurrentFlow != null ?
                         <>
-                            {flowStatistics.average ? <ReferenceLine y={flowStatistics.average} stroke='#3B82F6' strokeOpacity={.3}> <Label position={'insideTopRight'} className='text-red-500'>{`Average Flow: ${flowStatistics.average}`}</Label></ReferenceLine> : null}
                             <Line dataKey={'CurrentFlow'}
                                 name={"Flow"}
                                 stroke='#3B82F6'
