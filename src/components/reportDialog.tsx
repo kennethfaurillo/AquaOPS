@@ -39,7 +39,8 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
     // xlsx Workbook to generate 
     const [workbook, setWorkbook] = useState(XLSX.utils.book_new())
     // Report file type to download
-    const [reportFileType, setReportFileType] = useState('xlsx')
+    type ReportFileType = 'csv' | 'xlsx' | 'json' | 'png'
+    const [reportFileType, setReportFileType] = useState<ReportFileType>('xlsx')
     const { user, token } = useAuth()
 
     useEffect(() => {
@@ -71,71 +72,74 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                         <div className="text-center">
                             <p className="text-lg text-left font-semibold">Report Type</p>
                             {/* Checkbox Group */}
-                                <div className="mt-1">
-                                    {loggerInfo.Type.includes("flow") ?
-                                        <span className="space-x-1 mx-4">
-                                            <Checkbox id="cbFlow" checked={reportChecked.flow} onCheckedChange={isChecked => {
-                                                setReportChecked({
-                                                    ...reportChecked,
-                                                    flow: isChecked
-                                                })
-                                                if (!reportChecked.flow) {
-                                                    setReportChecked({
-                                                        ...reportChecked,
-                                                        flow: isChecked,
-                                                        totalizerPositive: false,
-                                                        totalizerNegative: false,
-                                                    })
-                                                }
-                                            }} />
-                                            <Label htmlFor="cbFlow">Flow</Label>
-                                        </span> : null
-                                    }
-                                    {loggerInfo.Type.includes("pressure") ?
-                                        <span className="space-x-1 mx-4">
-                                            <Checkbox id="cbPressure" checked={reportChecked.pressure} onCheckedChange={isChecked => {
-                                                setReportChecked({
-                                                    ...reportChecked,
-                                                    pressure: isChecked
-                                                })
-                                            }} />
-                                            <Label htmlFor="cbPressure">Pressure</Label>
-                                        </span> : null
-                                    }
+                            <div className="mt-1">
+                                {loggerInfo.Type.includes("flow") ?
                                     <span className="space-x-1 mx-4">
-                                        <Checkbox id="cbVoltage" checked={reportChecked.voltage} onCheckedChange={isChecked => {
+                                        <Checkbox id="cbFlow" checked={reportChecked.flow} onCheckedChange={(isChecked) => {
+                                            setLink(null)
                                             setReportChecked({
                                                 ...reportChecked,
-                                                voltage: isChecked
+                                                flow: isChecked
+                                            })
+                                            if (!reportChecked.flow) {
+                                                setReportChecked({
+                                                    ...reportChecked,
+                                                    flow: isChecked,
+                                                    totalizerPositive: false,
+                                                    totalizerNegative: false,
+                                                })
+                                            }
+                                        }} />
+                                        <Label htmlFor="cbFlow">Flow</Label>
+                                    </span> : null
+                                }
+                                {loggerInfo.Type.includes("pressure") ?
+                                    <span className="space-x-1 mx-4">
+                                        <Checkbox id="cbPressure" checked={reportChecked.pressure} onCheckedChange={isChecked => {
+                                            setLink(null)
+                                            setReportChecked({
+                                                ...reportChecked,
+                                                pressure: isChecked
                                             })
                                         }} />
-                                        <Label htmlFor="cbVoltage">Voltage</Label>
-                                    </span>
-                                </div>
-                                {reportChecked.flow ?
-                                    <>
-                                        {/* TODO: Totalizer should be a separate report */}
-                                        <span className="space-x-1 mx-4">
-                                            <Checkbox id="cbTotalizerPositive" checked={reportChecked.totalizerPositive} onCheckedChange={isChecked => {
-                                                setReportChecked({
-                                                    ...reportChecked,
-                                                    totalizerPositive: isChecked
-                                                })
-                                            }} disabled />
-                                            <Label htmlFor="cbTotalizerPositive">Totalizer Positive</Label>
-                                        </span>
-                                        <span className="space-x-1 mx-4">
-                                            <Checkbox id="cbTotalizerNegative" checked={reportChecked.totalizerNegative} onCheckedChange={isChecked => {
-                                                setReportChecked({
-                                                    ...reportChecked,
-                                                    totalizerNegative: isChecked
-                                                })
-                                            }} disabled />
-                                            <Label htmlFor="cbTotalizerNegative">Totalizer Negative</Label>
-                                        </span>
-                                    </> : null
+                                        <Label htmlFor="cbPressure">Pressure</Label>
+                                    </span> : null
                                 }
-                                <div className="mt-1"></div>
+                                <span className="space-x-1 mx-4">
+                                    <Checkbox id="cbVoltage" checked={reportChecked.voltage} onCheckedChange={isChecked => {
+                                            setLink(null)
+                                            setReportChecked({
+                                            ...reportChecked,
+                                            voltage: isChecked
+                                        })
+                                    }} />
+                                    <Label htmlFor="cbVoltage">Voltage</Label>
+                                </span>
+                            </div>
+                            {reportChecked.flow ?
+                                <>
+                                    {/* TODO: Totalizer should be a separate report */}
+                                    <span className="space-x-1 mx-4">
+                                        <Checkbox id="cbTotalizerPositive" checked={reportChecked.totalizerPositive} onCheckedChange={isChecked => {
+                                            setReportChecked({
+                                                ...reportChecked,
+                                                totalizerPositive: isChecked
+                                            })
+                                        }} disabled />
+                                        <Label htmlFor="cbTotalizerPositive">Totalizer Positive</Label>
+                                    </span>
+                                    <span className="space-x-1 mx-4">
+                                        <Checkbox id="cbTotalizerNegative" checked={reportChecked.totalizerNegative} onCheckedChange={isChecked => {
+                                            setReportChecked({
+                                                ...reportChecked,
+                                                totalizerNegative: isChecked
+                                            })
+                                        }} disabled />
+                                        <Label htmlFor="cbTotalizerNegative">Totalizer Negative</Label>
+                                    </span>
+                                </> : null
+                            }
+                            <div className="mt-1"></div>
                             <p className="text-lg text-left font-semibold">Report Time Range</p>
                             {/* Time Range Group */}
                             <div className="flex gap-x-2 mt-1">
@@ -181,7 +185,12 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                 </Popover>
                             </div>
                             <p className="text-lg text-left font-semibold">Report File Format</p>
-                            <ToggleGroup type="single" value={reportFileType} onValueChange={setReportFileType}>
+                            <ToggleGroup type="single" value={reportFileType} onValueChange={(value) => {
+                                if (value) {
+                                    setReportFileType(value)
+                                }
+                                setLink(null)
+                            }}>
                                 <Tooltip delayDuration={75}>
                                     <ToggleGroupItem value="xlsx">
                                         <TooltipTrigger asChild>
@@ -239,25 +248,31 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                     const reportJson = await generateReport(loggerInfo, reportChecked, date, user)
                                     // Header containing logger info, no need to send column headers
                                     const header = `${loggerInfo.Name} ${loggerInfo.LoggerId} ${loggerInfo.Model} ${loggerInfo.Latitude},${loggerInfo.Longitude}`
+                                    let tempLink = { ...link }
                                     // Create JSON File
-                                    const filename = `${loggerInfo.Name + '_' + loggerInfo.LoggerId + '_' + moment(date?.from).format('YYYY-MM-DD')}`
-                                    const extension = 'json'
-                                    const _blob = new Blob([JSON.stringify(reportJson)], { type: 'application/json' })
-                                    const url = URL.createObjectURL(_blob)
-                                    const jsonLink = document.createElement('a');
-                                    jsonLink.download = `${filename}.${extension}`
-                                    jsonLink.href = url;
+                                    if (reportFileType == 'json') {
+                                        const filename = `${loggerInfo.Name + '_' + loggerInfo.LoggerId + '_' + moment(date?.from).format('YYYY-MM-DD')}`
+                                        const extension = 'json'
+                                        const _blob = new Blob([JSON.stringify(reportJson)], { type: 'application/json' })
+                                        const url = URL.createObjectURL(_blob)
+                                        const jsonLink = document.createElement('a');
+                                        jsonLink.download = `${filename}.${extension}`
+                                        jsonLink.href = url;
+                                        tempLink.json = jsonLink
+                                    }
                                     // Create CSV File
-                                    const csvLink = jsonToCSV(reportJson, header)
+                                    if (reportFileType == 'csv') {
+                                        const csvLink = jsonToCSV(reportJson, header)
+                                        tempLink.csv = csvLink
+                                    }
                                     // Create XLSX File
-                                    const worksheet = XLSX.utils.json_to_sheet(reportJson)
-                                    XLSX.utils.book_append_sheet(workbook, worksheet, 'LogSheet1', true)
+                                    if (reportFileType == 'xlsx') {
+                                        const worksheet = XLSX.utils.json_to_sheet(reportJson)
+                                        XLSX.utils.book_append_sheet(workbook, worksheet, 'LogSheet1', true)
+                                    }
                                     setTimeout(() => {
                                         toast.dismiss()
-                                        toast.success("Report Generated!")
-                                        let tempLink = {...link}
-                                        tempLink.json = jsonLink
-                                        tempLink.csv = csvLink
+                                        toast.success("Report Generated!", {description: "Report ready to download"})
                                         setLink(tempLink)
                                         setLoadingReport(false)
                                     }, 750)
@@ -274,7 +289,6 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                         }
                         {link && !loadingReport ? <Button className="bg-green-500" onClick={() => {
                             if (reportFileType == 'csv') {
-                                // console.log(JSON.stringify(link))
                                 link.csv.click()
                             }
                             else if (reportFileType == 'xlsx') {
@@ -283,10 +297,12 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                             else if (reportFileType == 'png') {
                             }
                             else if (reportFileType == 'json') {
-                                // console.log(link)
                                 link.json.click()
                             }
-                            setTimeout(() => setLink(null), 500)
+                            setTimeout(() => {
+                                setLink(null)
+                                setWorkbook(XLSX.utils.book_new())
+                            }, 500)
                         }}>Download Report</Button> : <Button className="bg-green-500" disabled>Download Report</Button>}
                     </div>
                     <DialogClose asChild><Button>Close</Button></DialogClose>

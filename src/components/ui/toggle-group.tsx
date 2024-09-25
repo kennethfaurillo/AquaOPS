@@ -45,7 +45,8 @@ const ToggleGroupItem = React.forwardRef<
           variant: context.variant || variant,
           size: context.size || size,
         }),
-        className
+        className,
+        "data-[state=on]:bg-piwad-blue-400/30"
       )}
       {...props}
     >

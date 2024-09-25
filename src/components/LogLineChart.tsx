@@ -161,7 +161,6 @@ function LogLineChart(props) {
             !datalog[datakey] ? console.log(datalog) : null
         }
         stats.avg = (stats.avg / lengthCounter).toFixed(2)
-        console.log(stats)
         return stats
     }
 
@@ -234,7 +233,7 @@ function LogLineChart(props) {
                     } />
                     <ChartTooltip content={<CustomCombinedLineTooltip />} />
                     <div className='text-blue-500' />
-                    {props.logger.CurrentPressure != null ?
+                    {'CurrentPressure' in props.logger ?
                         <>
                             <Line dataKey={'CurrentPressure'}
                                 name={"Pressure"}
@@ -245,7 +244,7 @@ function LogLineChart(props) {
                                 hide={hideLine['CurrentPressure']} />
                         </> : null
                     }
-                    {props.logger.CurrentFlow != null ?
+                    {'CurrentFlow' in props.logger ?
                         <>
                             <Line dataKey={'CurrentFlow'}
                                 name={"Flow"}
