@@ -55,6 +55,10 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                 totalizerNegative: false
             })
             setLink(null)
+            setDate({
+                from: addDays(today, -2),
+                to: today,
+            })
             setWorkbook(XLSX.utils.book_new())
             setReportFileType('xlsx')
         }
@@ -107,8 +111,8 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                 }
                                 <span className="space-x-1 mx-4">
                                     <Checkbox id="cbVoltage" checked={reportChecked.voltage} onCheckedChange={isChecked => {
-                                            setLink(null)
-                                            setReportChecked({
+                                        setLink(null)
+                                        setReportChecked({
                                             ...reportChecked,
                                             voltage: isChecked
                                         })
@@ -174,7 +178,12 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                                 mode="range"
                                                 defaultMonth={date?.from}
                                                 selected={date}
-                                                onSelect={setDate}
+                                                onSelect={(range) => {
+                                                    console.log("select")
+                                                    setLink(null)
+                                                    setWorkbook(XLSX.utils.book_new())
+                                                    setDate(range)
+                                                }}
                                                 numberOfMonths={1}
                                                 disabled={(calDate) => {
                                                     return !allowedDates.includes(calDate.toDateString())
@@ -272,7 +281,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                     }
                                     setTimeout(() => {
                                         toast.dismiss()
-                                        toast.success("Report Generated!", {description: "Report ready to download"})
+                                        toast.success("Report Generated!", { description: "Report ready to download" })
                                         setLink(tempLink)
                                         setLoadingReport(false)
                                     }, 750)
