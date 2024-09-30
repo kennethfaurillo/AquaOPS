@@ -251,13 +251,13 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                 console.log(reportChecked)
                                 console.log(loggerInfo && (date?.from || date?.to))
                                 setLoadingReport(true)
-                                setLink({ csv: null, json: null })
                                 toast.loading("Generating Report")
                                 try {
                                     const reportJson = await generateReport(loggerInfo, reportChecked, date, user)
+                                    console.log(reportJson)
                                     // Header containing logger info, no need to send column headers
                                     const header = `${loggerInfo.Name} ${loggerInfo.LoggerId} ${loggerInfo.Model} ${loggerInfo.Latitude},${loggerInfo.Longitude}`
-                                    let tempLink = { ...link }
+                                    let tempLink = { csv: null, json: null }
                                     // Create JSON File
                                     if (reportFileType == 'json') {
                                         const filename = `${loggerInfo.Name + '_' + loggerInfo.LoggerId + '_' + moment(date?.from).format('YYYY-MM-DD')}`
