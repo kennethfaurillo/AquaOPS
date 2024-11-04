@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Label, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 import { Separator } from './ui/separator'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
 const colorMap = {
     AverageVoltage: "text-red-500",
@@ -29,6 +28,8 @@ const CustomCombinedLineTooltip = ({ active, payload, label }) => {
                             {val.dataKey == 'CurrentPressure' ? 'Pressure:' : null}
                             {val.dataKey == 'CurrentFlow' ? 'Flow:' : null}
                             {val.dataKey == 'AverageVoltage' ? 'Voltage:' : null}
+                            {val.dataKey == 'TotalFlowPositive' ? 'Totalizer Forward:' : null}
+                            {val.dataKey == 'TotalFlowNegative' ? 'Totalizer Reverse:' : null}
                             <span className="ml-2">{val.value} <em>{val.unit}</em></span>
                         </p>
                     </div>
@@ -47,7 +48,7 @@ const CustomTotalizerBarTooltip = ({ active, payload, label }) => {
                 {payload.map((val, index) => (
                     <div key={index}>
                         <p className={`${colorMap[val.dataKey]} font-semibold`}>
-                            {val.dataKey == 'DailyFlowPositive' ? "Total Forward Flow" : "Total Reverse Flow"}:
+                            {val.dataKey == 'DailyFlowPositive' ? "Daily Forward Flow" : "Daily Reverse Flow"}:
                             <span className="ml-2">{val.value} <em>{val.unit}</em></span>
                         </p>
                     </div>
@@ -68,8 +69,9 @@ function LogLineChart(props) {
         CurrentPressure: false,
         CurrentFlow: false,
         AverageVoltage: true,
-        totalizerPositive: false,
-        totalizerNegative: false,
+        Totalizer: true,
+        TotalFlowPositive: true,
+        TotalFlowNegative: true,
     })
     const timeRange = props.timeRange
     const loggerType = props.logger.Type ? props.logger.Type.split(',') : props.logger.Name.toLowerCase().includes("pressure") ? "pressure" : "flow"
@@ -147,7 +149,7 @@ function LogLineChart(props) {
             datakey = 'CurrentFlow'
         }
         for (const datalog of datalogs) {
-            if(!datalog[datakey]){
+            if (!datalog[datakey]) {
                 continue
             }
             if (datalog[datakey] > stats.max[datakey]) {
@@ -205,13 +207,13 @@ function LogLineChart(props) {
                         <Legend />
                         <ChartTooltip content={<CustomTotalizerBarTooltip />} />
                         <Bar dataKey={'DailyFlowPositive'}
-                            name={"Totalizer Positive"}
+                            name={"Daily Forward Flow"}
                             fill='#22c55e'
                             unit={'m³'}
                             type={'monotone'}
                             stackId={1} />
                         <Bar dataKey={'DailyFlowNegative'}
-                            name={"Totalizer Negative"}
+                            name={"Daily Reverse Flow"}
                             fill='#e70077'
                             unit={'m³'}
                             type={'monotone'}
@@ -225,15 +227,18 @@ function LogLineChart(props) {
                     <XAxis dataKey={'LogTime'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).utcOffset('+0000').format('h:mm a')} />
                     <YAxis width={30} tick={{ fontSize: 10 }} domain={["dataMin-5", "auto"]} allowDecimals={false} allowDataOverflow={true} />
                     <CartesianGrid strokeDasharray={"5 10"} />
-                    <Legend onClick={(e) =>
+                    <Legend onClick={(e) =>{
+                        if(['TotalFlowPositive', 'TotalFlowNegative'].includes(e.dataKey)){
+                            setHideLine({})
+                        }
                         setHideLine({
                             ...hideLine,
                             [e.dataKey]: !hideLine[e.dataKey]
-                        })
+                        })}
                     } />
                     <ChartTooltip content={<CustomCombinedLineTooltip />} />
                     <div className='text-blue-500' />
-                    {'CurrentPressure' in props.logger ?
+                    {props.logger.Type.includes('pressure') ?
                         <>
                             <Line dataKey={'CurrentPressure'}
                                 name={"Pressure"}
@@ -244,7 +249,7 @@ function LogLineChart(props) {
                                 hide={hideLine['CurrentPressure']} />
                         </> : null
                     }
-                    {'CurrentFlow' in props.logger ?
+                    {props.logger.Type.includes('flow') ?
                         <>
                             <Line dataKey={'CurrentFlow'}
                                 name={"Flow"}
@@ -253,6 +258,20 @@ function LogLineChart(props) {
                                 unit={'lps'}
                                 dot={false}
                                 hide={hideLine['CurrentFlow']} />
+                            <Line dataKey={'TotalFlowPositive'}
+                                name={"Totalizer Forward"}
+                                stroke='#22c55e'
+                                type={'monotone'}
+                                unit={'m³'}
+                                dot={false}
+                                hide={hideLine['TotalFlowPositive']} />
+                            <Line dataKey={'TotalFlowNegative'}
+                                name={"Totalizer Reverse"}
+                                stroke='#4f46e5'
+                                type={'monotone'}
+                                unit={'m³'}
+                                dot={false}
+                                hide={hideLine['TotalFlowNegative']} /> 
                         </> : null
                     }
                     <Line dataKey={'AverageVoltage'}
