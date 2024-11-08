@@ -1,4 +1,4 @@
-import { PlusCircleIcon } from "lucide-react";
+import { DropletsIcon, PlusCircleIcon, RouterIcon } from "lucide-react";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Separator } from "./ui/separator";
@@ -22,12 +22,13 @@ function TableCard() {
                     </TabsList>
                     <TabsContent value="loggers" forceMount hidden={activeTab != "loggers"}>
                         <Card>
-                            <CardHeader className="py-4 rounded-t-lg bg-piwad-lightblue-600">
-                                <div className="relative flex-row">
-                                    <CardTitle className="text-piwad-lightyellow-400 ">Data Loggers</CardTitle>
-                                    <CardDescription className="text-white/80">View and manage data loggers</CardDescription>
-                                    <Separator />
-                                </div>
+                            <CardHeader className="py-4 rounded-t-lg bg-piwad-lightblue-600 space-y-1">
+                                <CardTitle className="text-piwad-lightyellow-400 flex gap-x-1">
+                                    <RouterIcon />
+                                    Data Logger
+                                </CardTitle>
+                                <CardDescription className="text-white/80">View and manage data loggers</CardDescription>
+                                <Separator />
                             </CardHeader>
                             <CardContent>
                                 <LatestLogTable setLatestLog={setLatestLog} />
@@ -38,7 +39,10 @@ function TableCard() {
                         <Card>
                             <CardHeader className="py-4 rounded-t-lg bg-piwad-lightblue-600">
                                 <div className="relative flex-row">
-                                    <CardTitle className="text-piwad-lightyellow-400">Water Sources</CardTitle>
+                                    <CardTitle className="text-piwad-lightyellow-400 flex gap-x-1">
+                                        <DropletsIcon/>
+                                        Water Sources
+                                        </CardTitle>
                                     <Tooltip>
                                         <TooltipTrigger asChild><PlusCircleIcon color="white" className="absolute right-1 top-1 text-slate-900 cursor-pointer" onClick={() => {
                                             setAddSourceDialogOpen(!addSourceDialogOpen)

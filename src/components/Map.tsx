@@ -11,7 +11,7 @@ import { addHours } from 'date-fns'
 import { DivIcon, Icon } from 'leaflet'
 import 'leaflet.fullscreen/Control.FullScreen.css'
 import 'leaflet.fullscreen/Control.FullScreen.js'
-import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, BellOffIcon, BellRingIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react'
+import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, BellOffIcon, BellRingIcon, EarthIcon, LucideIcon, MapPinIcon, MoonIcon, SunIcon } from 'lucide-react'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
 import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMapEvents } from 'react-leaflet'
@@ -31,6 +31,7 @@ import icStation from '../assets/Station.svg'
 import icSpring from '../assets/Tank.svg'
 import icValve from '../assets/Tube.svg'
 import icProposedWellsite from '../assets/button.png'
+import { Separator } from './ui/separator'
 
 const loggerIcon = new Icon({
   iconUrl: icLogger,
@@ -235,7 +236,7 @@ function LoggerMapCard() {
   const [fullscreenMap, setFullscreenMap] = useState(false)
   const [alarm, setAlarm] = useState({})
   const [showAlarm, setShowAlarm] = useState(true)
-  const [showVoltage, setShowVoltage] = useState(true)
+  const [expandLoggerStatus, setExpandLoggerStatus] = useState(false)
 
   const { setChartDrawerOpen, setLogger } = useSharedStateContext()
   const { BaseLayer, Overlay } = LayersControl
@@ -327,8 +328,8 @@ function LoggerMapCard() {
               tempLoggersStatus.Disabled++
               return
             }
-            // Count as Active if last log within 24 hours
-            else if (new Date(log.LogTime) > addHours(new Date(), -24)) {
+            // Count as Active if last log within 6 hours
+            else if (new Date(log.LogTime) > addHours(new Date(), -6)) {
               tempLoggersStatus.Active++
             } else {
               tempLoggersStatus.Inactive++
@@ -363,14 +364,7 @@ function LoggerMapCard() {
     const onClick = useCallback(() => {
       map.setView(center, zoom)
     }, [map])
-    return (
-      <>
-        <div onClick={onClick} className='cursor-pointer'>
-          Coordinates: {position.lat.toFixed('6')}°, {position.lng.toFixed('6')}°
-        </div>
-        <div className='mb-3 sm:-mb-6 sm:mt-2 sm:space-x-4' />
-      </>
-    )
+    return `${position.lat.toFixed(6)}°, ${position.lng.toFixed(6)}°`
   }
 
   const onEachPipeline = (feature, layer) => {
@@ -507,7 +501,7 @@ function LoggerMapCard() {
             </LayerGroup>
           </Overlay>
           <Overlay name='Proposed Well Sites' checked>
-            <GeoJSON data = {proposed_wellsite} onEachFeature={onEachProposedWellsite}/>
+            <GeoJSON data={proposed_wellsite} onEachFeature={onEachProposedWellsite} />
           </Overlay>
           <Overlay name='Data Loggers' checked>
             <LayerGroup>
@@ -573,6 +567,54 @@ function LoggerMapCard() {
           </Overlay>
         </LayersControl>
         <MapEvents />
+        <div className='absolute top-16 right-3 rounded-lg bg-slate-50 font-semibold text-sm cursor-default p-2 z-[400] flex items-center gap-x-1 outline outline-2 outline-black/20'
+          onMouseOver={() => setExpandLoggerStatus(true)}
+          onMouseOut={() => setExpandLoggerStatus(false)}>
+          <HoverTooltip delayDuration={25}>
+            <TooltipTrigger asChild className='cursor-pointer'>
+              <div className='flex gap-x-1 items-center'>
+                <div className='size-2 bg-green-500 rounded-full' />
+                {loggersStatus.Active}
+                <div className={`font-sans overflow-hidden transition-opacity ease-in-out duration-200 ${expandLoggerStatus ? `` : `w-0 opacity-0`}`}>
+                  Active
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side='bottom' className='text-xs font-extralight' sideOffset={16}>
+              {loggersStatus.Active} data loggers are active and have sent data recently
+            </TooltipContent>
+          </HoverTooltip>
+          <Separator orientation='vertical' className='h-4' />
+          <HoverTooltip delayDuration={25}>
+            <TooltipTrigger asChild className='cursor-pointer'>
+              <div className='flex gap-x-1 items-center'>
+                <div className='size-2 bg-orange-500 rounded-full' />
+                {loggersStatus.Inactive}
+                <div className={`font-sans overflow-hidden transition-opacity ease-in-out duration-200 ${expandLoggerStatus ? `` : `w-0 opacity-0`}`}>
+                  Inactive
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side='bottom' className='text-xs font-extralight mr-3' sideOffset={16}>
+              {loggersStatus.Inactive} data loggers are enabled but have not sent data in the last 6 hours.
+            </TooltipContent>
+          </HoverTooltip>
+          <Separator orientation='vertical' className='h-4' />
+          <HoverTooltip delayDuration={25}>
+            <TooltipTrigger asChild className='cursor-pointer'>
+              <div className='flex gap-x-1 items-center'>
+                <div className='size-2 bg-zinc-500 rounded-full' />
+                {loggersStatus.Disabled}
+                <div className={`font-sans overflow-hidden transition-opacity ease-in-out duration-200 ${expandLoggerStatus ? `` : `w-0 opacity-0`}`}>
+                  Disabled
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side='bottom' className='text-xs font-extralight mr-3' sideOffset={16}>
+              {loggersStatus.Disabled} data loggers are disabled and not in operation
+            </TooltipContent>
+          </HoverTooltip>
+        </div>
         {showAlarm ? <Button className='absolute bottom-24 right-4 z-[401] size-12 p-0 rounded-full opacity-80' onClick={() => setShowAlarm(!showAlarm)}><BellRingIcon /></Button>
           : <Button className='absolute bottom-24 right-4 z-[401] size-12 p-0 rounded-full opacity-100' onClick={() => setShowAlarm(!showAlarm)}><BellOffIcon /></Button>}
         {basemap ?
@@ -585,14 +627,6 @@ function LoggerMapCard() {
             <div className='absolute bottom-4 left-4 p-2 rounded-full z-[400]'>
               <img src={logoMain} className='h-12 sm:h-16 md:h-20' />
             </div>
-            <div className='flex justify-around space-y-2 w-full px-0 md:px-72'>
-              <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-start-1 col-span-3 justify-center flex items-center backdrop-blur-[1px] z-[400]">
-                {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
-              <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-3 justify-center flex items-center backdrop-blur-[1px] z-[400]">
-                {loggersStatus.Inactive}&nbsp;<BadgeAlertIcon className='sm:mx-1' color='yellow' />&nbsp;Inactive</div>
-              <div className="text-piwad-blue-600 text-xs lg:text-xl py-1 font-semibold font-sans leading-none col-span-2 justify-center flex items-center backdrop-blur-[1px] z-[400]">
-                {loggersStatus.Disabled}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Disabled</div>
-            </div>
           </>
           : null}
       </MapContainer>
@@ -602,27 +636,14 @@ function LoggerMapCard() {
   return (
     <>
       <Card className='col-span-full xl:col-span-9 z-0 drop-shadow-xl rounded-b-lg overflow-hidden'>
-        <CardHeader className='rounded-t-lg bg-piwad-lightblue-600'>
-          <CardTitle className='text-slate-950'>
-            <div className="grid grid-cols-6">
-              <div className="col-span-6 sm:col-span-2">
-                <p className="mb-1 text-piwad-lightyellow-300">Utility Map</p>
-                <div className="text-base text-slate-200 mb-2 ">{map ? <DisplayPosition map={map} /> : null}</div>
-              </div>
-              <div className="col-span-6 sm:col-span-4 flex items-center space-x-4 rounded-md border-2 border-piwad-yellow-0 -my-2 py-2">
-                <div className="grid grid-cols-9 flex-1 space-y-1 mx-4">
-                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center  flex items-center">
-                    {loggersStatus.Active}&nbsp;<BadgeCheckIcon className='sm:mx-1' color='lightgreen' />&nbsp;Active</div>
-                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center  flex items-center">
-                    {loggersStatus.Inactive}&nbsp;<BadgeAlertIcon className='sm:mx-1' color='yellow' />&nbsp;Inactive</div>
-                  <div className="text-white text-xs lg:text-xl font-medium leading-none col-span-3 justify-center  flex items-center">
-                    {loggersStatus.Disabled}&nbsp;<BadgeMinusIcon className='sm:mx-1' color='red' />&nbsp;Disabled</div>
-                </div>
-              </div>
-            </div>
+        <CardHeader className='rounded-t-lg bg-piwad-lightblue-600 py-4 space-y-1'>
+          <CardTitle className='text-piwad-lightyellow-400 flex gap-x-1'>
+            <MapPinIcon />Utility Map
           </CardTitle>
-          <CardDescription>
+          <CardDescription className='text-white/80'>
+            {map ? <>Coordinates: <DisplayPosition map={map} /> </> : null}
           </CardDescription>
+          <Separator />
         </CardHeader>
         <CardContent className='p-0'>
           {displayMap()}
