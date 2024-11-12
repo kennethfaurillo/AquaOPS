@@ -11,6 +11,8 @@ import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, Dr
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { useAuth } from "./useAuth"
 import { useSharedStateContext } from "./useSharedStateContext"
+import { dateDiff } from "@/lib/utils"
+import { Separator } from "@/components/ui/separator"
 
 const DrawerContext = createContext()
 
@@ -21,7 +23,7 @@ export function DrawerProvider({ children }) {
     const [allowedDates, setAllowedDates] = useState([])
     const { user, token } = useAuth()
     const { chartDrawerOpen, setChartDrawerOpen, loggerDialogOpen, setLoggerDialogOpen, reportDialogOpen, setReportDialogOpen,
-        logger, setLogger, loggerInfo, setLoggerInfo} = useSharedStateContext()
+        logger, setLogger, loggerInfo, setLoggerInfo } = useSharedStateContext()
 
     const fetchLoggerInfo = async (loggerId) => {
         const loggerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/${loggerId}`)
@@ -40,6 +42,34 @@ export function DrawerProvider({ children }) {
     const value = useMemo(() => ({
     }), [])
 
+    const LoggerStatus = (props) => {
+        const _logger = props.logger
+        let timeUnit = 's'
+        let lastUpdated = dateDiff(new Date(_logger?.LogTime.replace('Z', '')), 's')
+        const loggerStatus = _logger.Disabled ? 'Disabled' : lastUpdated <= 21600 ? 'Active' : 'Inactive'
+        const statusColor = {
+            'Active': 'text-green-500',
+            'Inactive': 'text-orange-500',
+            'Disabled': 'text-slate-600',
+        }
+        if (lastUpdated > 86400) {
+            timeUnit = 'd'
+            lastUpdated /= 86400
+        } else if (lastUpdated > 3600) {
+            timeUnit = 'hr'
+            lastUpdated /= 3600
+        } else if (lastUpdated > 60) {
+            timeUnit = 'min'
+            lastUpdated /= 60
+        }
+        return (
+            <div className="flex gap-x-1">
+                Logger ID: {_logger?.LoggerId ?? "#########"} <Separator orientation="vertical" className="h-5" /> Last Updated: {Math.round(lastUpdated)} <em>{timeUnit}</em> ago
+                <Separator orientation="vertical" className="h-5" /> <div className="flex gap-x-1"> Status: <div className={'font-semibold ' + statusColor[loggerStatus]}> {loggerStatus} </div> </div>
+            </div>
+        )
+    }
+
     return (
         // Logger Chart Drawer
         <DrawerContext.Provider value={value}>
@@ -47,7 +77,7 @@ export function DrawerProvider({ children }) {
                 <DrawerContent className="w-full lg:w-[1024px] mx-auto">
                     <DrawerHeader className="relative">
                         <DrawerTitle className="text-piwad-lightblue-500 text-3xl inline-flex">
-                            {logger?.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2) ?? "Unnamed"} LOGGER
+                            {logger?.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2) ?? "Unnamed"}
                             <Button variant="ghost" className="mx-1 px-1" onClick={async () => {
                                 if (logger) {
                                     await fetchLoggerInfo(logger.LoggerId).then((response) => {
@@ -58,7 +88,7 @@ export function DrawerProvider({ children }) {
                             }}><SettingsIcon /></Button>
                         </DrawerTitle>
                         <DrawerDescription >
-                            Logger ID: {logger?.LoggerId ?? "#########"} | Latest Log: {`${new Date(logger?.LogTime.replace('Z', ''))}`}
+                            <LoggerStatus logger={logger} />
                         </DrawerDescription>
                     </DrawerHeader>
                     {logger ? <LogLineChart logger={logger} timeRange={chartTimeRange} /> : <Loader2Icon className="animate-spin self-center size-12 my-5" />}

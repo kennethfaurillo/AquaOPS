@@ -87,3 +87,20 @@ export function isValueInRange (limits, value){
 export function lerp(min, max, val){
   return (val-min)/(max-min)*100
 }
+
+// Compute the time difference between a given date and now
+// in the specified units (default is milliseconds)
+export function dateDiff(date: Date, unit: 'ms' | 's' | 'm' | 'h' | 'd' ) {
+  const unitDividers = {
+    ms: 1,
+    s: 1000,
+    m: 1000 * 60,
+    h: 1000 * 60 * 60,
+    d: 1000 * 60 * 60 * 24
+  }
+
+  const now = new Date()
+  const diffInMs = now - new Date(date)
+  
+  return diffInMs / (unitDividers[unit] || 1)
+}
