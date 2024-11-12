@@ -2,16 +2,16 @@ import valve_blowOff from '@/assets/geoBlowOff.json'
 import piliBoundary from '@/assets/geoBoundary.json'
 import hydrants from '@/assets/geoHdyrant.json'
 import pipelines from '@/assets/geoPipeline.json'
-import specific_capacity from '@/assets/geoSpecificCapacity.json'
 import proposed_wellsite from '@/assets/geoProposedWellSite.json'
+import specific_capacity from '@/assets/geoSpecificCapacity.json'
 import { capitalize, isValueInRange, lerp } from '@/lib/utils'
 import ResetViewControl from '@20tab/react-leaflet-resetview'
 import axios from 'axios'
 import { addHours } from 'date-fns'
-import { DivIcon, Icon } from 'leaflet'
+import { DivIcon, Icon, LatLng } from 'leaflet'
 import 'leaflet.fullscreen/Control.FullScreen.css'
 import 'leaflet.fullscreen/Control.FullScreen.js'
-import { BadgeAlertIcon, BadgeCheckIcon, BadgeMinusIcon, BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, BellOffIcon, BellRingIcon, EarthIcon, LucideIcon, MapPinIcon, MoonIcon, SunIcon } from 'lucide-react'
+import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, BellOffIcon, BellRingIcon, EarthIcon, FoldVerticalIcon, LucideIcon, MapPinIcon, MoonIcon, SunIcon, UnfoldVerticalIcon } from 'lucide-react'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
 import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMapEvents } from 'react-leaflet'
@@ -23,6 +23,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Tooltip as HoverTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
 import { useSharedStateContext } from '@/hooks/useSharedStateContext'
+import icProposedWellsite from '../assets/button.png'
 import icSurface from '../assets/Filter.svg'
 import icHydrant from '../assets/Hydrant.svg'
 import logoMain from '../assets/logo-main.png'
@@ -30,7 +31,6 @@ import icLogger from '../assets/meter.png'
 import icStation from '../assets/Station.svg'
 import icSpring from '../assets/Tank.svg'
 import icValve from '../assets/Tube.svg'
-import icProposedWellsite from '../assets/button.png'
 import { Separator } from './ui/separator'
 
 const loggerIcon = new Icon({
@@ -237,6 +237,7 @@ function LoggerMapCard() {
   const [alarm, setAlarm] = useState({})
   const [showAlarm, setShowAlarm] = useState(true)
   const [expandLoggerStatus, setExpandLoggerStatus] = useState(false)
+  const [expandMapTable, setExpandMapTable] = useState(false)
 
   const { setChartDrawerOpen, setLogger } = useSharedStateContext()
   const { BaseLayer, Overlay } = LayersControl
@@ -441,6 +442,9 @@ function LoggerMapCard() {
       mousemove(e) {
         setPosition({ lat: e.latlng.lat, lng: e.latlng.lng })
       },
+      moveend(e){
+        setPosition(map.getCenter())
+      },
       keypress(e) {
         if (!(e.originalEvent.key == 'f' || e.originalEvent.key == 'F')) return
         map.toggleFullscreen()
@@ -454,8 +458,8 @@ function LoggerMapCard() {
       <MapContainer
         className='cursor-crosshair'
         center={[13.589451, 123.2871642]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
-        scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
-        maxBounds={[[13.676173, 123.111745], [13.516072, 123.456730]]}>
+        scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false} zoomSnap={.2}
+        maxBounds={[[13.696173, 123.111745], [13.456072, 123.456730]]}>
         <ResetViewControl title="Reset View" icon={"🔍"} />
         <LayersControl position='topright'>
           <BaseLayer name='Street Map' checked>
@@ -629,6 +633,44 @@ function LoggerMapCard() {
             </div>
           </>
           : null}
+        {fullscreenMap ?
+          <>
+            <Card className='absolute bottom-6 translate-x-[60%] sm:top-28 sm:bottom-auto sm:right-3 sm:translate-x-0 z-[401] bg-white/70 backdrop-blur-[2px] outline outline-2 outline-black/20'>
+              <CardHeader className="px-2 py-1 rounded-t-lg space-y-1 w-48">
+                <CardTitle className="text-base text-piwad-lightblue-500 flex gap-x-1 justify-between items-center">
+                  Data Loggers
+                  {expandMapTable ?
+                    <FoldVerticalIcon cursor={'pointer'} size={16} onClick={() => setExpandMapTable(false)} />
+                    : <UnfoldVerticalIcon cursor={'pointer'} size={16} onClick={() => setExpandMapTable(true)} />
+                  }
+                </CardTitle>
+              </CardHeader>
+              {/* Logger Table Map Overlay */}
+              <CardContent className='px-2 pb-0'>
+                {loggersLatest.size && expandMapTable ?
+                  <>
+                    {Array.from(loggersLatest, ([loggerId, loggerData]) => (
+                      map.getBounds().contains(new LatLng(loggerData.Latitude, loggerData.Longitude))) ?
+                      <div key={loggerId}>
+                        <div className='flex items-center gap-x-2'>
+                          <div className='w-[14ch] font-semibold cursor-pointer text-xs sm:text-sm text-slate-800 font-sans'
+                            onClick={() => map.setView([loggerData.Latitude, loggerData.Longitude])}
+                            onDoubleClick={() => map.setView([loggerData.Latitude, loggerData.Longitude], 20)}>
+                            {loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').at(-1)}
+                          </div>
+                          <div className='text-right w-[10ch] font-sans text-slate-800'>
+                            {loggerData.CurrentPressure ? <div>{loggerData.CurrentPressure} <em>psi</em></div> : null}
+                            {loggerData.CurrentFlow ? <div>{loggerData.CurrentFlow} <em>lps</em></div> : null}
+                          </div>
+                        </div>
+                        <Separator />
+                      </div> :
+                      null
+                    )}
+                  </> : null}
+              </CardContent>
+            </Card>
+          </> : null}
       </MapContainer>
     </TooltipProvider>
   ))
