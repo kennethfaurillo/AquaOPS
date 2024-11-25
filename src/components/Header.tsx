@@ -1,35 +1,34 @@
 import { useAuth } from "@/hooks/useAuth";
 import { capitalize } from "@/lib/utils";
 import axios from "axios";
-import { BarChartHorizontal, CloudIcon, FileClockIcon, GithubIcon, LifeBuoyIcon, Loader2Icon, LogOutIcon, Settings, User } from "lucide-react";
+import { BarChartHorizontal, CloudIcon, FileClockIcon, GithubIcon, LifeBuoyIcon, LogInIcon, LogOutIcon, Settings, User, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "./ui/sheet";
 import { Switch } from "./ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
-import logoHorizontal from '../assets/logo-horizontal.png'
-import piwadLogo from '../assets/piwad-logo.png'
-import avatarSoftwareEng from '../assets/software-engineer.png'
-import avatarEng from '../assets/engineer.png'
+import avatarEng from '../assets/engineer.png';
+import logoHorizontal from '../assets/logo-horizontal.png';
+import piwadLogo from '../assets/piwad-logo.png';
+import avatarSoftwareEng from '../assets/software-engineer.png';
 import EventLogsDialog from "./eventLogsDialog";
-
+import NewUserDialog from "./NewUserDialog";
 
 function Header(props) {
     const { user, token, logout } = useAuth()
     const [logoutAlertOpen, setLogoutAlertOpen] = useState(false)
     const [eventlogsDialogOpen, setEventlogsDialogOpen] = useState(false)
+    const [newUserDialogOpen, setNewUserDialogOpen] = useState(false)
     const [sheetOpen, setSheetOpen] = useState(false)
     const [eventLogs, setEventLogs] = useState([])
 
@@ -65,7 +64,8 @@ function Header(props) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            <EventLogsDialog eventlogsDialogOpen={eventlogsDialogOpen} setEventlogsDialogOpen={setEventlogsDialogOpen} eventLogs={eventLogs}/>
+            <EventLogsDialog eventlogsDialogOpen={eventlogsDialogOpen} setEventlogsDialogOpen={setEventlogsDialogOpen} eventLogs={eventLogs} />
+            <NewUserDialog newUserDialogOpen={newUserDialogOpen} setNewUserDialogOpen={setNewUserDialogOpen} />
             <div className='flex gap-4 sticky top-0 mb-2 max-w-dvw bg-slate-50/80 backdrop-blur drop-shadow-xl z-10 h-12 sm:h-16 overflow-hidden'>
                 <a href="/aquaops">
                     <img src={logoHorizontal} className="h-full p-2" />
@@ -90,6 +90,10 @@ function Header(props) {
                                         <DropdownMenuItem disabled>
                                             <User className="mr-2 h-4 w-4" />
                                             <span>Profile</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={setNewUserDialogOpen}>
+                                            <UserPlus className="mr-2 h-4 w-4" />
+                                            <span>Create New User</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem disabled>
                                             <BarChartHorizontal className="mr-2 h-4 w-4" />
@@ -143,7 +147,7 @@ function Header(props) {
                                 <SheetHeader>
                                     <SheetTitle className="flex items-center text-2xl gap-2">
                                         <Avatar className="m-2 mr-2 size-14 sm:size-16">
-                                            <AvatarImage src={user.Type == 'admin' ? avatarSoftwareEng : avatarEng}/>
+                                            <AvatarImage src={user.Type == 'admin' ? avatarSoftwareEng : avatarEng} />
                                             <AvatarFallback>User</AvatarFallback>
                                         </Avatar>
                                         <div className="grid grid-cols-2">
