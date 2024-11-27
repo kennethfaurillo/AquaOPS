@@ -1,26 +1,63 @@
-import { Loader2Icon } from "lucide-react"
+import { ListFilterIcon, Loader2Icon } from "lucide-react"
 import { Button } from "./ui/button"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
 import { ScrollArea } from "./ui/scroll-area"
 import { Separator } from "./ui/separator"
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
+import { useState } from "react"
+import { EventLog } from "./Types"
 
 function EventLogsDialog({ eventlogsDialogOpen, setEventlogsDialogOpen, eventLogs }) {
     const eventTypeColorMap = {
         Authentication: 'text-blue-500/80',
         EditProfile: 'text-green-500/80',
         EditLogger: 'text-orange-500/80',
-        Report: 'text-yellow-500'
+        Report: 'text-yellow-500/80',
+        UserCreate: 'text-purple-500/80'
     }
+    const [eventTypeFilter, setEventTypeFilter] = useState({
+        Authentication: true,
+        EditProfile: true,
+        EditLogger: true,
+        Report: true,
+        UserCreate: true
+    })
     return (<>
         <Dialog open={eventlogsDialogOpen} onOpenChange={setEventlogsDialogOpen}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle className="text-piwad-blue-500">System Event Logs</DialogTitle>
+                    <DialogTitle className="text-piwad-blue-500 flex gap-x-2">
+                        System Event Logs
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <ListFilterIcon size={20} className="cursor-pointer" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuLabel>
+                                    Filter Event Types
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {Object.keys(eventTypeFilter).map((eventType) => (
+                                    <DropdownMenuCheckboxItem
+                                        key={eventType}
+                                        checked={eventTypeFilter[eventType]}
+                                        onCheckedChange={(checked) => setEventTypeFilter(prev => ({
+                                            ...prev,
+                                            [eventType]: checked
+                                        }))}
+                                    >
+                                        {eventType}
+                                    </DropdownMenuCheckboxItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </DialogTitle>
                     <DialogDescription>Only Admins can view these Logs</DialogDescription>
                 </DialogHeader>
                 <ScrollArea className="h-[70dvh] rounded-md border p-4 font-sans">
                     {eventLogs.length ?
-                        eventLogs.map((log) => (
+                        eventLogs.map((log: EventLog) => 
+                            eventTypeFilter[log.EventType] ? (
                             <div key={log.LogId}>
                                 <div className="flex justify-between">
                                     <div className="text-[.66rem] text-slate-800/80 ml-0">
@@ -34,7 +71,7 @@ function EventLogsDialog({ eventlogsDialogOpen, setEventlogsDialogOpen, eventLog
                                 </div>
                                 <Separator className="my-2" />
                             </div>
-                        )) :
+                        ): null) :
                         <div className="justify-center flex-col h-[50vh] text-red-500/90 font-semibold">
                             <Loader2Icon className="animate-spin size-24 mx-auto h-full " />
                         </div>}

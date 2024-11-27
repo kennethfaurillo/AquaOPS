@@ -78,3 +78,13 @@ export type LoggerLog = {
     CurrentPressure: number,
     CurrentFlow: number
 }
+
+export type EventLog = {
+    LogId: number,
+    Username: string,
+    Message: string,
+    Timestamp: Date,
+    IpAddress: string,
+    Event: string,
+    EventType: string
+}
