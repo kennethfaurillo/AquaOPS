@@ -88,13 +88,11 @@ function NewUserDialog({ newUserDialogOpen, setNewUserDialogOpen }) {
             }, 2000)
             return
         }
-        const hashedPassword = CryptoJS.SHA256(password + import.meta.env.VITE_SECRET_KEY).toString(CryptoJS.enc.Hex);
         const createdUser = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/create-user`, {
             user: user,
             token: token,
             username: username,
-            password: hashedPassword,
-            // password: createHash('sha256').update(password + process.env.VITE_SECRET_KEY).digest('hex'),
+            password: password,
             type: userType,
         })
         if (createdUser.data?.UserCreated) {

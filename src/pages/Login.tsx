@@ -33,10 +33,9 @@ export const LoginPage = () => {
         })
         if (authResponse.data.pass) {
             await login(authResponse.data.user, authResponse.data.Token)
-            // console.log(authResponse.data.Token)
         } else {
             console.log(authResponse.data)
-            // alert("Invalid username or password!")
+            setPassword('')
             setAlertOpen(true)
         }
     }
