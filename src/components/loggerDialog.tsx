@@ -14,6 +14,7 @@ import { Separator } from "./ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
 import { Switch } from "./ui/switch"
+import { useSharedStateContext } from "@/hooks/useSharedStateContext"
 
 
 function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
@@ -21,14 +22,28 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
     const [loadingConfigChange, setloadingConfigChange] = useState(false)
     const [activeTab, setActiveTab] = useState<"config" | "limits" | "history">("config")
     const [configLogs, setConfigLogs] = useState([])
+    const [visibility, setVisibility] = useState({
+        map: false,
+        table: false
+    })
 
     const { user, token } = useAuth()
+    const { mapRefreshToggle, setMapRefreshToggle, loggerTableRefreshToggle, setLoggerTableRefreshToggle } = useSharedStateContext()
 
     const fetchConfigLogs = async () => {
         const configLogResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/config_log?userId=${user.UserId}&token=${token}&loggerId=${loggerInfo.LoggerId}`)
         setConfigLogs(configLogResponse.data)
         return
     }
+    useEffect(() => {
+        if (!loggerInfo || !loggerInfo.Visibility) {
+            return
+        }
+        setVisibility({
+            map: loggerInfo.Visibility.split(',').includes('map'),
+            table: loggerInfo.Visibility.split(',').includes('table')
+        })
+    }, [loggerInfo])
 
     useEffect(() => {
         if (loggerDialogOpen) {
@@ -39,6 +54,10 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
             setLoggerConfig({})
             setloadingConfigChange(false)
             setConfigLogs([])
+            setVisibility({
+                map: false,
+                table: false
+            })
         }
     }, [loggerDialogOpen])
 
@@ -65,10 +84,20 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-2 gap-x-4">
-                                    <div className="flex items-center justify-center space-x-2 col-span-2">
-                                        <Switch id="showOnMap" checked>Test</Switch>
-                                        <Label htmlFor="showOnMap" >Show on Map</Label>
-                                    </div>
+                                        <div className="flex items-center justify-evenly col-span-2">
+                                            <div className="flex items-center space-x-1">
+                                                <Switch id="showOnMap"
+                                                    checked={visibility.map ?? false}
+                                                    onCheckedChange={(checked) => { setVisibility({ ...visibility, map: checked }) }} />
+                                                <Label htmlFor="showOnMap" >Show on Map</Label>
+                                            </div>
+                                            <div className="flex items-center space-x-1">
+                                                <Switch id="showInTable"
+                                                    checked={visibility.table ?? false}
+                                                    onCheckedChange={(checked) => { setVisibility({ ...visibility, table: checked }) }} />
+                                                <Label htmlFor="showInTable">Show in Table</Label>
+                                            </div>
+                                        </div>
                                         <div>
                                             <Label htmlFor="loggerName" className="text-slate-600">Logger Name</Label>
                                             <Input id={"loggerName"} placeholder={loggerInfo.Name?.split('_').slice(2)} disabled />
@@ -172,7 +201,6 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                 {!loadingConfigChange ?
                     <Button className="bg-green-500" onClick={async () => {
                         setloadingConfigChange(true)
-                        toast.loading("Updating Limits")
                         const _loggerLimits = {}
                         const _loggerConfig = {}
                         if (loggerConfig.VoltageLow && loggerConfig.VoltageHigh) {
@@ -187,9 +215,11 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                         if (loggerConfig.Latitude && loggerConfig.Longitude) {
                             _loggerConfig.Coordinates = loggerConfig.Latitude + ',' + loggerConfig.Longitude
                         }
+                        _loggerConfig.Visibility = `${visibility.map ? 'map' : ''}${visibility.map && visibility.table ? ',table' : visibility.table ? 'table' : ''}`
                         // Update logger config
                         try {
                             if (Object.keys(_loggerLimits).length) {
+                                toast.loading("Updating Limits")
                                 const changeConfigResponse = await axios.patch(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger_limits/${loggerInfo.LoggerId}`, {
                                     ..._loggerLimits,
                                     user
@@ -201,13 +231,14 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                     setLoggerDialogOpen(false)
                                 }, 500)
                             } else if (Object.keys(_loggerConfig).length) {
+                                toast.loading("Updating Config")
                                 const changeConfigResponse = await axios.patch(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger_config/${loggerInfo.LoggerId}`, {
                                     ..._loggerConfig,
                                     user
                                 })
                                 setTimeout(() => {
                                     toast.dismiss()
-                                    toast.success("Limits Changed!", { description: "The logger configuration has been successfully updated." })
+                                    toast.success("Config Changed!", { description: "The logger configuration has been successfully updated." })
                                     setloadingConfigChange(false)
                                     setLoggerDialogOpen(false)
                                 }, 500)
@@ -228,6 +259,9 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                 setLoggerDialogOpen(false)
                             }, 500)
                         }
+                        // Force refresh map and logger table
+                        setMapRefreshToggle(!mapRefreshToggle)
+                        setLoggerTableRefreshToggle(!loggerTableRefreshToggle)
                     }} disabled={loadingConfigChange}>Save</Button>
                     : <Button className="bg-green-500"> <Loader2Icon className="animate-spin" /></Button>
                 }

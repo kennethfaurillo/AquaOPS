@@ -62,7 +62,7 @@ function EventLogsDialog({ eventlogsDialogOpen, setEventlogsDialogOpen, eventLog
                                 <div className="flex justify-between">
                                     <div className="text-[.66rem] text-slate-800/80 ml-0">
                                         <span>{(new Date(log.Timestamp)).toLocaleString()} - </span>
-                                        <span className="font-bold"> {log.EventType} </span>
+                                        <span className="font-bold"> {log.EventType}: {log.Event} </span>
                                     </div>
                                     <div className="text-[.66rem] text-blue-700/80 mr-2">{log.IpAddress}</div>
                                 </div>

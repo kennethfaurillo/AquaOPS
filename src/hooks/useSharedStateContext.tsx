@@ -14,6 +14,9 @@ export function SharedStateProvider({ children }) {
     const [logger, setLogger] = useState(null)
     // Complete logger info (limits, coords,...)
     const [loggerInfo, setLoggerInfo] = useState(null)
+    // State to trigger forced updates
+    const [mapRefreshToggle, setMapRefreshToggle] = useState(true)
+    const [loggerTableRefreshToggle, setLoggerTableRefreshToggle] = useState(true)
 
     const fetchLoggerInfo = async (loggerId) => {
         try{
@@ -26,9 +29,9 @@ export function SharedStateProvider({ children }) {
 
     const value = useMemo(() => ({
         chartDrawerOpen, setChartDrawerOpen, loggerDialogOpen, setLoggerDialogOpen, reportDialogOpen, setReportDialogOpen,
-        logger, setLogger, loggerInfo, setLoggerInfo, fetchLoggerInfo
+        logger, setLogger, loggerInfo, setLoggerInfo, fetchLoggerInfo, mapRefreshToggle, setMapRefreshToggle, loggerTableRefreshToggle, setLoggerTableRefreshToggle
 
-    }), [chartDrawerOpen, loggerDialogOpen, reportDialogOpen, logger, loggerInfo])
+    }), [chartDrawerOpen, loggerDialogOpen, reportDialogOpen, logger, loggerInfo, mapRefreshToggle, loggerTableRefreshToggle])
 
     return (
         <SharedStateContext.Provider value={value}>

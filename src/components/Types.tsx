@@ -10,7 +10,8 @@ export type Datalogger = {
     PressureLimit: string,
     FlowLimit: string,
     Imei: number,
-    Sim: number
+    Sim: number,
+    Visibility: string
 }
 
 export type FlowLog = {

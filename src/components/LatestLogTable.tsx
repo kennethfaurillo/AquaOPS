@@ -18,7 +18,7 @@ function LoggerTable(props) {
     desc: false, // Adjust the sorting order if needed
   }])
 
-  const { setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo } = useSharedStateContext()
+  const { setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo, loggerTableRefreshToggle } = useSharedStateContext()
 
   const latestLogsColumns: ColumnDef<Datalogger>[] = [
     {
@@ -189,31 +189,13 @@ function LoggerTable(props) {
     },
   ]
 
+  // Forced Refresh when updating database
   useEffect(() => {
-    async function fetchLatestLogsInfo() {
-      setLoading(true)
-      try {
-        const loggersInfoResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
-        const latestLogsResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`)
-        let tempLoggersLatest: {}[] = []
-        const latestLog = latestLogsResponse.data.reduce((latest, current) => {
-          return new Date(current.LogTime) > new Date(latest.LogTime) ? current : latest
-        })
-        setLatestLog(latestLog)
-        loggersInfoResponse.data.map((logger: Datalogger) => {
-          latestLogsResponse.data.map((log: DataLog) => {
-            if (logger.LoggerId == log.LoggerId) {
-              tempLoggersLatest.push({ ...logger, ...log })
-            }
-          })
-        })
-        setLoggerData(tempLoggersLatest.filter((logger) => logger.Enabled))
-        setLoading(false)
-      }
-      catch (error) {
-        console.log(error)
-      }
-    }
+    fetchLatestLogsInfo()
+    console.log("forced table refresh")
+  }, [loggerTableRefreshToggle])
+
+  useEffect(() => {
     fetchLatestLogsInfo()
     // Setup SSE Listener for new logs
     const sse = new EventSource(`//${import.meta.env.VITE_SSE_HOST}:${import.meta.env.VITE_SSE_PORT}/sse`);
@@ -230,6 +212,34 @@ function LoggerTable(props) {
       sse.close()
     }
   }, [])
+
+  async function fetchLatestLogsInfo() {
+    setLoading(true)
+    try {
+      const loggersInfoResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
+      const latestLogsResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`)
+      let tempLoggersLatest: {}[] = []
+      const latestLog = latestLogsResponse.data.reduce((latest, current) => {
+        return new Date(current.LogTime) > new Date(latest.LogTime) ? current : latest
+      })
+      setLatestLog(latestLog)
+      loggersInfoResponse.data.map((logger: Datalogger) => {
+        latestLogsResponse.data.map((log: DataLog) => {
+          if (!logger.Visibility.split(',').includes('table')) {
+            return
+          }
+          if (logger.LoggerId == log.LoggerId) {
+            tempLoggersLatest.push({ ...logger, ...log })
+          }
+        })
+      })
+      setLoggerData(tempLoggersLatest.filter((logger) => logger.Enabled))
+      setLoading(false)
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
 
   const initialState = {
     columnVisibility: {

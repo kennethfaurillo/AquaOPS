@@ -239,9 +239,15 @@ function LoggerMapCard() {
   const [expandLoggerStatus, setExpandLoggerStatus] = useState(false)
   const [expandMapTable, setExpandMapTable] = useState(false)
 
-  const { setChartDrawerOpen, setLogger } = useSharedStateContext()
+  const { setChartDrawerOpen, setLogger, mapRefreshToggle } = useSharedStateContext()
   const { BaseLayer, Overlay } = LayersControl
   const scaleFactor = 1
+
+  // Forced Refresh when updating database
+  useEffect(() => {
+    fetchLatestLogsInfo()
+    console.log("forced map refresh")
+  }, [mapRefreshToggle])
 
   useEffect(() => {
     if (!map) return
@@ -442,7 +448,7 @@ function LoggerMapCard() {
       mousemove(e) {
         setPosition({ lat: e.latlng.lat, lng: e.latlng.lng })
       },
-      moveend(e){
+      moveend(e) {
         setPosition(map.getCenter())
       },
       keypress(e) {
@@ -511,7 +517,8 @@ function LoggerMapCard() {
             <LayerGroup>
               {loggersLatest.size ?
                 <>
-                  {Array.from(loggersLatest, ([loggerId, loggerData]) => (
+                  {Array.from(loggersLatest, ([loggerId, loggerData]) =>
+                  (
                     <div key={loggerId}>
                       <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={loggerIcon} eventHandlers={{
                         click: () => {
@@ -520,7 +527,7 @@ function LoggerMapCard() {
                           setLogger(loggerData)
                         },
                       }}>
-                        <Tooltip permanent direction={'top'} interactive={true}>
+                        {!(loggerData.Visibility.split(',').includes('map')) ? null : <Tooltip permanent direction={'top'} interactive={true}>
                           <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
                             {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('MMM D h:mm a')}<br /></> : null}
                           </div>
@@ -554,7 +561,7 @@ function LoggerMapCard() {
                               </TooltipContent>
                             </HoverTooltip>
                           </div>
-                        </Tooltip>
+                        </Tooltip>}
                       </Marker>
                       <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
                         {basemap?.name == "stdDark" ?
