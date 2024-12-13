@@ -20,7 +20,6 @@ function DashboardPage() {
     })
     const isWideScreen = window.innerWidth >= 1280
 
-
     useEffect(() => {
         (async () => {
             if (token && user) {
@@ -28,11 +27,14 @@ function DashboardPage() {
             }
         })()
     }, [])
-    if (token && user) {
-        return (
-            <div className='h-[cmd80dvh] sm:h-[100dvh] overflow-hidden bg-slate-100'>
-                <Header user={{ "FirstName": "Piwad", "LastName": user.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
-                <DialogProvider>
+    
+    if (!token || !user) {
+        return <Navigate to={"/login"} />
+    }
+    return (
+        <div className='h-[cmd80dvh] sm:h-[100dvh] overflow-hidden bg-slate-100'>
+            <Header user={{ "FirstName": "Piwad", "LastName": user.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
+            <DialogProvider>
                 <DrawerProvider>
                     {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (
                         <ResizablePanelGroup direction="horizontal">
@@ -59,11 +61,9 @@ function DashboardPage() {
                         </div>
                     )}
                 </DrawerProvider>
-                </DialogProvider>
-            </div>
-        )
-    }
-    return <Navigate to={"/login"} />
+            </DialogProvider>
+        </div>
+    )
 }
 
 export default DashboardPage

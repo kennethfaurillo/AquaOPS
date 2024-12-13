@@ -14,7 +14,7 @@ function App() {
       <SharedStateProvider>
         <Routes>
           <Route path="/*" element={<><DashboardPage /><Toaster richColors /></>} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/aquaops/login" element={<LoginPage />} />
         </Routes>
       </SharedStateProvider>
     </AuthProvider>
