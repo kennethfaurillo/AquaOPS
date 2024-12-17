@@ -29,7 +29,7 @@ function DashboardPage() {
     }, [])
     
     if (!token || !user) {
-        return <Navigate to={"/login"} />
+        return <Navigate to={"/aquaops/login"} />
     }
     return (
         <div className='h-[cmd80dvh] sm:h-[100dvh] overflow-hidden bg-slate-100'>

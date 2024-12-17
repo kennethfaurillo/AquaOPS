@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     const login = async (user, token) => {
         setUser(user)
         setToken(token)
-        navigate("/", { replace: true })
+        navigate("/aquaops", { replace: true })
     }
 
     const logout = () => {
@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
         setToken(null)
         localStorage.removeItem("user")
         localStorage.removeItem("token")
-        navigate("/", { replace: true })
+        navigate("/aquaops", { replace: true })
     }
 
     const validateToken = async (_user, _token) => {

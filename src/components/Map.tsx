@@ -245,8 +245,10 @@ function LoggerMapCard() {
 
   // Forced Refresh when updating database
   useEffect(() => {
-    fetchLatestLogsInfo()
-    console.log("forced map refresh")
+    return () => {
+      fetchLatestLogsInfo()
+      console.log("forced map refresh")
+    }
   }, [mapRefreshToggle])
 
   useEffect(() => {
@@ -527,7 +529,7 @@ function LoggerMapCard() {
                           setLogger(loggerData)
                         },
                       }}>
-                        {!(loggerData.Visibility.split(',').includes('map')) ? null : <Tooltip permanent direction={'top'} interactive={true}>
+                        {!(loggerData?.Visibility.split(',').includes('map')) ? null : <Tooltip permanent direction={'top'} interactive={true}>
                           <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
                             {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('MMM D h:mm a')}<br /></> : null}
                           </div>

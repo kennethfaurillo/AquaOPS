@@ -191,8 +191,10 @@ function LoggerTable(props) {
 
   // Forced Refresh when updating database
   useEffect(() => {
-    fetchLatestLogsInfo()
-    console.log("forced table refresh")
+    return () => {
+      fetchLatestLogsInfo()
+      console.log("forced table refresh")
+    }
   }, [loggerTableRefreshToggle])
 
   useEffect(() => {
