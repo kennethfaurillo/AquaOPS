@@ -91,10 +91,11 @@ function Header(props) {
                                             <User className="mr-2 h-4 w-4" />
                                             <span>Profile</span>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={setNewUserDialogOpen}>
+                                        {user.Type == 'admin'? <DropdownMenuItem onSelect={setNewUserDialogOpen}>
                                             <UserPlus className="mr-2 h-4 w-4" />
                                             <span>Create New User</span>
-                                        </DropdownMenuItem>
+                                        </DropdownMenuItem> : null}
+
                                         <DropdownMenuItem disabled>
                                             <BarChartHorizontal className="mr-2 h-4 w-4" />
                                             <span>Statistics</span>
@@ -130,9 +131,7 @@ function Header(props) {
                                         {user.Type != "admin" ?
                                             <TooltipContent>
                                                 <p>{capitalize(user.Type)} not authorized to view System Logs</p>
-                                            </TooltipContent> :
-                                            null
-                                        }
+                                            </TooltipContent> : null}
                                     </Tooltip>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onSelect={setLogoutAlertOpen}>

@@ -88,25 +88,35 @@ function NewUserDialog({ newUserDialogOpen, setNewUserDialogOpen }) {
             }, 2000)
             return
         }
-        const createdUser = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/create-user`, {
-            user: user,
-            token: token,
-            username: username,
-            password: password,
-            type: userType,
-        })
-        if (createdUser.data?.UserCreated) {
-            console.log('User Created')
-            setAlertDialog({
-                title: 'User Created!',
-                description: 'User has been created successfully',
-                open: true,
-                error: false
+        try {
+            const createdUser = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/create-user`, {
+                user: user,
+                token: token,
+                username: username,
+                password: password,
+                type: userType,
             })
-        } else {
+            if (createdUser.data?.UserCreated) {
+                console.log('User Created')
+                setNewUserDialogOpen(false)
+                setAlertDialog({
+                    title: 'User Created!',
+                    description: 'User has been created successfully',
+                    open: true,
+                    error: false
+                })
+            } else {
+                setAlertDialog({
+                    title: 'User Creation Failed!',
+                    description: 'Please try again later',
+                    open: true,
+                    error: true
+                })
+            }
+        } catch (error) {
             setAlertDialog({
                 title: 'User Creation Failed!',
-                description: 'Please try again later',
+                description: 'Unauthorized user!',
                 open: true,
                 error: true
             })
