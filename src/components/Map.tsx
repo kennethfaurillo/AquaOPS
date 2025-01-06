@@ -7,7 +7,7 @@ import specific_capacity from '@/assets/geoSpecificCapacity.json'
 import { capitalize, isValueInRange, lerp } from '@/lib/utils'
 import ResetViewControl from '@20tab/react-leaflet-resetview'
 import axios from 'axios'
-import { addHours } from 'date-fns'
+import { addHours, addMinutes } from 'date-fns'
 import { DivIcon, Icon, LatLng } from 'leaflet'
 import 'leaflet.fullscreen/Control.FullScreen.css'
 import 'leaflet.fullscreen/Control.FullScreen.js'
@@ -231,7 +231,7 @@ function LoggerMapCard() {
   const [weight, setWeight] = useState(5)
   const [basemap, setBasemap] = useState(basemaps.at(0))
   const [sources, setSources] = useState([])
-  const [loggersStatus, setLoggersStatus] = useState({ Active: 0, Inactive: 0, Disabled: 0 })
+  const [loggersStatus, setLoggersStatus] = useState({ Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 })
   const [position, setPosition] = useState({ lat: 13.586680, lng: 123.279893 })
   const [fullscreenMap, setFullscreenMap] = useState(false)
   const [alarm, setAlarm] = useState({})
@@ -328,7 +328,7 @@ function LoggerMapCard() {
     try {
       const loggersInfoResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
       const latestLogsResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`)
-      const tempLoggersStatus = { Active: 0, Inactive: 0, Disabled: 0 }
+      const tempLoggersStatus = { Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 }
       let tempLoggersLatest = new Map()
       loggersInfoResponse.data.map((logger: Datalogger) => {
         latestLogsResponse.data.map((log: DataLog) => {
@@ -337,11 +337,15 @@ function LoggerMapCard() {
               tempLoggersStatus.Disabled++
               return
             }
-            // Count as Active if last log within 6 hours
-            else if (new Date(log.LogTime) > addHours(new Date(), -6)) {
+            // Count as Active if last log within 30m, Delayed: 3h, Inactive: beyond 3h
+            const logTime = new Date(log.LogTime.slice(0,-1))
+            console.log(logTime)
+            if(logTime > addMinutes(new Date(), -30)){
               tempLoggersStatus.Active++
+            } else if(logTime > addMinutes(new Date(), -180)){
+              tempLoggersStatus.Delayed++
             } else {
-              tempLoggersStatus.Inactive++
+              tempLoggersStatus.Inactive++  
             }
             tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
           }
@@ -397,7 +401,7 @@ function LoggerMapCard() {
     if (feature.properties && feature.properties.Name) {
       layer.on('dblclick', () => {
         console.log(feature.properties)
-        toast.info(`Baranggay: ${feature.properties?.Name}`)
+        toast.info(`Barangay ${feature.properties?.Name}`)
       });
     }
   }
@@ -482,7 +486,7 @@ function LoggerMapCard() {
               attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
             />
           </BaseLayer>
-          <Overlay name='Baranggay Boundaries'>
+          <Overlay name='Barangay Boundaries'>
             <GeoJSON data={piliBoundary} style={{ fillOpacity: 0, weight: 1, color: 'orange' }} onEachFeature={onEachArea} />
           </Overlay>
           <Overlay name='Specific Capacity'>
@@ -601,6 +605,22 @@ function LoggerMapCard() {
           <HoverTooltip delayDuration={25}>
             <TooltipTrigger asChild className='cursor-pointer'>
               <div className='flex gap-x-1 items-center'>
+                <div className='size-2 bg-yellow-300 rounded-full' />
+                {loggersStatus.Delayed}
+                <div className={`font-sans overflow-hidden transition-opacity ease-in-out duration-200 ${expandLoggerStatus ? `` : `w-0 opacity-0`}`}>
+                  Delayed
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side='bottom' className='text-xs font-extralight mr-3' sideOffset={16}>
+              {/* TODO: change descriptions */}
+              {loggersStatus.Disabled} data loggers are disabled and not in operation
+            </TooltipContent>
+          </HoverTooltip>
+          <Separator orientation='vertical' className='h-4' />
+          <HoverTooltip delayDuration={25}>
+            <TooltipTrigger asChild className='cursor-pointer'>
+              <div className='flex gap-x-1 items-center'>
                 <div className='size-2 bg-orange-500 rounded-full' />
                 {loggersStatus.Inactive}
                 <div className={`font-sans overflow-hidden transition-opacity ease-in-out duration-200 ${expandLoggerStatus ? `` : `w-0 opacity-0`}`}>
@@ -610,21 +630,6 @@ function LoggerMapCard() {
             </TooltipTrigger>
             <TooltipContent side='bottom' className='text-xs font-extralight mr-3' sideOffset={16}>
               {loggersStatus.Inactive} data loggers are enabled but have not sent data in the last 6 hours.
-            </TooltipContent>
-          </HoverTooltip>
-          <Separator orientation='vertical' className='h-4' />
-          <HoverTooltip delayDuration={25}>
-            <TooltipTrigger asChild className='cursor-pointer'>
-              <div className='flex gap-x-1 items-center'>
-                <div className='size-2 bg-zinc-500 rounded-full' />
-                {loggersStatus.Disabled}
-                <div className={`font-sans overflow-hidden transition-opacity ease-in-out duration-200 ${expandLoggerStatus ? `` : `w-0 opacity-0`}`}>
-                  Disabled
-                </div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side='bottom' className='text-xs font-extralight mr-3' sideOffset={16}>
-              {loggersStatus.Disabled} data loggers are disabled and not in operation
             </TooltipContent>
           </HoverTooltip>
         </div>
