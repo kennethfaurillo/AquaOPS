@@ -1,28 +1,38 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
-const Time = () => {
-    const [time, setTime] = useState(new Date())
+interface TimeProps {
+    color?: 'white' | 'black';
+}
+
+const Time: React.FC<TimeProps> = ({ color = 'white' }) => {
+    const [time, setTime] = useState(new Date());
+
     useEffect(() => {
         const timer = setInterval(() => {
-            setTime(new Date())
-        }, 1000)
+            setTime(new Date());
+        }, 1000);
         return () => {
-            clearInterval(timer)
-        }
-    }, [])
+            clearInterval(timer);
+        };
+    }, []);
+
+    const textColor = color === 'black' ? 'text-black' : 'text-white';
+    const subTextColor = color === 'black' ? 'text-gray-800' : 'text-zinc-200';
+    const dateTextColor = color === 'black' ? 'text-gray-600' : 'text-slate-50';
+
     return (
-        <div>
-            <div className='font-normal text-white text-3xl  flex gap-x-1'>
+        <div className='backdrop-blur-[1px] rounded-3xl p-1'>
+            <div className={`font-normal ${textColor} text-3xl flex gap-x-1`}>
                 {time.toLocaleTimeString().slice(0, -2)}
-                <div className='font-normal text-zinc-200 text-xl'>
-                    {time.toLocaleTimeString().slice(-2,)}
+                <div className={`font-normal ${subTextColor} text-xl`}>
+                    {time.toLocaleTimeString().slice(-2)}
                 </div>
             </div>
-            <div className='font-normal text-slate-50 text-sm text-right tracking-tight'>
+            <div className={`font-normal ${dateTextColor} text-sm text-right tracking-tight`}>
                 {time.toDateString()}
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Time
+export default Time;

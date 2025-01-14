@@ -648,6 +648,11 @@ function LoggerMapCard() {
           </>
           : null}
         {fullscreenMap ?
+          <div className='absolute top-2 left-12 p-2 rounded-full z-[400]'>
+            <Time color='black'/>
+          </div>
+          : null}
+        {fullscreenMap ?
           <>
             <Card className='absolute bottom-6 translate-x-[60%] sm:top-28 sm:bottom-auto sm:right-3 sm:translate-x-0 z-[401] bg-white/70 backdrop-blur-[2px] outline outline-2 outline-black/20'>
               <CardHeader className="px-2 py-1 rounded-t-lg space-y-1 w-48">
@@ -706,7 +711,7 @@ function LoggerMapCard() {
               <Time />
             </div>
           </CardTitle>
-          <CardDescription/>
+          <CardDescription />
           <Separator />
         </CardHeader>
         <CardContent className='p-0'>
