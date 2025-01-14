@@ -32,6 +32,7 @@ import icStation from '../assets/Station.svg'
 import icSpring from '../assets/Tank.svg'
 import icValve from '../assets/Tube.svg'
 import { Separator } from './ui/separator'
+import Time from './Time'
 
 const loggerIcon = new Icon({
   iconUrl: icLogger,
@@ -338,14 +339,13 @@ function LoggerMapCard() {
               return
             }
             // Count as Active if last log within 30m, Delayed: 3h, Inactive: beyond 3h
-            const logTime = new Date(log.LogTime.slice(0,-1))
-            console.log(logTime)
-            if(logTime > addMinutes(new Date(), -30)){
+            const logTime = new Date(log.LogTime.slice(0, -1))
+            if (logTime > addMinutes(new Date(), -30)) {
               tempLoggersStatus.Active++
-            } else if(logTime > addMinutes(new Date(), -180)){
+            } else if (logTime > addMinutes(new Date(), -180)) {
               tempLoggersStatus.Delayed++
             } else {
-              tempLoggersStatus.Inactive++  
+              tempLoggersStatus.Inactive++
             }
             tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
           }
@@ -693,12 +693,20 @@ function LoggerMapCard() {
     <>
       <Card className='col-span-full xl:col-span-9 z-0 drop-shadow-xl rounded-b-lg overflow-hidden'>
         <CardHeader className='rounded-t-lg bg-piwad-lightblue-600 py-4 space-y-1'>
-          <CardTitle className='text-piwad-lightyellow-400 flex gap-x-1'>
-            <MapPinIcon />Utility Map
+          <CardTitle className='flex justify-between'>
+            <div className='space-y-1'>
+              <div className='text-piwad-lightyellow-400 flex gap-x-1'>
+                <MapPinIcon />Utility Map
+              </div>
+              <div className='text-white/80 text-sm'>
+                {map ? <>Coordinates: <DisplayPosition map={map} /> </> : null}
+              </div>
+            </div>
+            <div>
+              <Time />
+            </div>
           </CardTitle>
-          <CardDescription className='text-white/80'>
-            {map ? <>Coordinates: <DisplayPosition map={map} /> </> : null}
-          </CardDescription>
+          <CardDescription/>
           <Separator />
         </CardHeader>
         <CardContent className='p-0'>
