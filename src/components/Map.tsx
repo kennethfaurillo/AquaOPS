@@ -703,12 +703,12 @@ function LoggerMapCard() {
               <div className='text-piwad-lightyellow-400 flex gap-x-1'>
                 <MapPinIcon />Utility Map
               </div>
-              <div className='text-white/80 text-sm'>
+              <div className='text-white/80 font-normal text-sm tracking-normal'>
                 {map ? <>Coordinates: <DisplayPosition map={map} /> </> : null}
               </div>
             </div>
-            <div>
-              <Time />
+            <div className='-my-2'>
+              <Time/>
             </div>
           </CardTitle>
           <CardDescription />
