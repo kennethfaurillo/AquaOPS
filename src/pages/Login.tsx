@@ -62,8 +62,8 @@ export const LoginPage = () => {
             <Header />
             <div className="w-full h-screen">
                 <div className="grid grid-cols-12">
-                    <div className="col-span-12 my-16 mx-12 shadow-lg justify-center ">
-                        <div className="mx-auto w-fit border-4 border-piwad-blue-400 rounded-lg p-5 space-y-2">
+                    <div className="col-span-12 my-16 mx-12 justify-center ">
+                        <div className="mx-auto w-fit border-4 shadow-xl border-piwad-blue-400 rounded-lg p-5 space-y-2">
                             <div className="text-center">
                                 <h1 className="text-3xl font-bold">Login</h1>
                                 <p className="text-balance text-muted-foreground">Enter your account details below to login to your account</p>
