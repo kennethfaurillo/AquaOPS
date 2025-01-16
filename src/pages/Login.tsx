@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import axios from "axios";
-import { Loader2Icon } from "lucide-react";
+import { EyeClosedIcon, EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const LoginPage = () => {
@@ -14,6 +14,7 @@ export const LoginPage = () => {
     const [password, setPassword] = useState("")
     const [alertOpen, setAlertOpen] = useState(false)
     const [loading, setLoading] = useState(true)
+    const [showPassword, setShowPassword] = useState(false)
     const { user, token, login, validateToken } = useAuth()
 
     useEffect(() => {
@@ -82,13 +83,19 @@ export const LoginPage = () => {
                                     <div>
                                         <Label htmlFor="password">Password:</Label>
                                         <Input
-                                            type="password"
+                                            type={!showPassword ? "password" : ""}
                                             id="password"
                                             value={password}
                                             onChange={(event) => setPassword(event.target.value)}
+
                                         />
                                     </div>
-                                    <Button type="submit" className="bg-piwad-lightyellow-500" variant={"outline"}>Login</Button>
+                                    <div className="flex justify-between pt-2">
+                                        <Button type="submit" className="bg-piwad-lightyellow-500" variant={"outline"}>Login</Button>
+                                        {showPassword ?
+                                            <EyeIcon className="size-10 drop-shadow-md" onClick={() => setShowPassword(!showPassword)} /> :
+                                            <EyeOffIcon className="size-10 drop-shadow-md" onClick={() => setShowPassword(!showPassword)} />}
+                                    </div>
                                 </form>
                             </div>
                         </div>
