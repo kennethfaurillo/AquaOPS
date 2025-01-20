@@ -80,7 +80,7 @@ export const LoginPage = () => {
                                             onChange={(event) => setUsername(event.target.value)}
                                         />
                                     </div>
-                                    <div>
+                                    <div className="relative">
                                         <Label htmlFor="password">Password:</Label>
                                         <Input
                                             type={!showPassword ? "password" : ""}
@@ -89,12 +89,12 @@ export const LoginPage = () => {
                                             onChange={(event) => setPassword(event.target.value)}
 
                                         />
+                                        {showPassword ?
+                                            <EyeIcon className="absolute right-2 top-8 size-6 drop-shadow-md" onClick={() => setShowPassword(!showPassword)} /> :
+                                            <EyeOffIcon className="absolute right-2 top-8 size-6 drop-shadow-md" onClick={() => setShowPassword(!showPassword)} />}
                                     </div>
                                     <div className="flex justify-between pt-2">
                                         <Button type="submit" className="bg-piwad-lightyellow-500" variant={"outline"}>Login</Button>
-                                        {showPassword ?
-                                            <EyeIcon className="size-10 drop-shadow-md" onClick={() => setShowPassword(!showPassword)} /> :
-                                            <EyeOffIcon className="size-10 drop-shadow-md" onClick={() => setShowPassword(!showPassword)} />}
                                     </div>
                                 </form>
                             </div>

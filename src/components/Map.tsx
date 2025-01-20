@@ -236,7 +236,6 @@ function LoggerMapCard() {
   const [position, setPosition] = useState({ lat: 13.586680, lng: 123.279893 })
   const [fullscreenMap, setFullscreenMap] = useState(false)
   const [alarm, setAlarm] = useState({})
-  const [showAlarm, setShowAlarm] = useState(true)
   const [expandLoggerStatus, setExpandLoggerStatus] = useState(false)
   const [expandMapTable, setExpandMapTable] = useState(false)
 
@@ -614,7 +613,7 @@ function LoggerMapCard() {
             </TooltipTrigger>
             <TooltipContent side='bottom' className='text-xs font-extralight mr-3' sideOffset={16}>
               {/* TODO: change descriptions */}
-              {loggersStatus.Disabled} data loggers are disabled and not in operation
+              {loggersStatus.Delayed} data loggers are active but have not yet sent data recently
             </TooltipContent>
           </HoverTooltip>
           <Separator orientation='vertical' className='h-4' />
@@ -629,12 +628,10 @@ function LoggerMapCard() {
               </div>
             </TooltipTrigger>
             <TooltipContent side='bottom' className='text-xs font-extralight mr-3' sideOffset={16}>
-              {loggersStatus.Inactive} data loggers are enabled but have not sent data in the last 6 hours.
+              {loggersStatus.Inactive} data loggers are enabled but have not sent data in the last 3 hours
             </TooltipContent>
           </HoverTooltip>
         </div>
-        {showAlarm ? <Button className='absolute bottom-24 right-4 z-[401] size-12 p-0 rounded-full opacity-80' onClick={() => setShowAlarm(!showAlarm)}><BellRingIcon /></Button>
-          : <Button className='absolute bottom-24 right-4 z-[401] size-12 p-0 rounded-full opacity-100' onClick={() => setShowAlarm(!showAlarm)}><BellOffIcon /></Button>}
         {basemap ?
           basemap.name == "osmLight" ?
             <Button className='absolute bottom-8 right-4 z-[401] size-12 p-0 rounded-full opacity-80' onClick={themeToggleOnclick}><MoonIcon /></Button>
@@ -697,13 +694,13 @@ function LoggerMapCard() {
   return (
     <>
       <Card className='col-span-full xl:col-span-9 z-0 drop-shadow-xl rounded-b-lg overflow-hidden'>
-        <CardHeader className='rounded-t-lg bg-piwad-lightblue-600 py-4 space-y-1'>
+        <CardHeader className='rounded-t-lg bg-piwad-lightblue-600 py-4 space-y-0'>
           <CardTitle className='flex justify-between'>
             <div className='space-y-1'>
-              <div className='text-piwad-lightyellow-400 flex gap-x-1'>
+              <div className='text-piwad-lightyellow-400 flex gap-x-1 '>
                 <MapPinIcon />Utility Map
               </div>
-              <div className='text-white/80 font-normal text-sm tracking-normal'>
+              <div className='pt-2 text-white/80 font-normal text-sm tracking-normal'>
                 {map ? <>Coordinates: <DisplayPosition map={map} /> </> : null}
               </div>
             </div>
