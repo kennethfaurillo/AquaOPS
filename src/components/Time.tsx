@@ -22,7 +22,7 @@ const Time: React.FC<TimeProps> = ({ color = 'white' }) => {
 
     return (
         <div className='backdrop-blur-[1px] rounded-3xl p-1'>
-            <div className={`font-normal ${textColor} text-3xl flex gap-x-1`}>
+            <div className={`font-normal ${textColor} text-5xl flex gap-x-1`}>
                 {time.toLocaleTimeString().slice(0, -2)}
                 <div className={`font-normal ${subTextColor} text-xl`}>
                     {time.toLocaleTimeString().slice(-2)}
