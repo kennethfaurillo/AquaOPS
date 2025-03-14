@@ -1,8 +1,7 @@
-import { useState } from "react"
-import { ColumnDef, SortingState, flexRender, getCoreRowModel, getSortedRowModel, getPaginationRowModel, useReactTable, } from "@tanstack/react-table"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table"
-import { Skeleton } from "./skeleton"
+import { ColumnDef, flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
 import { Button } from "./button"
+import { Skeleton } from "./skeleton"
 
 
 interface DataTableProps<TData, TValue, TInitState, TSorting, TSetSorting, TLoading> {
@@ -81,11 +80,10 @@ export function DataTable<TData, TValue, TInitState, TSorting, TSetSorting, TLoa
             }
             {loading ? Array(5).fill(null).map((item, index) => (
               <TableRow key={index}>
-                <TableCell className="font-medium"><Skeleton className="w-[80px] h-[20px] rounded-full" /></TableCell>
-                <TableCell className="font-medium"><Skeleton className="w-[50px] h-[20px] rounded-full" /></TableCell>
-                <TableCell className="font-medium"><Skeleton className="w-[50px] h-[20px] rounded-full" /></TableCell>
-                <TableCell className="font-medium"><Skeleton className="w-[50px] h-[20px] rounded-full" /></TableCell>
-                <TableCell className="font-medium"><Skeleton className="w-[50px] h-[20px] rounded-full" /></TableCell>
+                <TableCell className="font-medium"><Skeleton className="bg-gray-300 w-[80px] h-[20px] rounded-full" /></TableCell>
+                <TableCell className="font-medium"><Skeleton className="bg-gray-300 w-[60px] h-[20px] rounded-full" /></TableCell>
+                <TableCell className="font-medium"><Skeleton className="bg-gray-300 w-[70px] h-[20px] rounded-full" /></TableCell>
+                <TableCell className="font-medium"><Skeleton className="bg-gray-300 w-[60px] h-[20px] rounded-full" /></TableCell>
               </TableRow>)
             ) : null}
           </TableBody>

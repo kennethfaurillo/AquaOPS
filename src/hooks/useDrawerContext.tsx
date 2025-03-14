@@ -1,18 +1,16 @@
-import LoggerDialog from "@/components/loggerDialog"
-import ReportDialog from "@/components/reportDialog"
+import { createContext, lazy, Suspense, useContext, useMemo, useState } from "react"
+import LoggerDialog from "@/components/LoggerDialog"
+const ReportDialog = lazy(() => import('@/components/reportDialog'));
+import { Separator } from "@/components/ui/separator"
+import { dateDiff } from "@/lib/utils"
 import axios from "axios"
-import { addDays } from 'date-fns'
 import { Loader2Icon, SettingsIcon } from "lucide-react"
-import { createContext, useContext, useMemo, useState } from "react"
-import { DateRange } from "react-day-picker"
-import LogLineChart from "../components/LogLineChart"
+const LogLineChart = lazy(() => import('@/components/LogLineChart'));
 import { Button } from "../components/ui/button"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "../components/ui/drawer"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { useAuth } from "./useAuth"
 import { useSharedStateContext } from "./useSharedStateContext"
-import { dateDiff } from "@/lib/utils"
-import { Separator } from "@/components/ui/separator"
 
 const DrawerContext = createContext()
 
@@ -91,7 +89,10 @@ export function DrawerProvider({ children }) {
                             <LoggerStatus logger={logger} />
                         </DrawerDescription>
                     </DrawerHeader>
-                    {logger ? <LogLineChart logger={logger} timeRange={chartTimeRange} /> : <Loader2Icon className="animate-spin self-center size-12 my-5" />}
+                    {logger ? <Suspense fallback={<Loader2Icon className="animate-spin self-center size-12 my-5" />}>
+                        <LogLineChart logger={logger} timeRange={chartTimeRange} />
+                    </Suspense> :
+                        <Loader2Icon className="animate-spin self-center size-12 my-5" />}
                     <DrawerFooter className="flex-row justify-center">
                         <Select value={chartTimeRange} onValueChange={(value) => setChartTimeRange(value)} >
                             <SelectTrigger className="w-[150px]">
@@ -135,7 +136,9 @@ export function DrawerProvider({ children }) {
             {/* Logger Info and Config Dialog */}
             <LoggerDialog loggerDialogOpen={loggerDialogOpen} setLoggerDialogOpen={setLoggerDialogOpen} loggerInfo={loggerInfo} />
             {/* Report Generation Dialog */}
-            <ReportDialog reportDialogOpen={reportDialogOpen} setReportDialogOpen={setReportDialogOpen} loggerInfo={loggerInfo} allowedDates={allowedDates} />
+            <Suspense>
+                <ReportDialog reportDialogOpen={reportDialogOpen} setReportDialogOpen={setReportDialogOpen} loggerInfo={loggerInfo} allowedDates={allowedDates} />
+            </Suspense>
             {children}
         </DrawerContext.Provider >
     )

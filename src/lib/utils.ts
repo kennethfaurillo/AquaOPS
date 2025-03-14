@@ -18,19 +18,16 @@ export async function generateReport(loggerInfo, fields, dateRange, user) {
   const loggerId = loggerInfo.LoggerId
   let logTable = ''
   let data = []
-  if (fields.pressure || fields.flow || fields.voltage) {
-    if (fields.pressure && fields.flow) {
-      const logResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logs/?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}`, {
-        logTypes: loggerInfo.Type.split(','),
-        loggerId: loggerId,
-      })
-      data = logResponse.data
-    } else {
-      if (fields.flow) logTable = "flow_log"
-      else logTable = "pressure_log"
-      const response = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/${logTable}/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}`)
-      data = response.data ?? []
+  if (fields.param) {
+    logTable = fields.param == "flow" ? "flow_log" : "pressure_log"
+    if (fields.averaging) {
+      console.log("Averaging", fields.averaging)
     }
+    const response = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/${logTable}/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}&averaged=${fields.averaging}`,)
+    console.log(response.data)
+    data = response.data ?? []
+
+    // }
   }
   else {
     const response = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/totalizer/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}`)
@@ -40,23 +37,18 @@ export async function generateReport(loggerInfo, fields, dateRange, user) {
     throw "No data available for the selected time range. Please choose a different period and try again."
   }
   if (data.length) {
-    if (fields.pressure || fields.flow || fields.voltage) {
+    if (fields.param) {
       const newData = data.reduce((newData, currentLog) => {
+        let key = ''
+        let timeKey = 'LogTime'
+        if (fields.averaging == 'hourly') timeKey = 'LogHour'
+        else if (fields.averaging == 'daily') timeKey = 'LogDate'
+        if (fields.param == "flow") key = (!fields || fields.averaging != 'none') ? "AverageFlow" : "CurrentFlow"
+        else if (fields.param == "pressure") key = (!fields || fields.averaging != 'none') ? "AveragePressure" : "CurrentPressure"
+        else if (fields.param == "voltage") key = "AverageVoltage"
         let newLog = {
-          LogTime: moment(currentLog.LogTime.replace('Z', '')).format('MM/DD/YYYY, hh:mm A')
-        }
-        for (const [field, includeField] of Object.entries(fields)) {
-          if (!includeField) continue
-          let key = ''
-          if (field == "flow") key = "CurrentFlow"
-          else if (field == "pressure") key = "CurrentPressure"
-          else if (field == "voltage") key = "AverageVoltage"
-          // else if (field == "totalizerPositive") key = "TotalFlowPositive"
-          // else if (field == "totalizerNegative") key = "TotalFlowNegative"
-          newLog = {
-            ...newLog,
-            [key]: currentLog[key]
-          }
+          LogTime: timeKey == 'LogTime' ? moment(currentLog[timeKey].replace('Z','')).format('YYYY-MM-DD HH:mm:ss') : currentLog[timeKey],
+          [key]: currentLog[key]
         }
         newData.push(newLog)
         return newData
@@ -110,18 +102,18 @@ export function jsonToCSV(jsonArr, header) {
 
 // Check a value against a given limit (csv - low,high)
 // true - in range, false - outside
-export function isValueInRange (limits, value){
+export function isValueInRange(limits, value) {
   const [low, high] = limits.split(',').map(Number);
   return value >= low && value <= high;
 };
 
-export function lerp(min, max, val){
-  return (val-min)/(max-min)*100
+export function lerp(min, max, val) {
+  return (val - min) / (max - min) * 100
 }
 
 // Compute the time difference between a given date and now
 // in the specified units (default is milliseconds)
-export function dateDiff(date: Date, unit: 'ms' | 's' | 'm' | 'h' | 'd' ) {
+export function dateDiff(date: Date, unit: 'ms' | 's' | 'm' | 'h' | 'd') {
   const unitDividers = {
     ms: 1,
     s: 1000,

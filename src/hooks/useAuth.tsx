@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
         navigate("/aquaops", { replace: true })
     }
 
-    const logout = () => {
+    const logout = async() => {
         setUser(null)
         setToken(null)
         localStorage.removeItem("user")

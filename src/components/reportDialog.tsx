@@ -1,22 +1,22 @@
 import { useAuth } from "@/hooks/useAuth"
-import * as XLSX from 'xlsx'
-import { cn, generateReport, jsonToCSV } from "@/lib/utils"
+import { generateReport, jsonToCSV } from "@/lib/utils"
+import axios from "axios"
 import { addDays, format } from "date-fns"
-import { CalendarIcon, FileImage, FileImageIcon, FileJsonIcon, FileSpreadsheetIcon, FileTypeIcon, Loader2Icon, SheetIcon } from "lucide-react"
+import { CalendarIcon, FileImageIcon, FileJsonIcon, FileSpreadsheetIcon, FileTypeIcon, Loader2Icon, SheetIcon } from "lucide-react"
+import moment from "moment"
 import { useEffect, useState } from "react"
 import { DateRange } from "react-day-picker"
 import { toast } from "sonner"
+import * as XLSX from 'xlsx'
 import { Button } from "./ui/button"
 import { Calendar } from "./ui/calendar"
 import { Checkbox } from "./ui/checkbox"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog"
 import { Label } from "./ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
-import moment from "moment"
-import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
-import axios from "axios"
+import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 
 function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allowedDates }) {
     const today = new Date((new Date()).toDateString())
@@ -31,10 +31,12 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
     // Links to download generated report
     const [link, setLink] = useState({ csv: null, json: null })
     // Which logs are checked 
-    const [reportChecked, setReportChecked] = useState<Object>({
+    const [reportChecked, setReportChecked] = useState({
+        param: null,
         flow: false,
         pressure: false,
         voltage: false,
+        averaging: 'none',
         totalizerNet: false,
         totalizerPositive: false,
         totalizerNegative: false
@@ -68,12 +70,14 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
         if (!reportDialogOpen) {
             setLoadingReport(false)
             setReportChecked({
+                param: null,
                 flow: false,
                 pressure: false,
                 voltage: false,
-                dailyTotalizerNet: false,
-                dailyTotalizerPositive: false,
-                dailyTotalizerNegative: false
+                averaging: 'none',
+                totalizerNet: false,
+                totalizerPositive: false,
+                totalizerNegative: false
             })
             setLink(null)
             setDate({
@@ -96,11 +100,13 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                     </DialogHeader>
                     {loggerInfo ?
                         <div className="text-center">
-                            <Tabs defaultValue="flow-pressure" onValueChange={()=>{
+                            <Tabs defaultValue="flow-pressure" onValueChange={() => {
                                 setReportChecked({
+                                    param: null,
                                     flow: false,
                                     pressure: false,
                                     voltage: false,
+                                    averaging: 'none',
                                     totalizerNet: false,
                                     totalizerPositive: false,
                                     totalizerNegative: false
@@ -110,52 +116,78 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                     <TabsTrigger value="flow-pressure"> Flow & Pressure </TabsTrigger>
                                     <TabsTrigger value="totalizer" disabled={!loggerInfo.Type.includes("flow")}> Daily Volume </TabsTrigger>
                                 </TabsList>
-                                    <p className="text-lg text-left font-semibold">Report Parameters</p>
+                                <p className="text-lg text-left font-semibold">Report Parameters</p>
                                 <TabsContent value="flow-pressure"  >
                                     {/* Checkbox Group */}
                                     <div className="mt-1">
                                         {loggerInfo.Type.includes("flow") ?
                                             <span className="space-x-1 mx-4">
-                                                <Checkbox id="cbFlow" checked={reportChecked.flow} onCheckedChange={(isChecked) => {
+                                                <Checkbox id="cbFlow" checked={reportChecked.param == 'flow'} onCheckedChange={(isChecked) => {
                                                     setLink(null)
                                                     setReportChecked({
                                                         ...reportChecked,
-                                                        flow: isChecked
+                                                        // flow: isChecked
+                                                        param: isChecked ? 'flow' : null
                                                     })
-                                                    if (!reportChecked.flow) {
-                                                        setReportChecked({
-                                                            ...reportChecked,
-                                                            flow: isChecked,
-                                                            totalizerPositive: false,
-                                                            totalizerNegative: false,
-                                                        })
-                                                    }
                                                 }} />
                                                 <Label htmlFor="cbFlow">Flow</Label>
                                             </span> : null
                                         }
                                         {loggerInfo.Type.includes("pressure") ?
                                             <span className="space-x-1 mx-4">
-                                                <Checkbox id="cbPressure" checked={reportChecked.pressure} onCheckedChange={isChecked => {
+                                                <Checkbox id="cbPressure" checked={reportChecked.param == 'pressure'} onCheckedChange={isChecked => {
                                                     setLink(null)
                                                     setReportChecked({
                                                         ...reportChecked,
-                                                        pressure: isChecked
+                                                        // pressure: isChecked
+                                                        param: isChecked ? 'pressure' : null
                                                     })
                                                 }} />
                                                 <Label htmlFor="cbPressure">Pressure</Label>
                                             </span> : null
                                         }
                                         <span className="space-x-1 mx-4">
-                                            <Checkbox id="cbVoltage" checked={reportChecked.voltage} onCheckedChange={isChecked => {
+                                            <Checkbox id="cbVoltage" checked={reportChecked.param == 'voltage'} onCheckedChange={isChecked => {
                                                 setLink(null)
                                                 setReportChecked({
                                                     ...reportChecked,
-                                                    voltage: isChecked
+                                                    // voltage: isChecked
+                                                    param: isChecked ? 'voltage' : null
                                                 })
                                             }} />
                                             <Label htmlFor="cbVoltage">Voltage</Label>
                                         </span>
+                                    </div>
+                                    <div className="mt-1">
+                                        <p className="text-lg text-left font-semibold">Averaging</p>
+                                        {/* Averaging Toggle Group */}
+                                        <ToggleGroup type="single" value={reportChecked.averaging ?? 'none'} onValueChange={(value) => {
+                                            if (!value) return
+                                            console.log(value)
+                                            setReportChecked({
+                                                ...reportChecked,
+                                                averaging: value
+                                            })
+                                        }}>
+                                            <ToggleGroupItem value="none">
+                                                <SheetIcon />
+                                                <div className="ml-1">
+                                                    None
+                                                </div>
+                                            </ToggleGroupItem>
+                                            <ToggleGroupItem value="hourly">
+                                                <SheetIcon />
+                                                <div className="ml-1">
+                                                    Hourly
+                                                </div>
+                                            </ToggleGroupItem>
+                                            <ToggleGroupItem value="daily">
+                                                <SheetIcon />
+                                                <div className="ml-1">
+                                                    Daily
+                                                </div>
+                                            </ToggleGroupItem>
+                                        </ToggleGroup>
                                     </div>
                                     <div className="mt-1"></div>
                                     <p className="text-lg text-left font-semibold">Report Time Range</p>
@@ -219,7 +251,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                                         ...reportChecked,
                                                         totalizerNet: isChecked
                                                     })
-                                                }}  />
+                                                }} />
                                                 <Label htmlFor="cbTotalizerNet">Net Volume</Label>
                                             </span>
                                             <span className="space-x-1 mx-4">
@@ -228,7 +260,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                                         ...reportChecked,
                                                         totalizerPositive: isChecked
                                                     })
-                                                }}  />
+                                                }} />
                                                 <Label htmlFor="cbTotalizerPositive">Forward Volume</Label>
                                             </span>
                                             <span className="space-x-1 mx-4 overflow-hidden">
@@ -237,7 +269,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                                         ...reportChecked,
                                                         totalizerNegative: isChecked
                                                     })
-                                                }}  />
+                                                }} />
                                                 <Label htmlFor="cbTotalizerNegative">Reverse Volume</Label>
                                             </span>
                                         </div> : null
@@ -294,62 +326,62 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                     </div>
                                 </TabsContent>
                             </Tabs>
-                                    <p className="text-lg text-left font-semibold">Report File Format</p>
-                                    <ToggleGroup type="single" value={reportFileType} onValueChange={(value) => {
-                                        if (value) {
-                                            setReportFileType(value)
-                                        }
-                                        setLink(null)
-                                    }}>
-                                        <Tooltip delayDuration={75}>
-                                            <ToggleGroupItem value="xlsx">
-                                                <TooltipTrigger asChild>
-                                                    <FileSpreadsheetIcon />
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Worksheet File <strong><em>.xlsx</em></strong></p>
-                                                </TooltipContent>
-                                            </ToggleGroupItem>
-                                        </Tooltip>
+                            <p className="text-lg text-left font-semibold">Report File Format</p>
+                            <ToggleGroup type="single" value={reportFileType} onValueChange={(value) => {
+                                if (value) {
+                                    setReportFileType(value)
+                                }
+                                setLink(null)
+                            }}>
+                                <Tooltip delayDuration={75}>
+                                    <ToggleGroupItem value="xlsx">
+                                        <TooltipTrigger asChild>
+                                            <FileSpreadsheetIcon />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Worksheet File <strong><em>.xlsx</em></strong></p>
+                                        </TooltipContent>
+                                    </ToggleGroupItem>
+                                </Tooltip>
 
-                                        <Tooltip delayDuration={75}>
-                                            <ToggleGroupItem value="csv">
-                                                <TooltipTrigger asChild>
-                                                    <FileTypeIcon />
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>CSV File <strong><em>.csv</em></strong></p>
-                                                </TooltipContent>
-                                            </ToggleGroupItem>
-                                        </Tooltip>
+                                <Tooltip delayDuration={75}>
+                                    <ToggleGroupItem value="csv">
+                                        <TooltipTrigger asChild>
+                                            <FileTypeIcon />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>CSV File <strong><em>.csv</em></strong></p>
+                                        </TooltipContent>
+                                    </ToggleGroupItem>
+                                </Tooltip>
 
-                                        <Tooltip delayDuration={75}>
-                                            <ToggleGroupItem value="img" disabled>
-                                                <TooltipTrigger asChild>
-                                                    <FileImageIcon />
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Image File <strong><em>.png</em></strong></p>
-                                                </TooltipContent>
-                                            </ToggleGroupItem>
-                                        </Tooltip>
+                                <Tooltip delayDuration={75}>
+                                    <ToggleGroupItem value="img" disabled>
+                                        <TooltipTrigger asChild>
+                                            <FileImageIcon />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Image File <strong><em>.png</em></strong></p>
+                                        </TooltipContent>
+                                    </ToggleGroupItem>
+                                </Tooltip>
 
-                                        <Tooltip delayDuration={75}>
-                                            <ToggleGroupItem value="json" >
-                                                <TooltipTrigger asChild>
-                                                    <FileJsonIcon />
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>JSON File <strong><em>.json</em></strong></p>
-                                                </TooltipContent>
-                                            </ToggleGroupItem>
-                                        </Tooltip>
-                                    </ToggleGroup>
+                                <Tooltip delayDuration={75}>
+                                    <ToggleGroupItem value="json" >
+                                        <TooltipTrigger asChild>
+                                            <FileJsonIcon />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>JSON File <strong><em>.json</em></strong></p>
+                                        </TooltipContent>
+                                    </ToggleGroupItem>
+                                </Tooltip>
+                            </ToggleGroup>
 
                         </div> : <Loader2Icon className="animate-spin m-auto size-16" />}
                     <div className="grid grid-cols-2 gap-x-2">
                         {/* {[reportChecked.flow, reportChecked.pressure, reportChecked.voltage].includes(true) && (date?.from || date?.to) && !loadingReport ? */}
-                        {Object.values(reportChecked).includes(true) && (date?.from || date?.to) && !loadingReport ?
+                        {(reportChecked.param != null || reportChecked.totalizerNet || reportChecked.totalizerPositive || reportChecked.totalizerNegative) && (date?.from || date?.to) && !loadingReport ?
                             <Button className="bg-piwad-lightyellow-500 text-black" onClick={async () => {
                                 setLoadingReport(true)
                                 toast.loading("Generating Report")

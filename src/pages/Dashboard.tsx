@@ -1,13 +1,13 @@
+import { lazy, Suspense, useEffect } from "react";
 import TableCard from "@/components/TableCard";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useAuth } from "@/hooks/useAuth";
 import { DrawerProvider } from "@/hooks/useDrawerContext";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import '../App.css';
 import Header from "../components/Header";
-import LoggerMapCard from "../components/Map";
+const LoggerMapCard = lazy(() => import('@/components/Map'));
 import '../index.css';
 import { DialogProvider } from "@/hooks/useDialogContext";
 
@@ -27,7 +27,7 @@ function DashboardPage() {
             }
         })()
     }, [])
-    
+
     if (!token || !user) {
         return <Navigate to={"/aquaops/login"} />
     }
@@ -43,7 +43,9 @@ function DashboardPage() {
                             </ResizablePanel>
                             <ResizableHandle withHandle />
                             <ResizablePanel defaultSize={76} minSize={45} className="mx-2">
-                                <LoggerMapCard />
+                                <Suspense fallback={<div>Loading Map...</div>}>
+                                    <LoggerMapCard />
+                                </Suspense>
                             </ResizablePanel>
                         </ResizablePanelGroup>
                     ) : (
@@ -55,7 +57,9 @@ function DashboardPage() {
                             ) : null}
                             {dashboardPrefs?.showLoggerMap ? (
                                 <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9 : 'full'} z-0`}>
-                                    <LoggerMapCard />
+                                    <Suspense fallback={<div>Loading Map...</div>}>
+                                        <LoggerMapCard />
+                                    </Suspense>
                                 </div>
                             ) : null}
                         </div>
