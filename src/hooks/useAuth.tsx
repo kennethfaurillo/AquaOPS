@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocalStorage } from "./useLocalStorage";
 import axios from "axios";
@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
         navigate("/aquaops", { replace: true })
     }
 
-    const logout = async() => {
+    const logout = async () => {
         setUser(null)
         setToken(null)
         localStorage.removeItem("user")
@@ -29,13 +29,19 @@ export const AuthProvider = ({ children }) => {
             token: _token
         })
         if (validateTokenResponse.data.pass) {
-            console.log("valid token")
             await login(validateTokenResponse.data.user, _token)
         } else {
-            console.log("Token invalid/expired")
             await logout()
         }
     }
+
+    useEffect(() => {
+        (async () => {
+            if (user && token) {
+                await validateToken(user, token)
+            }
+        })();
+    }, [])
 
     const value = useMemo(() => ({
         user, token, login, logout, validateToken

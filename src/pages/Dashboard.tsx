@@ -20,14 +20,6 @@ function DashboardPage() {
     })
     const isWideScreen = window.innerWidth >= 1280
 
-    useEffect(() => {
-        (async () => {
-            if (token && user) {
-                await validateToken(user, token)
-            }
-        })()
-    }, [])
-
     if (!token || !user) {
         return <Navigate to={"/aquaops/login"} />
     }

@@ -248,7 +248,6 @@ function LoggerMapCard() {
   useEffect(() => {
     return () => {
       fetchLatestLogsInfo()
-      console.log("forced map refresh")
     }
   }, [mapRefreshToggle])
 
