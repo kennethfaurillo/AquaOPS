@@ -78,16 +78,17 @@ export function DataTable<TData, TValue, TInitState, TSorting, TSetSorting, TLoa
                 </TableRow>
                 : null
             }
-            {loading ? Array(5).fill(null).map((item, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-medium"><Skeleton className="bg-gray-300 w-[80px] h-[20px] rounded-full" /></TableCell>
-                <TableCell className="font-medium"><Skeleton className="bg-gray-300 w-[60px] h-[20px] rounded-full" /></TableCell>
-                <TableCell className="font-medium"><Skeleton className="bg-gray-300 w-[70px] h-[20px] rounded-full" /></TableCell>
-                <TableCell className="font-medium"><Skeleton className="bg-gray-300 w-[60px] h-[20px] rounded-full" /></TableCell>
-              </TableRow>)
-            ) : null}
           </TableBody>
         </Table>
+          {1 ? 
+              <div className="flex items-center justify-center h-full w-full bg-slate-50 rounded-lg  border-slate-200 p-6">
+                <div className="text-center">
+                  <div className="animate-spin mb-3 h-8 w-8 border-t-2 border-b-2 border-blue-500 rounded-full mx-auto"></div>
+                  <p className="text-slate-600 font-medium">Loading logger data...</p>
+                  <p className="text-slate-400 text-sm">Please wait a moment</p>
+                </div>
+              </div>
+             : null}
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
