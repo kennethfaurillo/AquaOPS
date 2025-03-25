@@ -85,16 +85,16 @@ function LogLineChart(props) {
             let logResponse = null
             let totalizerResponse = null
             if (loggerType.includes('pressure') && loggerType.includes('flow')) {
-                logResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logs/`, {
+                logResponse = await axios.post(`${import.meta.env.VITE_API}/api/logs/`, {
                     logTypes: loggerType,
                     loggerId: props.logger.LoggerId
                 })
-                totalizerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/totalizer/${props.logger.LoggerId}`)
+                totalizerResponse = await axios.get(`${import.meta.env.VITE_API}/api/totalizer/${props.logger.LoggerId}`)
             } else if (loggerType.includes('pressure')) {
-                logResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/pressure_log/${props.logger.LoggerId}`)
+                logResponse = await axios.get(`${import.meta.env.VITE_API}/api/pressure_log/${props.logger.LoggerId}`)
             } else if (loggerType.includes('flow')) {
-                logResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/flow_log/${props.logger.LoggerId}`)
-                totalizerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/totalizer/${props.logger.LoggerId}`)
+                logResponse = await axios.get(`${import.meta.env.VITE_API}/api/flow_log/${props.logger.LoggerId}`)
+                totalizerResponse = await axios.get(`${import.meta.env.VITE_API}/api/totalizer/${props.logger.LoggerId}`)
             } else {
                 console.log("Unknown Datalogger")
                 console.log(JSON.stringify(props.logger))

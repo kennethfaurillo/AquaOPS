@@ -199,7 +199,7 @@ function LoggerTable(props) {
   useEffect(() => {
     fetchLatestLogsInfo()
     // Setup SSE Listener for new logs
-    const sse = new EventSource(`//${import.meta.env.VITE_SSE_HOST}:${import.meta.env.VITE_SSE_PORT}/sse`);
+    const sse = new EventSource(`${import.meta.env.VITE_SSE}`);
     const sseLog = () => {
       fetchLatestLogsInfo()
     }
@@ -217,8 +217,8 @@ function LoggerTable(props) {
   async function fetchLatestLogsInfo() {
     setLoading(true)
     try {
-      const loggersInfoResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
-      const latestLogsResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`)
+      const loggersInfoResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/`)
+      const latestLogsResponse = await axios.get(`${import.meta.env.VITE_API}/api/latest_log/`)
       let tempLoggersLatest: {}[] = []
       const latestLog = latestLogsResponse.data.reduce((latest, current) => {
         return new Date(current.LogTime) > new Date(latest.LogTime) ? current : latest

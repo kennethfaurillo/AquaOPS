@@ -306,7 +306,7 @@ function LoggerMapCard() {
     fetchSources()
     fetchLatestLogsInfo()
     // Setup SSE Listener for new logs
-    const sse = new EventSource(`//${import.meta.env.VITE_SSE_HOST}:${import.meta.env.VITE_SSE_PORT}/sse`);
+    const sse = new EventSource(`${import.meta.env.VITE_SSE}`);
     const sseLog = () => {
       fetchLatestLogsInfo()
     }
@@ -326,8 +326,8 @@ function LoggerMapCard() {
    */
   async function fetchLatestLogsInfo() {
     try {
-      const loggersInfoResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/`)
-      const latestLogsResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/latest_log/`)
+      const loggersInfoResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/`)
+      const latestLogsResponse = await axios.get(`${import.meta.env.VITE_API}/api/latest_log/`)
       const tempLoggersStatus = { Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 }
       let tempLoggersLatest = new Map()
       loggersInfoResponse.data.map((logger: Datalogger) => {
@@ -363,7 +363,7 @@ function LoggerMapCard() {
    */
   async function fetchSources() {
     try {
-      const sourceInfo = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/source/`)
+      const sourceInfo = await axios.get(`${import.meta.env.VITE_API}/api/source/`)
       setSources(sourceInfo.data)
     } catch (error) {
       console.log(error)

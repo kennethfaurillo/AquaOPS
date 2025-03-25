@@ -28,7 +28,7 @@ export const LoginPage = () => {
 
     const handleLogin = async (event) => {
         event.preventDefault()
-        const authResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/login/`, {
+        const authResponse = await axios.post(`${import.meta.env.VITE_API}/auth/login/`, {
             username: username,
             password: password
         })

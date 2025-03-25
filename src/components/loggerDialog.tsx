@@ -31,7 +31,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
     const { mapRefreshToggle, setMapRefreshToggle, loggerTableRefreshToggle, setLoggerTableRefreshToggle } = useSharedStateContext()
 
     const fetchConfigLogs = async () => {
-        const configLogResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/config_log?userId=${user.UserId}&token=${token}&loggerId=${loggerInfo.LoggerId}`)
+        const configLogResponse = await axios.get(`${import.meta.env.VITE_API}/auth/config_log?userId=${user.UserId}&token=${token}&loggerId=${loggerInfo.LoggerId}`)
         setConfigLogs(configLogResponse.data)
         return
     }
@@ -220,7 +220,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                         try {
                             if (Object.keys(_loggerLimits).length) {
                                 toast.loading("Updating Limits")
-                                const changeConfigResponse = await axios.patch(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger_limits/${loggerInfo.LoggerId}`, {
+                                const changeConfigResponse = await axios.patch(`${import.meta.env.VITE_API}/api/logger_limits/${loggerInfo.LoggerId}`, {
                                     ..._loggerLimits,
                                     user
                                 })
@@ -232,7 +232,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                 }, 500)
                             } else if (Object.keys(_loggerConfig).length) {
                                 toast.loading("Updating Config")
-                                const changeConfigResponse = await axios.patch(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger_config/${loggerInfo.LoggerId}`, {
+                                const changeConfigResponse = await axios.patch(`${import.meta.env.VITE_API}/api/logger_config/${loggerInfo.LoggerId}`, {
                                     ..._loggerConfig,
                                     user
                                 })

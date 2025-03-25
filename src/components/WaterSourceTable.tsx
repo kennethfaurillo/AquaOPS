@@ -160,7 +160,7 @@ function WaterSourceTable() {
     async function fetchSourceInfo() {
       setLoading(true)
       try {
-        const sourceInfo = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/source/`)
+        const sourceInfo = await axios.get(`${import.meta.env.VITE_API}/api/source/`)
         setSourceInfo(sourceInfo.data)
         setLoading(false)
       } catch (error) {

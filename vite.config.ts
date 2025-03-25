@@ -12,10 +12,10 @@ export default defineConfig({
     }
   },
   server: {
-    // https: {
-    //   key: fs.readFileSync(path.resolve(__dirname, 'server.key')),
-    //   cert: fs.readFileSync(path.resolve(__dirname, 'server.cert')),
-    // },
+    https: {
+      key: fs.readFileSync('./certs/key.pem'),
+      cert: fs.readFileSync('./certs/cert.pem'),
+    },
     host: true,
     open: true
   },

@@ -24,7 +24,7 @@ export function DrawerProvider({ children }) {
         logger, setLogger, loggerInfo, setLoggerInfo } = useSharedStateContext()
 
     const fetchLoggerInfo = async (loggerId) => {
-        const loggerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/${loggerId}`)
+        const loggerResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/${loggerId}`)
         return loggerResponse.data[0]
     }
 
@@ -32,7 +32,7 @@ export function DrawerProvider({ children }) {
         if (!["pressure", "flow"].includes(loggerType)) {
             throw ("Invalid Logger Type")
         }
-        const logDatesResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/${loggerType}_log_dates/${loggerId}`)
+        const logDatesResponse = await axios.get(`${import.meta.env.VITE_API}/api/${loggerType}_log_dates/${loggerId}`)
         return logDatesResponse.data
     }
 

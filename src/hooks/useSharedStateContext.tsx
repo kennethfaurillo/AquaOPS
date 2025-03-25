@@ -20,7 +20,7 @@ export function SharedStateProvider({ children }) {
 
     const fetchLoggerInfo = async (loggerId) => {
         try{
-            const loggerResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/logger/${loggerId}`)
+            const loggerResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/${loggerId}`)
             return loggerResponse.data[0]
         } catch(e){
             console.log(e)

@@ -42,7 +42,7 @@ function Header(props) {
     }, [])
 
     const fetchEventLogs = async () => {
-        const eventLogResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/event_log?userId=${user.UserId}&token=${token}`)
+        const eventLogResponse = await axios.get(`${import.meta.env.VITE_API}/auth/event_log?userId=${user.UserId}&token=${token}`)
         setEventLogs(eventLogResponse.data)
         return
     }

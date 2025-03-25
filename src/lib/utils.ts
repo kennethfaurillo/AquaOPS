@@ -23,14 +23,14 @@ export async function generateReport(loggerInfo, fields, dateRange, user) {
     if (fields.averaging) {
       console.log("Averaging", fields.averaging)
     }
-    const response = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/${logTable}/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}&averaged=${fields.averaging}`,)
+    const response = await axios.get(`${import.meta.env.VITE_API}/api/${logTable}/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}&averaged=${fields.averaging}`,)
     console.log(response.data)
     data = response.data ?? []
 
     // }
   }
   else {
-    const response = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/totalizer/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}`)
+    const response = await axios.get(`${import.meta.env.VITE_API}/api/totalizer/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}`)
     data = response.data ?? []
   }
   if (!data || data.length == 0) {

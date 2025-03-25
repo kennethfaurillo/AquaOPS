@@ -50,7 +50,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
     const { user, token } = useAuth()
 
     const fetchTotalizerDates = async (loggerId) => {
-        const logDatesResponse = await axios.get(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/api/totalizer_log_dates/${loggerId}`)
+        const logDatesResponse = await axios.get(`${import.meta.env.VITE_API}/api/totalizer_log_dates/${loggerId}`)
         return logDatesResponse.data
     }
 

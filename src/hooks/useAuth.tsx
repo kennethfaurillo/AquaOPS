@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     const validateToken = async (_user, _token) => {
-        const validateTokenResponse = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/validate-token/`, {
+        const validateTokenResponse = await axios.post(`${import.meta.env.VITE_API}/auth/validate-token/`, {
             user: _user,
             token: _token
         })
