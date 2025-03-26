@@ -9,7 +9,6 @@ import WaterSourceTable from "./WaterSourceTable";
 import { useDialogContext } from "@/hooks/useDialogContext";
 
 function TableCard() {
-    const [latestLog, setLatestLog] = useState(null)
     const [activeTab, setActiveTab] = useState("loggers")
     const { addSourceDialogOpen, setAddSourceDialogOpen } = useDialogContext()
     return (
@@ -31,7 +30,7 @@ function TableCard() {
                                 <Separator />
                             </CardHeader>
                             <CardContent>
-                                <LatestLogTable setLatestLog={setLatestLog} />
+                                <LatestLogTable />
                             </CardContent>
                         </Card>
                     </TabsContent>

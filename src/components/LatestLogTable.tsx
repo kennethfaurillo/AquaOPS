@@ -12,13 +12,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 function LoggerTable(props) {
   const [loggerData, setLoggerData] = useState([])
   const [loading, setLoading] = useState(false)
-  const setLatestLog = props?.setLatestLog
   const [sorting, setSorting] = useState<SortingState>([{
     id: "Name",
     desc: false, // Adjust the sorting order if needed
   }])
 
   const { setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo, loggerTableRefreshToggle } = useSharedStateContext()
+  let socket: WebSocket | null = null;
 
   const latestLogsColumns: ColumnDef<Datalogger>[] = [
     {
@@ -189,6 +189,22 @@ function LoggerTable(props) {
     },
   ]
 
+  function connectWebSocket() {
+    socket = new WebSocket(`${import.meta.env.VITE_WS}`);
+
+    socket.onmessage = (msgEvent) => {
+      try {
+        const data = JSON.parse(msgEvent.data);
+        if (data.type === 'watchdog' && data.event == 'update') {
+          fetchLatestLogsInfo();
+        }
+      } catch (error) {
+        // Non-JSON data, ignore
+        console.log(msgEvent.data.toString());
+      }
+    };
+  }
+
   // Forced Refresh when updating database
   useEffect(() => {
     return () => {
@@ -198,19 +214,12 @@ function LoggerTable(props) {
 
   useEffect(() => {
     fetchLatestLogsInfo()
-    // Setup SSE Listener for new logs
-    const sse = new EventSource(`${import.meta.env.VITE_SSE}`);
-    const sseLog = () => {
-      fetchLatestLogsInfo()
-    }
-    if (sse) {
-      sse.addEventListener('LogEvent', sseLog)
-    }
+    // Setup Websockets for realtime updates
+    connectWebSocket();
     return () => {
-      if (sse) {
-        sse.removeEventListener('LogEvent', sseLog)
+      if (socket) {
+        socket.close()
       }
-      sse.close()
     }
   }, [])
 
@@ -223,7 +232,6 @@ function LoggerTable(props) {
       const latestLog = latestLogsResponse.data.reduce((latest, current) => {
         return new Date(current.LogTime) > new Date(latest.LogTime) ? current : latest
       })
-      setLatestLog(latestLog)
       loggersInfoResponse.data.map((logger: Datalogger) => {
         latestLogsResponse.data.map((log: DataLog) => {
           if (!logger.Visibility.split(',').includes('table')) {

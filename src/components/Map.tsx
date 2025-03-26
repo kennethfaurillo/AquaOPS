@@ -244,6 +244,24 @@ function LoggerMapCard() {
   const { BaseLayer, Overlay } = LayersControl
   const scaleFactor = 1
 
+  let socket: WebSocket | null = null;
+
+  function connectWebSocket() {
+    socket = new WebSocket(`${import.meta.env.VITE_WS}`);
+
+    socket.onmessage = (msgEvent) => {
+      try {
+        const data = JSON.parse(msgEvent.data);
+        if (data.type === 'watchdog' && data.event == 'update') {
+          fetchLatestLogsInfo();
+        }
+      } catch (error) {
+        // Non-JSON data, ignore
+        console.log(msgEvent.data.toString());
+      }
+    };
+  }
+
   // Forced Refresh when updating database
   useEffect(() => {
     return () => {
@@ -305,19 +323,12 @@ function LoggerMapCard() {
   useEffect(() => {
     fetchSources()
     fetchLatestLogsInfo()
-    // Setup SSE Listener for new logs
-    const sse = new EventSource(`${import.meta.env.VITE_SSE}`);
-    const sseLog = () => {
-      fetchLatestLogsInfo()
-    }
-    if (sse) {
-      sse.addEventListener('LogEvent', sseLog)
-    }
+    // Setup Websockets for realtime updates
+    connectWebSocket();
     return () => {
-      if (sse) {
-        sse.removeEventListener('LogEvent', sseLog)
+      if (socket) {
+        socket.close()
       }
-      sse.close()
     }
   }, [])
 
@@ -646,7 +657,7 @@ function LoggerMapCard() {
           : null}
         {fullscreenMap ?
           <div className='absolute top-2 left-12 p-2 rounded-full z-[400]'>
-            <Time color='black'/>
+            <Time color='black' />
           </div>
           : null}
         {fullscreenMap ?
@@ -705,7 +716,7 @@ function LoggerMapCard() {
               </div>
             </div>
             <div className='-my-2'>
-              <Time/>
+              <Time />
             </div>
           </CardTitle>
           <CardDescription />

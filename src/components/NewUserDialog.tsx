@@ -70,7 +70,7 @@ function NewUserDialog({ newUserDialogOpen, setNewUserDialogOpen }) {
             return
         }
         //check if username already exists
-        const usernameExists = (await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/check-user`, {
+        const usernameExists = (await axios.post(`${import.meta.env.VITE_API}/auth/check-user`, {
             username: username
         })).data?.UserExists
         if (usernameExists) {
@@ -89,7 +89,7 @@ function NewUserDialog({ newUserDialogOpen, setNewUserDialogOpen }) {
             return
         }
         try {
-            const createdUser = await axios.post(`http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}/auth/create-user`, {
+            const createdUser = await axios.post(`${import.meta.env.VITE_API}/auth/create-user`, {
                 user: user,
                 token: token,
                 username: username,

@@ -61,7 +61,7 @@ export function DrawerProvider({ children }) {
             lastUpdated /= 60
         }
         return (
-            <div className="flex gap-x-1">
+            <div className="flex gap-x-1 text-sm text-muted-foreground">
                 Logger ID: {_logger?.LoggerId ?? "#########"} <Separator orientation="vertical" className="h-5" /> Last Updated: {Math.round(lastUpdated)} <em>{timeUnit}</em> ago
                 <Separator orientation="vertical" className="h-5" /> <div className="flex gap-x-1"> Status: <div className={'font-semibold ' + statusColor[loggerStatus]}> {loggerStatus} </div> </div>
             </div>
@@ -85,9 +85,8 @@ export function DrawerProvider({ children }) {
                                 }
                             }}><SettingsIcon /></Button>
                         </DrawerTitle>
-                        <DrawerDescription >
+                        <DrawerDescription/>
                             <LoggerStatus logger={logger} />
-                        </DrawerDescription>
                     </DrawerHeader>
                     {logger ? <Suspense fallback={<Loader2Icon className="animate-spin self-center size-12 my-5" />}>
                         <LogLineChart logger={logger} timeRange={chartTimeRange} />
