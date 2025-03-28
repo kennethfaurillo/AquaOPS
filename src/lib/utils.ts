@@ -26,8 +26,6 @@ export async function generateReport(loggerInfo, fields, dateRange, user) {
     const response = await axios.get(`${import.meta.env.VITE_API}/api/${logTable}/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}&averaged=${fields.averaging}`,)
     console.log(response.data)
     data = response.data ?? []
-
-    // }
   }
   else {
     const response = await axios.get(`${import.meta.env.VITE_API}/api/totalizer/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}`)
@@ -47,7 +45,7 @@ export async function generateReport(loggerInfo, fields, dateRange, user) {
         else if (fields.param == "pressure") key = (!fields || fields.averaging != 'none') ? "AveragePressure" : "CurrentPressure"
         else if (fields.param == "voltage") key = "AverageVoltage"
         let newLog = {
-          LogTime: timeKey == 'LogTime' ? moment(currentLog[timeKey].replace('Z','')).format('YYYY-MM-DD HH:mm:ss') : currentLog[timeKey],
+          LogTime: timeKey == 'LogTime' ? moment(currentLog[timeKey].replace('Z', '')).format('YYYY-MM-DD HH:mm:ss') : currentLog[timeKey],
           [key]: currentLog[key]
         }
         newData.push(newLog)
@@ -102,12 +100,12 @@ export function jsonToCSV(jsonArr, header) {
 
 // Check a value against a given limit (csv - low,high)
 // true - in range, false - outside
-export function isValueInRange(limits, value) {
+export function isValueInRange(limits: string, value: number) {
   const [low, high] = limits.split(',').map(Number);
   return value >= low && value <= high;
 };
 
-export function lerp(min, max, val) {
+export function lerp(min: number, max: number, val: number) {
   return (val - min) / (max - min) * 100
 }
 

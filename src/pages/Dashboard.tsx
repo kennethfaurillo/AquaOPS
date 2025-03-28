@@ -1,16 +1,18 @@
-import { lazy, Suspense, useEffect } from "react";
 import TableCard from "@/components/TableCard";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useAuth } from "@/hooks/useAuth";
+import { DialogProvider } from "@/hooks/useDialogContext";
 import { DrawerProvider } from "@/hooks/useDrawerContext";
+import useIsFirstRender from "@/hooks/useIsFirstRender";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useLogData } from "@/hooks/useLogData";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { lazy, Suspense, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import '../App.css';
 import Header from "../components/Header";
-const LoggerMapCard = lazy(() => import('@/components/Map'));
 import '../index.css';
-import { DialogProvider } from "@/hooks/useDialogContext";
-import { Loader2Icon } from "lucide-react";
+const LoggerMapCard = lazy(() => import('@/components/Map'));
 
 
 const MapFallback = () => (
@@ -24,12 +26,35 @@ const MapFallback = () => (
 )
 
 function DashboardPage() {
-    const { user, token, validateToken } = useAuth()
+    const { user, token } = useAuth()
     const [dashboardPrefs, setDashboardPrefs] = useLocalStorage('dashboardPrefs', {
         showLoggerList: true,
         showLoggerMap: true
     })
+    const { triggerFetch } = useWebSocket()
+    const { fetchData } = useLogData()
+    const isFirstRender = useIsFirstRender()
     const isWideScreen = window.innerWidth >= 1280
+
+    // fetch on render
+    useEffect(() => {
+        fetchData()
+    }, [])
+    
+    // refetch on dashboardPrefs change
+    useEffect(() => {
+        if(isFirstRender) {  
+            return
+        }
+        fetchData()
+    }, [dashboardPrefs])
+
+    useEffect(() => {
+        if(isFirstRender) {  
+            return
+        }
+        fetchData()
+    }, [triggerFetch]); // Depend on triggerFetch
 
     if (!token || !user) {
         return <Navigate to={"/aquaops/login"} />

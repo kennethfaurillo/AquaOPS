@@ -75,13 +75,11 @@ function LogLineChart(props) {
     })
     const timeRange = props.timeRange
     const loggerType = props.logger.Type ? props.logger.Type.split(',') : props.logger.Name.toLowerCase().includes("pressure") ? "pressure" : "flow"
-    // const [average, setAverage] = useState({})
     const [pressureStatistics, setPressureStatistics] = useState({})
     const [flowStatistics, setFlowStatistics] = useState({})
 
     useEffect(() => {
         const fetchData = async () => {
-            // { console.log(window.innerWidth) }
             let logResponse = null
             let totalizerResponse = null
             if (loggerType.includes('pressure') && loggerType.includes('flow')) {

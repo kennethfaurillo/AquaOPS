@@ -1,6 +1,7 @@
+import useIsFirstRender from "@/hooks/useIsFirstRender"
+import { useLogData } from "@/hooks/useLogData"
 import { useSharedStateContext } from "@/hooks/useSharedStateContext"
 import { ColumnDef, SortingState } from "@tanstack/react-table"
-import axios from 'axios'
 import { ArrowDownIcon, ArrowUpIcon, CircleGaugeIcon, Clock4Icon, MoreHorizontal, RouterIcon, ScatterChartIcon, SettingsIcon, WavesIcon } from "lucide-react"
 import moment from "moment"
 import { useEffect, useState } from "react"
@@ -9,7 +10,7 @@ import { Button } from "./ui/button"
 import { DataTable } from "./ui/data-table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
 
-function LoggerTable(props) {
+function LoggerTable() {
   const [loggerData, setLoggerData] = useState([])
   const [loading, setLoading] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([{
@@ -17,8 +18,9 @@ function LoggerTable(props) {
     desc: false, // Adjust the sorting order if needed
   }])
 
-  const { setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo, loggerTableRefreshToggle } = useSharedStateContext()
-  let socket: WebSocket | null = null;
+  const { setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo } = useSharedStateContext()
+  const { latestLogsData, loggersData } = useLogData()
+  const isFirstRender = useIsFirstRender()
 
   const latestLogsColumns: ColumnDef<Datalogger>[] = [
     {
@@ -51,8 +53,8 @@ function LoggerTable(props) {
         )
       },
       cell: ({ row }) => {
-        const nameSplit = row.getValue("Name").split('_')
-        const name = nameSplit.slice(2).toString().replaceAll('-', ' ').replaceAll('=', '-')
+        const nameSplit = (row.getValue("Name") as string).split('_') 
+        const name = nameSplit.slice(2).toString().replace(/-/g, ' ').replace(/=/g, '-')
         const type = nameSplit.slice(1, 2)
         return (
           <>
@@ -111,11 +113,12 @@ function LoggerTable(props) {
         )
       },
       cell: ({ row }) => {
+        const logTime: string = row.getValue("LogTime")
         if (row.getValue("LogTime")) return (
           <div className="text-right">
-            {(moment(row.getValue("LogTime").replace('Z', ''), true).format("M/D/YY "))}
+            {(moment(logTime.replace('Z', ''), true).format("M/D/YY "))}
             <br />
-            {(moment(row.getValue("LogTime").replace('Z', ''), true).format("h:mm A"))}
+            {(moment(logTime.replace('Z', ''), true).format("h:mm A"))}
           </div>)
         return (<div className="text-gray-300 font-semibold">NA</div>)
       }
@@ -189,51 +192,21 @@ function LoggerTable(props) {
     },
   ]
 
-  function connectWebSocket() {
-    socket = new WebSocket(`${import.meta.env.VITE_WS}`);
-
-    socket.onmessage = (msgEvent) => {
-      try {
-        const data = JSON.parse(msgEvent.data);
-        if (data.type === 'watchdog' && data.event == 'update') {
-          fetchLatestLogsInfo();
-        }
-      } catch (error) {
-        // Non-JSON data, ignore
-        console.log(msgEvent.data.toString());
-      }
-    };
-  }
-
-  // Forced Refresh when updating database
   useEffect(() => {
-    return () => {
+    if (isFirstRender) {
+      return
+    }
+    if (loggersData.length && latestLogsData.length) {
       fetchLatestLogsInfo()
     }
-  }, [loggerTableRefreshToggle])
-
-  useEffect(() => {
-    fetchLatestLogsInfo()
-    // Setup Websockets for realtime updates
-    connectWebSocket();
-    return () => {
-      if (socket) {
-        socket.close()
-      }
-    }
-  }, [])
+  }, [loggersData, latestLogsData])
 
   async function fetchLatestLogsInfo() {
     setLoading(true)
     try {
-      const loggersInfoResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/`)
-      const latestLogsResponse = await axios.get(`${import.meta.env.VITE_API}/api/latest_log/`)
       let tempLoggersLatest: {}[] = []
-      const latestLog = latestLogsResponse.data.reduce((latest, current) => {
-        return new Date(current.LogTime) > new Date(latest.LogTime) ? current : latest
-      })
-      loggersInfoResponse.data.map((logger: Datalogger) => {
-        latestLogsResponse.data.map((log: DataLog) => {
+      loggersData.map((logger: Datalogger) => {
+        latestLogsData.map((log: DataLog) => {
           if (!logger.Visibility.split(',').includes('table')) {
             return
           }

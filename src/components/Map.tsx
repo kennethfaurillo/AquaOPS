@@ -33,6 +33,8 @@ import icSpring from '../assets/Tank.svg'
 import icValve from '../assets/Tube.svg'
 import Time from './Time'
 import { Separator } from './ui/separator'
+import { useLogData } from '@/hooks/useLogData'
+import useIsFirstRender from '@/hooks/useIsFirstRender'
 
 
 const loggerIcon = new Icon({
@@ -241,33 +243,19 @@ function LoggerMapCard() {
   const [expandMapTable, setExpandMapTable] = useState(false)
 
   const { setChartDrawerOpen, setLogger, mapRefreshToggle } = useSharedStateContext()
+  const { loggersData, latestLogsData } = useLogData()
+  const isFirstRender = useIsFirstRender()
   const { BaseLayer, Overlay } = LayersControl
   const scaleFactor = 1
 
-  let socket: WebSocket | null = null;
-
-  function connectWebSocket() {
-    socket = new WebSocket(`${import.meta.env.VITE_WS}`);
-
-    socket.onmessage = (msgEvent) => {
-      try {
-        const data = JSON.parse(msgEvent.data);
-        if (data.type === 'watchdog' && data.event == 'update') {
-          fetchLatestLogsInfo();
-        }
-      } catch (error) {
-        // Non-JSON data, ignore
-        console.log(msgEvent.data.toString());
-      }
-    };
-  }
-
-  // Forced Refresh when updating database
   useEffect(() => {
-    return () => {
+    if (isFirstRender) {
+      return
+    }
+    if (loggersData.length && latestLogsData.length) {
       fetchLatestLogsInfo()
     }
-  }, [mapRefreshToggle])
+  }, [loggersData, latestLogsData])
 
   useEffect(() => {
     if (!map) return
@@ -319,17 +307,9 @@ function LoggerMapCard() {
     }
   }, [loggersLatest])
 
-  // Initial load
+  // Initial load/op
   useEffect(() => {
     fetchSources()
-    fetchLatestLogsInfo()
-    // Setup Websockets for realtime updates
-    connectWebSocket();
-    return () => {
-      if (socket) {
-        socket.close()
-      }
-    }
   }, [])
 
   /**
@@ -337,12 +317,10 @@ function LoggerMapCard() {
    */
   async function fetchLatestLogsInfo() {
     try {
-      const loggersInfoResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/`)
-      const latestLogsResponse = await axios.get(`${import.meta.env.VITE_API}/api/latest_log/`)
       const tempLoggersStatus = { Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 }
       let tempLoggersLatest = new Map()
-      loggersInfoResponse.data.map((logger: Datalogger) => {
-        latestLogsResponse.data.map((log: DataLog) => {
+      loggersData.map((logger: Datalogger) => {
+        latestLogsData.map((log: DataLog) => {
           if (logger.LoggerId == log.LoggerId) {
             if (!logger.Enabled) {
               tempLoggersStatus.Disabled++

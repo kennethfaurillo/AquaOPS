@@ -7,7 +7,6 @@ interface State {
     hasError: boolean;
 }
 
-// ErrorBoundary component
 class ErrorBoundary extends React.Component<Props, State>{
     state = { hasError: false};
 

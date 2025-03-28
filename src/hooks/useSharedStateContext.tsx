@@ -1,9 +1,27 @@
 import axios from "axios"
 import { createContext, useContext, useMemo, useState } from "react"
 
-const SharedStateContext = createContext()
+type SharedStateContextType = {
+    chartDrawerOpen: boolean
+    setChartDrawerOpen: (open: boolean) => void
+    loggerDialogOpen: boolean
+    setLoggerDialogOpen: (open: boolean) => void
+    reportDialogOpen: boolean
+    setReportDialogOpen: (open: boolean) => void
+    logger: any
+    setLogger: (logger: any) => void
+    loggerInfo: any
+    setLoggerInfo: (loggerInfo: any) => void
+    fetchLoggerInfo: (loggerId: string) => Promise<any>
+    mapRefreshToggle: boolean
+    setMapRefreshToggle: (toggle: boolean) => void
+    loggerTableRefreshToggle: boolean
+    setLoggerTableRefreshToggle: (toggle: boolean) => void
+}
 
-export function SharedStateProvider({ children }) {
+const SharedStateContext = createContext<SharedStateContextType | null>(null)
+
+export function SharedStateProvider({ children }: { children: React.ReactNode }) {
     // Modal drawer for charts    
     const [chartDrawerOpen, setChartDrawerOpen] = useState(false)
     // Modal dialog state for logger config
@@ -18,11 +36,11 @@ export function SharedStateProvider({ children }) {
     const [mapRefreshToggle, setMapRefreshToggle] = useState(true)
     const [loggerTableRefreshToggle, setLoggerTableRefreshToggle] = useState(true)
 
-    const fetchLoggerInfo = async (loggerId) => {
-        try{
+    const fetchLoggerInfo = async (loggerId: string) => {
+        try {
             const loggerResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/${loggerId}`)
             return loggerResponse.data[0]
-        } catch(e){
+        } catch (e) {
             console.log(e)
         }
     }
@@ -40,4 +58,10 @@ export function SharedStateProvider({ children }) {
     )
 }
 
-export const useSharedStateContext = () => useContext(SharedStateContext)
+export const useSharedStateContext = () => {
+    const context = useContext(SharedStateContext)
+    if (!context) {
+        throw new Error('useSharedStateContext must be used within a SharedStateProvider')
+    }
+    return context
+}

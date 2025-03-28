@@ -7,8 +7,10 @@ import { AuthProvider } from "./hooks/useAuth"
 const DashboardPage = lazy(() => import('@/pages/Dashboard'));
 import { LoginPage } from "./pages/Login"
 import { SharedStateProvider } from "./hooks/useSharedStateContext"
-import ErrorBoundary from "./ErrorBoundary"
+import ErrorBoundary from "@/components/ErrorBoundary"
 import logoHorizontal from './assets/logo-horizontal.png'
+import { WebSocketProvider } from "./hooks/useWebSocket"
+import { LogDataProvider } from "./hooks/useLogData"
 
 
 const ErrorFallback = () => (
@@ -30,11 +32,17 @@ const ErrorFallback = () => (
 function App() {
   return (
     <AuthProvider>
-      <ErrorBoundary fallback={<ErrorFallback/>}>
+      <ErrorBoundary fallback={<ErrorFallback />}>
         <SharedStateProvider>
           <Routes >
             <Route path="/aquaops/login" element={<LoginPage />} />
-            <Route path="/aquaops/*" element={<DashboardPage />} />
+            <Route path="/aquaops/*" element={
+                <LogDataProvider>
+              <WebSocketProvider>
+                <DashboardPage />
+              </WebSocketProvider>
+                </LogDataProvider>
+              } />
           </Routes>
           <Toaster richColors />
         </SharedStateProvider>

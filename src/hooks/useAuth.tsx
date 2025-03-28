@@ -1,10 +1,20 @@
-import { createContext, useContext, useEffect, useMemo } from "react";
+import { createContext, ReactNode, useContext, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocalStorage } from "./useLocalStorage";
 import axios from "axios";
-const AuthContext = createContext()
 
-export const AuthProvider = ({ children }) => {
+
+type AuthContextType = {
+    user: any;
+    token: string | null;
+    login: (user: any, token: string) => Promise<void>;
+    logout: () => Promise<void>;
+    validateToken: (user: any, token: string) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+export const AuthProvider = ({ children }: {children: ReactNode}) => {
     const [user, setUser] = useLocalStorage("user", null)
     const [token, setToken] = useLocalStorage("token", null)
     const navigate = useNavigate()
@@ -51,5 +61,9 @@ export const AuthProvider = ({ children }) => {
 }
 
 export const useAuth = () => {
-    return useContext(AuthContext)
+    const context = useContext(AuthContext)
+    if (context === undefined) {
+        throw new Error('useAuth must be used within a AuthProvider')
+    }
+    return context
 }
