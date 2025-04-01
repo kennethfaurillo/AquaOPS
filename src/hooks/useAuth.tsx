@@ -1,61 +1,70 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo } from "react";
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLocalStorage } from "./useLocalStorage";
 import axios from "axios";
-
+import { UserInfo } from "@/components/Types";
+import CoolLoader from "@/components/CoolLoader";
 
 type AuthContextType = {
-    user: any;
+    user: UserInfo;
     token: string | null;
-    login: (user: any, token: string) => Promise<void>;
+    login: (user: UserInfo, token: string) => Promise<void>;
     logout: () => Promise<void>;
-    validateToken: (user: any, token: string) => Promise<void>;
+    isAuthenticated: boolean | undefined;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export const AuthProvider = ({ children }: {children: ReactNode}) => {
-    const [user, setUser] = useLocalStorage("user", null)
-    const [token, setToken] = useLocalStorage("token", null)
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+    const [user, setUser] = useState<UserInfo | null>(null)
+    const [token, setToken] = useState<string | null>(null)
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | undefined>(undefined)
     const navigate = useNavigate()
 
-    const login = async (user, token) => {
+    const login = async (user: UserInfo) => {
         setUser(user)
-        setToken(token)
+        setIsAuthenticated(true)
         navigate("/aquaops", { replace: true })
     }
 
     const logout = async () => {
-        setUser(null)
-        setToken(null)
-        localStorage.removeItem("user")
-        localStorage.removeItem("token")
-        navigate("/aquaops", { replace: true })
+        // Non 200 responses need to be caught
+        try {
+            await axios.post(`${import.meta.env.VITE_API}/auth/logout/`, {}, { withCredentials: true })
+        } catch (error) {
+            // console.error("Logout error: Invalid session")
+        }
+        console.log("Logout successful")
+        setIsAuthenticated(false)
+        navigate("/aquaops/login", { replace: true })
     }
 
-    const validateToken = async (_user, _token) => {
-        const validateTokenResponse = await axios.post(`${import.meta.env.VITE_API}/auth/validate-token/`, {
-            user: _user,
-            token: _token
-        })
-        if (validateTokenResponse.data.pass) {
-            await login(validateTokenResponse.data.user, _token)
-        } else {
+    const checkSession = async () => {
+        // Check if session token
+        const tokenResponse = await axios.get(`${import.meta.env.VITE_API}/auth/check-session`,
+            { withCredentials: true })
+        // invalid session
+        if (!tokenResponse.data.success) {
+            console.log(tokenResponse.data.message)
             await logout()
+            return
         }
+        // fetch user data
+        const userData = await axios.get(`${import.meta.env.VITE_API}/auth/self-info`,
+            { withCredentials: true })
+        login(userData.data.user)
     }
 
     useEffect(() => {
-        (async () => {
-            if (user && token) {
-                await validateToken(user, token)
-            }
-        })();
+        checkSession()
     }, [])
 
     const value = useMemo(() => ({
-        user, token, login, logout, validateToken
-    }), [user, token])
+        user, token, login, logout, isAuthenticated
+    }), [user, token, isAuthenticated])
+
+    if (isAuthenticated === undefined) {
+        return <CoolLoader />
+    }
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

@@ -244,7 +244,6 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                     {/* Checkbox Group */}
                                     {loggerInfo.Type.includes("flow") ?
                                         <div className="grid">
-                                            {/* TODO: Totalizer should be a separate report */}
                                             <span className="space-x-1 mx-4">
                                                 <Checkbox id="cbTotalizerNet" checked={reportChecked.totalizerNet} onCheckedChange={isChecked => {
                                                     setReportChecked({

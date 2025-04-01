@@ -31,7 +31,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
     const { mapRefreshToggle, setMapRefreshToggle, loggerTableRefreshToggle, setLoggerTableRefreshToggle } = useSharedStateContext()
 
     const fetchConfigLogs = async () => {
-        const configLogResponse = await axios.get(`${import.meta.env.VITE_API}/auth/config_log?userId=${user.UserId}&token=${token}&loggerId=${loggerInfo.LoggerId}`)
+        const configLogResponse = await axios.get(`${import.meta.env.VITE_API}/auth/config-log?loggerId=${loggerInfo.LoggerId}`, { withCredentials: true })
         setConfigLogs(configLogResponse.data)
         return
     }

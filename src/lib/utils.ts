@@ -9,7 +9,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**Capitalize a string */
-export function capitalize(str) {
+export function capitalize(str: string) {
+  if(!str) return str
   const strList = str.split(' ')
   return strList.map((val) => val.at(0).toUpperCase() + val.slice(1).toLowerCase()).join(' ')
 }

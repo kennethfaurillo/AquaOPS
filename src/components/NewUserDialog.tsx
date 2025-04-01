@@ -70,9 +70,8 @@ function NewUserDialog({ newUserDialogOpen, setNewUserDialogOpen }) {
             return
         }
         //check if username already exists
-        const usernameExists = (await axios.post(`${import.meta.env.VITE_API}/auth/check-user`, {
-            username: username
-        })).data?.UserExists
+        const usernameExists = (await axios.post(`${import.meta.env.VITE_API}/auth/check-user`,
+            { username: username }, { withCredentials: true })).data?.UserExists
         if (usernameExists) {
             setAlertDialog({
                 title: 'Username Already in Use!',
@@ -89,14 +88,17 @@ function NewUserDialog({ newUserDialogOpen, setNewUserDialogOpen }) {
             return
         }
         try {
-            const createdUser = await axios.post(`${import.meta.env.VITE_API}/auth/create-user`, {
-                user: user,
-                token: token,
-                username: username,
-                password: password,
-                type: userType,
-            })
-            if (createdUser.data?.UserCreated) {
+            const createdUser = await axios.post(`${import.meta.env.VITE_API}/auth/create-user`,
+                {
+                    user: user,
+                    token: token,
+                    username: username,
+                    password: password,
+                    type: userType,
+                },
+                { withCredentials: true }
+            )
+            if (createdUser.data?.success) {
                 console.log('User Created')
                 setNewUserDialogOpen(false)
                 setAlertDialog({

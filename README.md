@@ -10,4 +10,4 @@ Written in React + TypeScript + Vite
 
 ## TODO:
 - User Profiles
-- Improve authentication
+- Improve authentication 
