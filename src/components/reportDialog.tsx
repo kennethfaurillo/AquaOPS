@@ -18,7 +18,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 
-function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allowedDates }) {
+interface ReportDialogProps {
+    reportDialogOpen: boolean
+    setReportDialogOpen: (open: boolean) => void
+    loggerInfo: any
+    allowedDates: string[]
+}
+
+function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allowedDates }: ReportDialogProps) {
     const today = new Date((new Date()).toDateString())
     // Time interval for report generation
     const [date, setDate] = useState<DateRange | undefined>({
@@ -47,10 +54,10 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
     type ReportFileType = 'csv' | 'xlsx' | 'json' | 'png'
     const [reportFileType, setReportFileType] = useState<ReportFileType>('xlsx')
     const [allowedTotalizerDates, setAllowedTotalizerDates] = useState([])
-    const { user, token } = useAuth()
+    const { user } = useAuth()
 
-    const fetchTotalizerDates = async (loggerId) => {
-        const logDatesResponse = await axios.get(`${import.meta.env.VITE_API}/api/totalizer_log_dates/${loggerId}`)
+    const fetchTotalizerDates = async (loggerId: string) => {
+        const logDatesResponse = await axios.get(`${import.meta.env.VITE_API}/api/totalizer_log_dates/${loggerId}`, { withCredentials: true })
         return logDatesResponse.data
     }
 
@@ -79,7 +86,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                 totalizerPositive: false,
                 totalizerNegative: false
             })
-            setLink(null)
+            setLink({ csv: null, json: null })
             setDate({
                 from: addDays(today, -2),
                 to: today,
@@ -123,7 +130,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                         {loggerInfo.Type.includes("flow") ?
                                             <span className="space-x-1 mx-4">
                                                 <Checkbox id="cbFlow" checked={reportChecked.param == 'flow'} onCheckedChange={(isChecked) => {
-                                                    setLink(null)
+                                                    setLink({ csv: null, json: null })
                                                     setReportChecked({
                                                         ...reportChecked,
                                                         // flow: isChecked
@@ -136,7 +143,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                                         {loggerInfo.Type.includes("pressure") ?
                                             <span className="space-x-1 mx-4">
                                                 <Checkbox id="cbPressure" checked={reportChecked.param == 'pressure'} onCheckedChange={isChecked => {
-                                                    setLink(null)
+                                                    setLink({ csv: null, json: null })
                                                     setReportChecked({
                                                         ...reportChecked,
                                                         // pressure: isChecked

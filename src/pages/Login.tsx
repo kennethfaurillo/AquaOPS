@@ -5,31 +5,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
-import axios from "axios";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export const LoginPage = () => {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const [alertOpen, setAlertOpen] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
-    const { user, token, login, isAuthenticated } = useAuth()
+    const { login } = useAuth()
 
     const handleLogin = async (event: React.FormEvent) => {
         event.preventDefault()
-        const authResponse = await axios.post(`${import.meta.env.VITE_API}/auth/login/`, {
-            username: username,
-            password: password
-        }, {withCredentials: true})
-        if (authResponse.data.success) {
-            await login(authResponse.data.user, authResponse.data.Token)
-        } else {
+        const attemptLogin = await login(username, password)
+        if(!attemptLogin){
             setPassword('')
             setAlertOpen(true)
         }
     }
-
 
     return (
         <> 
@@ -84,7 +77,7 @@ export const LoginPage = () => {
                                             <EyeOffIcon className="absolute right-2 top-8 size-6 drop-shadow-md" onClick={() => setShowPassword(!showPassword)} />}
                                     </div>
                                     <div className="flex justify-between pt-2">
-                                        <Button type="submit" className="bg-piwad-lightyellow-500" variant={"outline"}>Login</Button>
+                                        <Button type="submit" className="bg-piwad-lightyellow-500" disabled={!username || !password} variant={"outline"}>Login</Button>
                                     </div>
                                 </form>
                             </div>

@@ -1,9 +1,9 @@
-// import valve_blowOff from '@/assets/geoBlowOff.json'
-// import piliBoundary from '@/assets/geoBoundary.json'
-// import hydrants from '@/assets/geoHdyrant.json'
-// import pipelines from '@/assets/geoPipeline.json'
-// import proposed_wellsite from '@/assets/geoProposedWellSite.json'
-// import specific_capacity from '@/assets/geoSpecificCapacity.json'
+import valve_blowOff from '@/assets/geoBlowOff.json'
+import piliBoundary from '@/assets/geoBoundary.json'
+import hydrants from '@/assets/geoHdyrant.json'
+import pipelines from '@/assets/geoPipeline.json'
+import proposed_wellsite from '@/assets/geoProposedWellSite.json'
+import specific_capacity from '@/assets/geoSpecificCapacity.json'
 import { capitalize, isValueInRange, lerp } from '@/lib/utils'
 import ResetViewControl from '@20tab/react-leaflet-resetview'
 import axios from 'axios'
@@ -352,7 +352,7 @@ function LoggerMapCard() {
    */
   async function fetchSources() {
     try {
-      const sourceInfo = await axios.get(`${import.meta.env.VITE_API}/api/source/`)
+      const sourceInfo = await axios.get(`${import.meta.env.VITE_API}/api/source/`, { withCredentials: true })
       setSources(sourceInfo.data)
     } catch (error) {
       console.log(error)
@@ -368,70 +368,70 @@ function LoggerMapCard() {
     return `${position.lat.toFixed(6)}°, ${position.lng.toFixed(6)}°`
   }
 
-  // const onEachPipeline = (feature, layer) => {
-  //   layer.bindTooltip(`Pipeline: ${feature.properties?.location.toUpperCase()}`, { direction: 'center' })
-  //   if (feature.properties && feature.properties.ogr_fid) {
-  //     layer.on('click', () => {
-  //       toast.info(`Pipeline #${feature.properties?.ogr_fid} ${capitalize(feature.properties?.location)}`, {
-  //         description: <>
-  //           <span>Size: {feature?.properties.size}</span>
-  //           <span> | Length: {feature?.properties.lenght.replace('.', '')}</span>
-  //           <div>
-  //             {feature.properties["year inst."] ? <>Install Date: {feature.properties["year inst."].toUpperCase()}</> : <span>{null}</span>}
-  //           </div>
-  //         </>,
-  //       })
-  //     });
-  //   }
-  // }
+  const onEachPipeline = (feature, layer) => {
+    layer.bindTooltip(`Pipeline: ${feature.properties?.location.toUpperCase()}`, { direction: 'center' })
+    if (feature.properties && feature.properties.ogr_fid) {
+      layer.on('click', () => {
+        toast.info(`Pipeline #${feature.properties?.ogr_fid} ${capitalize(feature.properties?.location)}`, {
+          description: <>
+            <span>Size: {feature?.properties.size}</span>
+            <span> | Length: {feature?.properties.lenght.replace('.', '')}</span>
+            <div>
+              {feature.properties["year inst."] ? <>Install Date: {feature.properties["year inst."].toUpperCase()}</> : <span>{null}</span>}
+            </div>
+          </>,
+        })
+      });
+    }
+  }
 
-  // const onEachArea = (feature, layer) => {
-  //   if (feature.properties && feature.properties.Name) {
-  //     layer.on('dblclick', () => {
-  //       console.log(feature.properties)
-  //       toast.info(`Barangay ${feature.properties?.Name}`)
-  //     });
-  //   }
-  // }
+  const onEachArea = (feature, layer) => {
+    if (feature.properties && feature.properties.Name) {
+      layer.on('dblclick', () => {
+        console.log(feature.properties)
+        toast.info(`Barangay ${feature.properties?.Name}`)
+      });
+    }
+  }
 
-  // const onEachSpecificCapacity = (feature, layer) => {
-  //   layer.bindTooltip(feature.properties?.cap, { direction: 'center' })
-  //   layer.on('dblclick', () => {
-  //     toast.info(`Capacity: ${feature.properties?.cap}`)
-  //   });
-  // }
+  const onEachSpecificCapacity = (feature, layer) => {
+    layer.bindTooltip(feature.properties?.cap, { direction: 'center' })
+    layer.on('dblclick', () => {
+      toast.info(`Capacity: ${feature.properties?.cap}`)
+    });
+  }
 
-  // const onEachBlowOff = (feature, layer) => {
-  //   layer.setIcon(valveIcon)
-  //   layer.bindTooltip('Blow-off Valve: ' + feature.properties?.location.toUpperCase() + '\n' + feature.properties?.size, { direction: 'top' })
-  // }
+  const onEachBlowOff = (feature, layer) => {
+    layer.setIcon(valveIcon)
+    layer.bindTooltip('Blow-off Valve: ' + feature.properties?.location.toUpperCase() + '\n' + feature.properties?.size, { direction: 'top' })
+  }
 
-  // const onEachProposedWellsite = (feature, layer) => {
-  //   layer.setIcon(proposedWellsiteIcon)
-  //   layer.bindTooltip('Proposed Well Site: ' + capitalize(feature.properties?.location.toUpperCase()) + '\n', { direction: 'top' })
-  // }
+  const onEachProposedWellsite = (feature, layer) => {
+    layer.setIcon(proposedWellsiteIcon)
+    layer.bindTooltip('Proposed Well Site: ' + capitalize(feature.properties?.location.toUpperCase()) + '\n', { direction: 'top' })
+  }
 
-  // const onEachHydrant = (feature, layer) => {
-  //   layer.setIcon(hydrantIcon)
-  //   layer.bindTooltip('Hydrant: ' + capitalize(feature.properties?.location) + '\n', { direction: 'top' })
-  //   layer.bindPopup(() => `
-  //   <div class="popup-container">
-  //     <div class="popup-header flex space-x-2">
-  //       <img src=${icHydrant} alt="Icon" class="size-6" />
-  //       <div class='my-auto'>${capitalize(feature.properties?.location) || 'No Data'}</div>
-  //     </div>
-  //     <div class="popup-content">
-  //       <div><strong>Date Installed:</strong> ${moment(feature.properties['year inst.'], true).format('MM-DD-YYYY') || 'No Data'}</div>
-  //       <div><strong>Type:</strong> ${capitalize(feature.properties?.type) || 'No Data'}</div>
-  //       <div><strong>Pipe Size:</strong> ${feature.properties?.size || 'No Data'}</div>
-  //     </div>
-  //   </div>
-  //   ` , {
-  //     className: 'custom-popup',
-  //     offset: [100, 150]
-  //   }
-  //   )
-  // }
+  const onEachHydrant = (feature, layer) => {
+    layer.setIcon(hydrantIcon)
+    layer.bindTooltip('Hydrant: ' + capitalize(feature.properties?.location) + '\n', { direction: 'top' })
+    layer.bindPopup(() => `
+    <div class="popup-container">
+      <div class="popup-header flex space-x-2">
+        <img src=${icHydrant} alt="Icon" class="size-6" />
+        <div class='my-auto'>${capitalize(feature.properties?.location) || 'No Data'}</div>
+      </div>
+      <div class="popup-content">
+        <div><strong>Date Installed:</strong> ${moment(feature.properties['year inst.'], true).format('MM-DD-YYYY') || 'No Data'}</div>
+        <div><strong>Type:</strong> ${capitalize(feature.properties?.type) || 'No Data'}</div>
+        <div><strong>Pipe Size:</strong> ${feature.properties?.size || 'No Data'}</div>
+      </div>
+    </div>
+    ` , {
+      className: 'custom-popup',
+      offset: [100, 150]
+    }
+    )
+  }
 
   const themeToggleOnclick = () => {
     setBasemap(basemaps.find((bmap) => bmap.name != basemap.name))
@@ -458,7 +458,7 @@ function LoggerMapCard() {
       <MapContainer
         className='cursor-crosshair'
         center={[13.589451, 123.2871642]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
-        scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false} zoomSnap={.2}
+        scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false} 
         maxBounds={[[13.696173, 123.111745], [13.456072, 123.456730]]}>
         <ResetViewControl title="Reset View" icon={"🔍"} />
         <LayersControl position='topright'>
@@ -474,7 +474,7 @@ function LoggerMapCard() {
               attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
             />
           </BaseLayer>
-          {/* <Overlay name='Barangay Boundaries'>
+          <Overlay name='Barangay Boundaries'>
             <GeoJSON data={piliBoundary} style={{ fillOpacity: 0, weight: 1, color: 'orange' }} onEachFeature={onEachArea} />
           </Overlay>
           <Overlay name='Specific Capacity'>
@@ -506,7 +506,7 @@ function LoggerMapCard() {
           </Overlay>
           <Overlay name='Proposed Well Sites' checked>
             <GeoJSON data={proposed_wellsite} onEachFeature={onEachProposedWellsite} />
-          </Overlay> */}
+          </Overlay>
           <Overlay name='Data Loggers' checked>
             <LayerGroup>
               {loggersLatest.size ?

@@ -17,9 +17,9 @@ export const LogDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     const [latestLogsData, setLatestLogsData] = useState<LoggerLog[]>([]);
 
     const fetchData = useCallback(async () => {
-        const loggersDataResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger`)
+        const loggersDataResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger`, { withCredentials: true })
         setLoggersData(loggersDataResponse.data)
-        const latestLogsData = await axios.get(`${import.meta.env.VITE_API}/api/latest_log`)
+        const latestLogsData = await axios.get(`${import.meta.env.VITE_API}/api/latest_log`, { withCredentials: true })
         setLatestLogsData(latestLogsData.data)
     }, [])
 

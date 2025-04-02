@@ -38,7 +38,7 @@ export function SharedStateProvider({ children }: { children: React.ReactNode })
 
     const fetchLoggerInfo = async (loggerId: string) => {
         try {
-            const loggerResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/${loggerId}`)
+            const loggerResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/${loggerId}`, { withCredentials: true })
             return loggerResponse.data[0]
         } catch (e) {
             console.log(e)

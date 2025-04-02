@@ -27,7 +27,7 @@ const MapFallback = () => (
 )
 
 function DashboardPage() {
-    const { user, token, isAuthenticated } = useAuth()
+    const { user, isAuthenticated } = useAuth()
     const [dashboardPrefs, setDashboardPrefs] = useLocalStorage('dashboardPrefs', {
         showLoggerList: true,
         showLoggerMap: true
@@ -39,9 +39,6 @@ function DashboardPage() {
 
     // fetch on render
     useEffect(() => {
-        if(!isAuthenticated){
-            console.log("test")
-        }
         fetchData()
     }, [])
 

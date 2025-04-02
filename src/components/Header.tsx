@@ -25,7 +25,7 @@ import EventLogsDialog from "./eventLogsDialog";
 import NewUserDialog from "./NewUserDialog";
 
 function Header(props) {
-    const { user, token, logout } = useAuth()
+    const { user, logout } = useAuth()
     const [logoutAlertOpen, setLogoutAlertOpen] = useState(false)
     const [eventlogsDialogOpen, setEventlogsDialogOpen] = useState(false)
     const [newUserDialogOpen, setNewUserDialogOpen] = useState(false)

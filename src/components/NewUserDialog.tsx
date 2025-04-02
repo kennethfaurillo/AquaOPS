@@ -24,8 +24,7 @@ function NewUserDialog({ newUserDialogOpen, setNewUserDialogOpen }) {
         passwordMismatch: false,
         test: false
     })
-    const [allowCreateUser, setAllowCreateUser] = useState(true)
-    const { user, token } = useAuth()
+    const { user } = useAuth()
     useEffect(() => {
         if (newUserDialogOpen) {
             return
@@ -91,7 +90,6 @@ function NewUserDialog({ newUserDialogOpen, setNewUserDialogOpen }) {
             const createdUser = await axios.post(`${import.meta.env.VITE_API}/auth/create-user`,
                 {
                     user: user,
-                    token: token,
                     username: username,
                     password: password,
                     type: userType,

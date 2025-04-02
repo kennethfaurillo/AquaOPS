@@ -27,7 +27,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
         table: false
     })
 
-    const { user, token } = useAuth()
+    const { user } = useAuth()
     const { mapRefreshToggle, setMapRefreshToggle, loggerTableRefreshToggle, setLoggerTableRefreshToggle } = useSharedStateContext()
 
     const fetchConfigLogs = async () => {
@@ -223,7 +223,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                 const changeConfigResponse = await axios.patch(`${import.meta.env.VITE_API}/api/logger_limits/${loggerInfo.LoggerId}`, {
                                     ..._loggerLimits,
                                     user
-                                })
+                                }, { withCredentials: true })
                                 setTimeout(() => {
                                     toast.dismiss()
                                     toast.success("Limits Changed!", { description: "The logger alarm limits have been successfully updated." })
@@ -235,7 +235,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                 const changeConfigResponse = await axios.patch(`${import.meta.env.VITE_API}/api/logger_config/${loggerInfo.LoggerId}`, {
                                     ..._loggerConfig,
                                     user
-                                })
+                                }, { withCredentials: true })
                                 setTimeout(() => {
                                     toast.dismiss()
                                     toast.success("Config Changed!", { description: "The logger configuration has been successfully updated." })
