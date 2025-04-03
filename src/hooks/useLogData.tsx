@@ -1,14 +1,14 @@
 import { Datalogger, LoggerLog } from '@/components/Types'
 import axios from 'axios'
-import React, { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import React, { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react'
 
-// Define the context value type
+
 interface LogDataContextType {
     loggersData: Datalogger[],
     latestLogsData: LoggerLog[],
     fetchData: () => void
 }
-// Create the context with a default undefined value
+
 const LogDataContext = createContext<LogDataContextType | undefined>(undefined)
 
 // Provider component
@@ -33,7 +33,7 @@ export const LogDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return <LogDataContext.Provider value={value}>{children}</LogDataContext.Provider>
 };
 
-// Custom hook for using this context
+
 export const useLogData = () => {
     const context = useContext(LogDataContext)
     if (context === undefined) {

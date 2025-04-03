@@ -8,11 +8,9 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useLogData } from "@/hooks/useLogData";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { lazy, Suspense, useEffect } from "react";
-import { Navigate } from "react-router-dom";
 import '../App.css';
 import Header from "../components/Header";
 import '../index.css';
-import CoolLoader from "@/components/CoolLoader";
 const LoggerMapCard = lazy(() => import('@/components/Map'));
 
 
@@ -27,7 +25,7 @@ const MapFallback = () => (
 )
 
 function DashboardPage() {
-    const { user, isAuthenticated } = useAuth()
+    const { user } = useAuth()
     const [dashboardPrefs, setDashboardPrefs] = useLocalStorage('dashboardPrefs', {
         showLoggerList: true,
         showLoggerMap: true

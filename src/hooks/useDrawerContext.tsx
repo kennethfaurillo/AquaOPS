@@ -11,9 +11,19 @@ import { useSharedStateContext } from "./useSharedStateContext";
 const ReportDialog = lazy(() => import('@/components/reportDialog'));
 const LogLineChart = lazy(() => import('@/components/LogLineChart'));
 
-const DrawerContext = createContext()
+type DrawerContextType = {
+    chartTimeRange: string
+    setChartTimeRange: (timeRange: string) => void
+    allowedDates: string[]
+    setAllowedDates: (dates: string[]) => void
+    fetchLoggerInfo: (loggerId: string) => Promise<any>
+    fetchLoggerDates: (loggerId: string, loggerType?: string) => Promise<any>
+    LoggerStatus: (props: { logger: any }) => JSX.Element
+}
 
-export function DrawerProvider({ children }) {
+const DrawerContext = createContext<DrawerContextType | undefined>(undefined)
+
+export function DrawerProvider({ children } :{ children: React.ReactNode }) {
     // // Time interval for chart display
     const [chartTimeRange, setChartTimeRange] = useState("12")
     // Allowed dates for report generation
@@ -21,12 +31,12 @@ export function DrawerProvider({ children }) {
     const { chartDrawerOpen, setChartDrawerOpen, loggerDialogOpen, setLoggerDialogOpen, reportDialogOpen, setReportDialogOpen,
         logger, setLogger, loggerInfo, setLoggerInfo } = useSharedStateContext()
 
-    const fetchLoggerInfo = async (loggerId) => {
+    const fetchLoggerInfo = async (loggerId: string) => {
         const loggerResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/${loggerId}`, { withCredentials: true })
         return loggerResponse.data[0]
     }
 
-    const fetchLoggerDates = async (loggerId, loggerType = "pressure") => {
+    const fetchLoggerDates = async (loggerId: string, loggerType = "pressure") => {
         if (!["pressure", "flow"].includes(loggerType)) {
             throw ("Invalid Logger Type")
         }
@@ -141,4 +151,10 @@ export function DrawerProvider({ children }) {
     )
 }
 
-export const useDrawerContext = () => useContext(DrawerContext)
+export const useDrawerContext = () => {
+    const context = useContext(DrawerContext)
+    if (!context) {
+        throw new Error('useDrawerContext must be used within a DrawerProvider')
+    }
+    return context
+}

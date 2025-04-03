@@ -1,9 +1,14 @@
 import AddSourceDialog from "@/components/addSourceDialog"
 import { createContext, useContext, useMemo, useState } from "react"
 
-const DialogContext = createContext()
+type DialogContextType = {
+    addSourceDialogOpen: boolean
+    setAddSourceDialogOpen: (open: boolean) => void
+}
 
-export function DialogProvider({ children }) {
+const DialogContext = createContext<DialogContextType | undefined>(undefined)
+
+export function DialogProvider({ children }: { children: React.ReactNode }) {
     const [addSourceDialogOpen, setAddSourceDialogOpen] = useState(false)
 
     const value = useMemo(() => ({
@@ -18,4 +23,10 @@ export function DialogProvider({ children }) {
     )
 }
 
-export const useDialogContext = () => useContext(DialogContext)
+export const useDialogContext = () => {
+    const context = useContext(DialogContext)
+    if (!context) {
+        throw new Error('useDialogContext must be used within a DialogProvider')
+    }
+    return context
+}
