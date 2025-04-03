@@ -9,7 +9,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**Capitalize a string */
-export function capitalize(str) {
+export function capitalize(str: string) {
+  if(!str) return str
   const strList = str.split(' ')
   return strList.map((val) => val.at(0).toUpperCase() + val.slice(1).toLowerCase()).join(' ')
 }
@@ -23,12 +24,12 @@ export async function generateReport(loggerInfo, fields, dateRange, user) {
     if (fields.averaging) {
       console.log("Averaging", fields.averaging)
     }
-    const response = await axios.get(`${import.meta.env.VITE_API}/api/${logTable}/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}&averaged=${fields.averaging}`,)
+    const response = await axios.get(`${import.meta.env.VITE_API}/api/${logTable}/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}&averaged=${fields.averaging}`, { withCredentials: true })
     console.log(response.data)
     data = response.data ?? []
   }
   else {
-    const response = await axios.get(`${import.meta.env.VITE_API}/api/totalizer/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}`)
+    const response = await axios.get(`${import.meta.env.VITE_API}/api/totalizer/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}`, { withCredentials: true })
     data = response.data ?? []
   }
   if (!data || data.length == 0) {

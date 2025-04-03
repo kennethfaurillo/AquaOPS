@@ -242,7 +242,7 @@ function LoggerMapCard() {
   const [expandLoggerStatus, setExpandLoggerStatus] = useState(false)
   const [expandMapTable, setExpandMapTable] = useState(false)
 
-  const { setChartDrawerOpen, setLogger, mapRefreshToggle } = useSharedStateContext()
+  const { setChartDrawerOpen, setLogger } = useSharedStateContext()
   const { loggersData, latestLogsData } = useLogData()
   const isFirstRender = useIsFirstRender()
   const { BaseLayer, Overlay } = LayersControl
@@ -352,7 +352,7 @@ function LoggerMapCard() {
    */
   async function fetchSources() {
     try {
-      const sourceInfo = await axios.get(`${import.meta.env.VITE_API}/api/source/`)
+      const sourceInfo = await axios.get(`${import.meta.env.VITE_API}/api/source/`, { withCredentials: true })
       setSources(sourceInfo.data)
     } catch (error) {
       console.log(error)
@@ -458,7 +458,7 @@ function LoggerMapCard() {
       <MapContainer
         className='cursor-crosshair'
         center={[13.589451, 123.2871642]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
-        scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false} zoomSnap={.2}
+        scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false} 
         maxBounds={[[13.696173, 123.111745], [13.456072, 123.456730]]}>
         <ResetViewControl title="Reset View" icon={"🔍"} />
         <LayersControl position='topright'>

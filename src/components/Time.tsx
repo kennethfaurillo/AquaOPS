@@ -21,7 +21,7 @@ const Time: React.FC<TimeProps> = ({ color = 'white' }) => {
     const dateTextColor = color === 'black' ? 'text-gray-600' : 'text-slate-50';
 
     return (
-        <div className='backdrop-blur-[1px] rounded-3xl p-1'>
+        <div className='rounded-3xl px-1 mb-2'>
             <div className={`font-normal ${textColor} text-5xl flex gap-x-1`}>
                 {time.toLocaleTimeString().slice(0, -2)}
                 <div className={`font-normal ${subTextColor} text-xl`}>

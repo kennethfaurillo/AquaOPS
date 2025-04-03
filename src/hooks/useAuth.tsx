@@ -1,61 +1,78 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { useLocalStorage } from "./useLocalStorage";
+import CoolLoader from "@/components/CoolLoader";
+import { UserInfo } from "@/components/Types";
 import axios from "axios";
-
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type AuthContextType = {
-    user: any;
-    token: string | null;
-    login: (user: any, token: string) => Promise<void>;
+    user: UserInfo | null;
+    login: (username: string, password: string) => Promise<boolean | undefined>;
     logout: () => Promise<void>;
-    validateToken: (user: any, token: string) => Promise<void>;
+    isAuthenticated: boolean | undefined;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export const AuthProvider = ({ children }: {children: ReactNode}) => {
-    const [user, setUser] = useLocalStorage("user", null)
-    const [token, setToken] = useLocalStorage("token", null)
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+    const [user, setUser] = useState<UserInfo | null>(null)
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | undefined>(undefined)
     const navigate = useNavigate()
 
-    const login = async (user, token) => {
-        setUser(user)
-        setToken(token)
-        navigate("/aquaops", { replace: true })
-    }
+    // Set userInfo navigate to dashboard
+    const completeLogin = (userInfo: UserInfo) => {
+        setUser(userInfo);
+        setIsAuthenticated(true);
+        navigate("/aquaops")
+    };
 
-    const logout = async () => {
-        setUser(null)
-        setToken(null)
-        localStorage.removeItem("user")
-        localStorage.removeItem("token")
-        navigate("/aquaops", { replace: true })
-    }
-
-    const validateToken = async (_user, _token) => {
-        const validateTokenResponse = await axios.post(`${import.meta.env.VITE_API}/auth/validate-token/`, {
-            user: _user,
-            token: _token
-        })
-        if (validateTokenResponse.data.pass) {
-            await login(validateTokenResponse.data.user, _token)
+    // Attempt to login
+    const login = async (username: string, password: string) => {
+        const loginResponse = await axios.post(`${import.meta.env.VITE_API}/auth/login/`, {
+            username: username,
+            password: password
+        }, { withCredentials: true })
+        if (loginResponse.data.success) {
+            completeLogin(loginResponse.data.user)
         } else {
-            await logout()
+            return false
         }
     }
 
-    useEffect(() => {
-        (async () => {
-            if (user && token) {
-                await validateToken(user, token)
+    const logout = async () => {
+        await axios.post(`${import.meta.env.VITE_API}/auth/logout/`, {}, {
+            withCredentials: true,
+            validateStatus: function (status) {
+                return status < 500;
             }
-        })();
+        })
+        setIsAuthenticated(false)
+    }
+
+    const checkSession = async () => {
+        // Check if session token is valid
+        const tokenResponse = await axios.get(`${import.meta.env.VITE_API}/auth/check-session`,
+            { withCredentials: true })
+        if (!tokenResponse.data.success) {
+            await logout()
+            return
+        }
+        // Fetch user data
+        const userData = await axios.get(`${import.meta.env.VITE_API}/auth/self-info`,
+            { withCredentials: true })
+        completeLogin(userData.data.user)
+    }
+
+    useEffect(() => {
+        checkSession()
     }, [])
 
     const value = useMemo(() => ({
-        user, token, login, logout, validateToken
-    }), [user, token])
+        user, login, logout, isAuthenticated
+    }), [user, isAuthenticated])
+
+    if (isAuthenticated === undefined) {
+        return <CoolLoader />
+    }
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

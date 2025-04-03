@@ -5,44 +5,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
-import axios from "axios";
-import { EyeClosedIcon, EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { useState } from "react";
 
 export const LoginPage = () => {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const [alertOpen, setAlertOpen] = useState(false)
-    const [loading, setLoading] = useState(true)
     const [showPassword, setShowPassword] = useState(false)
-    const { user, token, login, validateToken } = useAuth()
+    const { login } = useAuth()
 
-    useEffect(() => {
-        (async () => {
-            if (token && user) {
-                await validateToken(user, token)
-            }
-            setLoading(false)
-        })()
-    }, [])
-
-    const handleLogin = async (event) => {
+    const handleLogin = async (event: React.FormEvent) => {
         event.preventDefault()
-        const authResponse = await axios.post(`${import.meta.env.VITE_API}/auth/login/`, {
-            username: username,
-            password: password
-        })
-        if (authResponse.data.pass) {
-            await login(authResponse.data.user, authResponse.data.Token)
-        } else {
-            console.log(authResponse.data)
+        const attemptLogin = await login(username, password)
+        if(!attemptLogin){
             setPassword('')
             setAlertOpen(true)
         }
     }
 
     return (
-        <>{!loading ? <>
+        <> 
             <AlertDialog open={alertOpen} onOpenChange={setAlertOpen} >
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -94,7 +77,7 @@ export const LoginPage = () => {
                                             <EyeOffIcon className="absolute right-2 top-8 size-6 drop-shadow-md" onClick={() => setShowPassword(!showPassword)} />}
                                     </div>
                                     <div className="flex justify-between pt-2">
-                                        <Button type="submit" className="bg-piwad-lightyellow-500" variant={"outline"}>Login</Button>
+                                        <Button type="submit" className="bg-piwad-lightyellow-500" disabled={!username || !password} variant={"outline"}>Login</Button>
                                     </div>
                                 </form>
                             </div>
@@ -102,7 +85,6 @@ export const LoginPage = () => {
                     </div>
                 </div>
             </div>
-        </> : <Loader2Icon className="animate-spin size-24 mx-auto mt-24" />}
-        </>
+        </> 
     )
 }

@@ -8,7 +8,6 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useLogData } from "@/hooks/useLogData";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { lazy, Suspense, useEffect } from "react";
-import { Navigate } from "react-router-dom";
 import '../App.css';
 import Header from "../components/Header";
 import '../index.css';
@@ -26,7 +25,7 @@ const MapFallback = () => (
 )
 
 function DashboardPage() {
-    const { user, token } = useAuth()
+    const { user } = useAuth()
     const [dashboardPrefs, setDashboardPrefs] = useLocalStorage('dashboardPrefs', {
         showLoggerList: true,
         showLoggerMap: true
@@ -40,28 +39,25 @@ function DashboardPage() {
     useEffect(() => {
         fetchData()
     }, [])
-    
+
     // refetch on dashboardPrefs change
     useEffect(() => {
-        if(isFirstRender) {  
+        if (isFirstRender) {
             return
         }
         fetchData()
-    }, [dashboardPrefs])
+    }, [isFirstRender, dashboardPrefs])
 
     useEffect(() => {
-        if(isFirstRender) {  
+        if (isFirstRender) {
             return
         }
         fetchData()
-    }, [triggerFetch]); // Depend on triggerFetch
+    }, [isFirstRender, triggerFetch]); // Depend on triggerFetch
 
-    if (!token || !user) {
-        return <Navigate to={"/aquaops/login"} />
-    }
     return (
         <div className='h-[cmd80dvh] sm:h-[100dvh] overflow-hidden bg-slate-100'>
-            <Header user={{ "FirstName": "Piwad", "LastName": user.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
+            <Header user={{ "FirstName": "Piwad", "LastName": user?.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
             <DialogProvider>
                 <DrawerProvider>
                     {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (

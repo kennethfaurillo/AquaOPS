@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth"
+import { useLogData } from "@/hooks/useLogData"
 import axios from "axios"
 import { Loader2Icon } from "lucide-react"
 import moment from "moment"
@@ -11,10 +12,9 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { ScrollArea } from "./ui/scroll-area"
 import { Separator } from "./ui/separator"
+import { Switch } from "./ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
-import { Switch } from "./ui/switch"
-import { useSharedStateContext } from "@/hooks/useSharedStateContext"
 
 
 function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
@@ -27,11 +27,11 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
         table: false
     })
 
-    const { user, token } = useAuth()
-    const { mapRefreshToggle, setMapRefreshToggle, loggerTableRefreshToggle, setLoggerTableRefreshToggle } = useSharedStateContext()
+    const { user } = useAuth()
+    const { fetchData }  = useLogData()
 
     const fetchConfigLogs = async () => {
-        const configLogResponse = await axios.get(`${import.meta.env.VITE_API}/auth/config_log?userId=${user.UserId}&token=${token}&loggerId=${loggerInfo.LoggerId}`)
+        const configLogResponse = await axios.get(`${import.meta.env.VITE_API}/auth/config-log?loggerId=${loggerInfo.LoggerId}`, { withCredentials: true })
         setConfigLogs(configLogResponse.data)
         return
     }
@@ -223,7 +223,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                 const changeConfigResponse = await axios.patch(`${import.meta.env.VITE_API}/api/logger_limits/${loggerInfo.LoggerId}`, {
                                     ..._loggerLimits,
                                     user
-                                })
+                                }, { withCredentials: true })
                                 setTimeout(() => {
                                     toast.dismiss()
                                     toast.success("Limits Changed!", { description: "The logger alarm limits have been successfully updated." })
@@ -235,7 +235,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                 const changeConfigResponse = await axios.patch(`${import.meta.env.VITE_API}/api/logger_config/${loggerInfo.LoggerId}`, {
                                     ..._loggerConfig,
                                     user
-                                })
+                                }, { withCredentials: true })
                                 setTimeout(() => {
                                     toast.dismiss()
                                     toast.success("Config Changed!", { description: "The logger configuration has been successfully updated." })
@@ -260,8 +260,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                             }, 500)
                         }
                         // Force refresh map and logger table
-                        setMapRefreshToggle(!mapRefreshToggle)
-                        setLoggerTableRefreshToggle(!loggerTableRefreshToggle)
+                        fetchData()
                     }} disabled={loadingConfigChange}>Save</Button>
                     : <Button className="bg-green-500"> <Loader2Icon className="animate-spin" /></Button>
                 }

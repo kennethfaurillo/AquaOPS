@@ -89,3 +89,9 @@ export type EventLog = {
     Event: string,
     EventType: string
 }
+
+export type UserInfo = {
+    UserId: number,
+    Username: string,
+    Type: 'admin' | 'user',
+}

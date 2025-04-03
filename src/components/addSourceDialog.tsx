@@ -1,5 +1,3 @@
-import axios from "axios"
-import { Loader2Icon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
