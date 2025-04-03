@@ -13,10 +13,6 @@ type SharedStateContextType = {
     loggerInfo: any
     setLoggerInfo: (loggerInfo: any) => void
     fetchLoggerInfo: (loggerId: string) => Promise<any>
-    mapRefreshToggle: boolean
-    setMapRefreshToggle: (toggle: boolean) => void
-    loggerTableRefreshToggle: boolean
-    setLoggerTableRefreshToggle: (toggle: boolean) => void
 }
 
 const SharedStateContext = createContext<SharedStateContextType | null>(null)
@@ -32,9 +28,6 @@ export function SharedStateProvider({ children }: { children: React.ReactNode })
     const [logger, setLogger] = useState(null)
     // Complete logger info (limits, coords,...)
     const [loggerInfo, setLoggerInfo] = useState(null)
-    // State to trigger forced updates
-    const [mapRefreshToggle, setMapRefreshToggle] = useState(true)
-    const [loggerTableRefreshToggle, setLoggerTableRefreshToggle] = useState(true)
 
     const fetchLoggerInfo = async (loggerId: string) => {
         try {
@@ -47,9 +40,9 @@ export function SharedStateProvider({ children }: { children: React.ReactNode })
 
     const value = useMemo(() => ({
         chartDrawerOpen, setChartDrawerOpen, loggerDialogOpen, setLoggerDialogOpen, reportDialogOpen, setReportDialogOpen,
-        logger, setLogger, loggerInfo, setLoggerInfo, fetchLoggerInfo, mapRefreshToggle, setMapRefreshToggle, loggerTableRefreshToggle, setLoggerTableRefreshToggle
+        logger, setLogger, loggerInfo, setLoggerInfo, fetchLoggerInfo, 
 
-    }), [chartDrawerOpen, loggerDialogOpen, reportDialogOpen, logger, loggerInfo, mapRefreshToggle, loggerTableRefreshToggle])
+    }), [chartDrawerOpen, loggerDialogOpen, reportDialogOpen, logger, loggerInfo, ])
 
     return (
         <SharedStateContext.Provider value={value}>

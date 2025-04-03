@@ -242,7 +242,7 @@ function LoggerMapCard() {
   const [expandLoggerStatus, setExpandLoggerStatus] = useState(false)
   const [expandMapTable, setExpandMapTable] = useState(false)
 
-  const { setChartDrawerOpen, setLogger, mapRefreshToggle } = useSharedStateContext()
+  const { setChartDrawerOpen, setLogger } = useSharedStateContext()
   const { loggersData, latestLogsData } = useLogData()
   const isFirstRender = useIsFirstRender()
   const { BaseLayer, Overlay } = LayersControl
