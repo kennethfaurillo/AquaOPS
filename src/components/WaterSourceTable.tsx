@@ -1,6 +1,6 @@
 import { ColumnDef, SortingState } from "@tanstack/react-table"
 import axios from 'axios'
-import { ArrowDownIcon, ArrowUpIcon, DropletsIcon, FactoryIcon, MapPinnedIcon, RadiusIcon } from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon, DropletsIcon, MapPinnedIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Source } from "./Types"
 import { Button } from "./ui/button"
@@ -160,7 +160,7 @@ function WaterSourceTable() {
     async function fetchSourceInfo() {
       setLoading(true)
       try {
-        const sourceInfo = await axios.get(`${import.meta.env.VITE_API}/api/source/`)
+        const sourceInfo = await axios.get(`${import.meta.env.VITE_API}/api/source/`, { withCredentials: true })
         setSourceInfo(sourceInfo.data)
         setLoading(false)
       } catch (error) {

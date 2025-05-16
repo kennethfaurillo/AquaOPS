@@ -86,13 +86,13 @@ function LogLineChart(props) {
                 logResponse = await axios.post(`${import.meta.env.VITE_API}/api/logs/`, {
                     logTypes: loggerType,
                     loggerId: props.logger.LoggerId
-                })
-                totalizerResponse = await axios.get(`${import.meta.env.VITE_API}/api/totalizer/${props.logger.LoggerId}`)
+                }, {withCredentials: true})
+                totalizerResponse = await axios.get(`${import.meta.env.VITE_API}/api/totalizer/${props.logger.LoggerId}`, {withCredentials: true})
             } else if (loggerType.includes('pressure')) {
-                logResponse = await axios.get(`${import.meta.env.VITE_API}/api/pressure_log/${props.logger.LoggerId}`)
+                logResponse = await axios.get(`${import.meta.env.VITE_API}/api/pressure_log/${props.logger.LoggerId}`, {withCredentials: true})
             } else if (loggerType.includes('flow')) {
-                logResponse = await axios.get(`${import.meta.env.VITE_API}/api/flow_log/${props.logger.LoggerId}`)
-                totalizerResponse = await axios.get(`${import.meta.env.VITE_API}/api/totalizer/${props.logger.LoggerId}`)
+                logResponse = await axios.get(`${import.meta.env.VITE_API}/api/flow_log/${props.logger.LoggerId}`, {withCredentials: true})
+                totalizerResponse = await axios.get(`${import.meta.env.VITE_API}/api/totalizer/${props.logger.LoggerId}`, {withCredentials: true})
             } else {
                 console.log("Unknown Datalogger")
                 console.log(JSON.stringify(props.logger))

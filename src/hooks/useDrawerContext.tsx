@@ -1,38 +1,46 @@
-import { createContext, lazy, Suspense, useContext, useMemo, useState } from "react"
-import LoggerDialog from "@/components/LoggerDialog"
+import LoggerDialog from "@/components/LoggerDialog";
+import { Separator } from "@/components/ui/separator";
+import { dateDiff } from "@/lib/utils";
+import axios from "axios";
+import { Loader2Icon, SettingsIcon } from "lucide-react";
+import { createContext, lazy, Suspense, useContext, useMemo, useState } from "react";
+import { Button } from "../components/ui/button";
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "../components/ui/drawer";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { useSharedStateContext } from "./useSharedStateContext";
 const ReportDialog = lazy(() => import('@/components/reportDialog'));
-import { Separator } from "@/components/ui/separator"
-import { dateDiff } from "@/lib/utils"
-import axios from "axios"
-import { Loader2Icon, SettingsIcon } from "lucide-react"
 const LogLineChart = lazy(() => import('@/components/LogLineChart'));
-import { Button } from "../components/ui/button"
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "../components/ui/drawer"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
-import { useAuth } from "./useAuth"
-import { useSharedStateContext } from "./useSharedStateContext"
 
-const DrawerContext = createContext()
+type DrawerContextType = {
+    chartTimeRange: string
+    setChartTimeRange: (timeRange: string) => void
+    allowedDates: string[]
+    setAllowedDates: (dates: string[]) => void
+    fetchLoggerInfo: (loggerId: string) => Promise<any>
+    fetchLoggerDates: (loggerId: string, loggerType?: string) => Promise<any>
+    LoggerStatus: (props: { logger: any }) => JSX.Element
+}
 
-export function DrawerProvider({ children }) {
+const DrawerContext = createContext<DrawerContextType | undefined>(undefined)
+
+export function DrawerProvider({ children } :{ children: React.ReactNode }) {
     // // Time interval for chart display
     const [chartTimeRange, setChartTimeRange] = useState("12")
     // Allowed dates for report generation
     const [allowedDates, setAllowedDates] = useState([])
-    const { user, token } = useAuth()
     const { chartDrawerOpen, setChartDrawerOpen, loggerDialogOpen, setLoggerDialogOpen, reportDialogOpen, setReportDialogOpen,
         logger, setLogger, loggerInfo, setLoggerInfo } = useSharedStateContext()
 
-    const fetchLoggerInfo = async (loggerId) => {
-        const loggerResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/${loggerId}`)
+    const fetchLoggerInfo = async (loggerId: string) => {
+        const loggerResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/${loggerId}`, { withCredentials: true })
         return loggerResponse.data[0]
     }
 
-    const fetchLoggerDates = async (loggerId, loggerType = "pressure") => {
+    const fetchLoggerDates = async (loggerId: string, loggerType = "pressure") => {
         if (!["pressure", "flow"].includes(loggerType)) {
             throw ("Invalid Logger Type")
         }
-        const logDatesResponse = await axios.get(`${import.meta.env.VITE_API}/api/${loggerType}_log_dates/${loggerId}`)
+        const logDatesResponse = await axios.get(`${import.meta.env.VITE_API}/api/${loggerType}_log_dates/${loggerId}`, { withCredentials: true })
         return logDatesResponse.data
     }
 
@@ -85,8 +93,8 @@ export function DrawerProvider({ children }) {
                                 }
                             }}><SettingsIcon /></Button>
                         </DrawerTitle>
-                        <DrawerDescription/>
-                            <LoggerStatus logger={logger} />
+                        <DrawerDescription />
+                        <LoggerStatus logger={logger} />
                     </DrawerHeader>
                     {logger ? <Suspense fallback={<Loader2Icon className="animate-spin self-center size-12 my-5" />}>
                         <LogLineChart logger={logger} timeRange={chartTimeRange} />
@@ -143,4 +151,10 @@ export function DrawerProvider({ children }) {
     )
 }
 
-export const useDrawerContext = () => useContext(DrawerContext)
+export const useDrawerContext = () => {
+    const context = useContext(DrawerContext)
+    if (!context) {
+        throw new Error('useDrawerContext must be used within a DrawerProvider')
+    }
+    return context
+}

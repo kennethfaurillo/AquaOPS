@@ -25,7 +25,7 @@ import EventLogsDialog from "./eventLogsDialog";
 import NewUserDialog from "./NewUserDialog";
 
 function Header(props) {
-    const { user, token, logout } = useAuth()
+    const { user, logout } = useAuth()
     const [logoutAlertOpen, setLogoutAlertOpen] = useState(false)
     const [eventlogsDialogOpen, setEventlogsDialogOpen] = useState(false)
     const [newUserDialogOpen, setNewUserDialogOpen] = useState(false)
@@ -42,7 +42,7 @@ function Header(props) {
     }, [])
 
     const fetchEventLogs = async () => {
-        const eventLogResponse = await axios.get(`${import.meta.env.VITE_API}/auth/event_log?userId=${user.UserId}&token=${token}`)
+        const eventLogResponse = await axios.get(`${import.meta.env.VITE_API}/auth/event-log`, { withCredentials: true })
         setEventLogs(eventLogResponse.data)
         return
     }
@@ -76,7 +76,7 @@ function Header(props) {
                             <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger className="flex gap-1 text-slate-50 text-2xl items-center outline-none">
                                     <>
-                                        <div className="text-slate-700 text-2xl lg:block">{user.Username.toUpperCase() ?? "L"}</div>
+                                        <div className="text-slate-700 text-2xl lg:block">{user.Username?.toUpperCase() ?? "UserName"}</div>
                                         <Avatar className="m-2 mr-4 size-9 sm:size-14 cursor-pointer" >
                                             <AvatarImage src={piwadLogo} />
                                             <AvatarFallback>PIWAD</AvatarFallback>
@@ -91,7 +91,7 @@ function Header(props) {
                                             <User className="mr-2 h-4 w-4" />
                                             <span>Profile</span>
                                         </DropdownMenuItem>
-                                        {user.Type == 'admin'? <DropdownMenuItem onSelect={setNewUserDialogOpen}>
+                                        {user.Type == 'admin' ? <DropdownMenuItem onSelect={setNewUserDialogOpen}>
                                             <UserPlus className="mr-2 h-4 w-4" />
                                             <span>Create New User</span>
                                         </DropdownMenuItem> : null}
@@ -150,8 +150,8 @@ function Header(props) {
                                             <AvatarFallback>User</AvatarFallback>
                                         </Avatar>
                                         <div className="grid grid-cols-2">
-                                            <div className="col-span-2">{capitalize(user.Username)}</div>
-                                            <div className="col-span-1 text-sm text-piwad-lightyellow-600/80 ">{(user.Type).toUpperCase() ?? "UserType"}</div>
+                                            <div className="col-span-2">{capitalize(user.Username) ?? 'UserName'}</div>
+                                            <div className="col-span-1 text-sm text-piwad-lightyellow-600/80 ">{(user.Type)?.toUpperCase() ?? "UserType"}</div>
                                         </div>
                                     </SheetTitle>
                                     <Separator />
