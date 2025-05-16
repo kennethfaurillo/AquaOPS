@@ -228,7 +228,7 @@ function LoggerTable() {
       LogId: false, Timestamp: false, LoggerId: false, actions: false
     },
     pagination: {
-      pageSize: 8,
+      pageSize: 7,
     },
   }
 

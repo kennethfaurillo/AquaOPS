@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { capitalize } from "@/lib/utils";
 import axios from "axios";
-import { BarChartHorizontal, CloudIcon, FileClockIcon, GithubIcon, LifeBuoyIcon, LogInIcon, LogOutIcon, Settings, User, UserPlus } from "lucide-react";
+import { BarChartHorizontal, CloudIcon, FileClockIcon, GithubIcon, LifeBuoyIcon, LogOutIcon, Settings, User, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -15,13 +15,14 @@ import { Separator } from "./ui/separator";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "./ui/sheet";
 import { Switch } from "./ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 import avatarEng from '../assets/engineer.png';
 import logoHorizontal from '../assets/logo-horizontal.png';
 import piwadLogo from '../assets/piwad-logo.png';
 import avatarSoftwareEng from '../assets/software-engineer.png';
-import EventLogsDialog from "./eventLogsDialog";
+import EventLogsDialog from "./EventLogsDialog";
+import HeaderTime from "./HeaderTime";
 import NewUserDialog from "./NewUserDialog";
 
 function Header(props) {
@@ -66,18 +67,21 @@ function Header(props) {
             </AlertDialog>
             <EventLogsDialog eventlogsDialogOpen={eventlogsDialogOpen} setEventlogsDialogOpen={setEventlogsDialogOpen} eventLogs={eventLogs} />
             <NewUserDialog newUserDialogOpen={newUserDialogOpen} setNewUserDialogOpen={setNewUserDialogOpen} />
-            <div className='flex gap-4 sticky top-0 mb-2 max-w-dvw bg-slate-50/80 backdrop-blur drop-shadow-xl z-10 h-12 sm:h-16 overflow-hidden'>
+            <header className='flex gap-4 sticky top-0 max-h-14 max-w-dvw bg-slate-50/80 backdrop-blur drop-shadow-xl z-10 h-12 sm:h-16 overflow-hidden'>
                 <a href="/aquaops">
                     <img src={logoHorizontal} className="h-full p-2" />
                 </a>
                 <div className="flex ml-auto">
+                    {/* Clock */}
+                    <div>
+                        <HeaderTime color="black" />
+                    </div>
                     {props.user ? <>
-                        <TooltipProvider>
                             <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger className="flex gap-1 text-slate-50 text-2xl items-center outline-none">
                                     <>
                                         <div className="text-slate-700 text-2xl lg:block">{user.Username?.toUpperCase() ?? "UserName"}</div>
-                                        <Avatar className="m-2 mr-4 size-9 sm:size-14 cursor-pointer" >
+                                        <Avatar className="m-2 mr-4 size-9 sm:size-12 cursor-pointer" >
                                             <AvatarImage src={piwadLogo} />
                                             <AvatarFallback>PIWAD</AvatarFallback>
                                         </Avatar>
@@ -140,7 +144,6 @@ function Header(props) {
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
-                        </TooltipProvider>
                         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                             <SheetContent className="backdrop-blur-md rounded-l-xl ">
                                 <SheetHeader>
@@ -279,7 +282,7 @@ function Header(props) {
                     </> : <></>}
 
                 </div>
-            </div>
+            </header>
         </>
     )
 }

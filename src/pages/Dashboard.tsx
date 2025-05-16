@@ -11,7 +11,8 @@ import { lazy, Suspense, useEffect } from "react";
 import '../App.css';
 import Header from "../components/Header";
 import '../index.css';
-const LoggerMapCard = lazy(() => import('@/components/Map'));
+import { TooltipProvider } from "@/components/ui/tooltip";
+const LoggerMap = lazy(() => import('@/components/LoggerMap'));
 
 
 const MapFallback = () => (
@@ -56,38 +57,40 @@ function DashboardPage() {
     }, [isFirstRender, triggerFetch]); // Depend on triggerFetch
 
     return (
-        <div className='h-[cmd80dvh] sm:h-[100dvh] overflow-hidden bg-slate-100'>
+        <div className='flex flex-col min-h-dvh overflow-hidden bg-slate-100'>
             <Header user={{ "FirstName": "Piwad", "LastName": user?.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
             <DialogProvider>
                 <DrawerProvider>
-                    {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (
-                        <ResizablePanelGroup direction="horizontal">
-                            <ResizablePanel minSize={25} className="mx-2">
-                                <TableCard />
-                            </ResizablePanel>
-                            <ResizableHandle withHandle />
-                            <ResizablePanel defaultSize={76} minSize={45} className="mx-2">
-                                <Suspense fallback={<MapFallback />}>
-                                    <LoggerMapCard />
-                                </Suspense>
-                            </ResizablePanel>
-                        </ResizablePanelGroup>
-                    ) : (
-                        <div className="grid grid-cols-12 gap-4">
-                            {dashboardPrefs?.showLoggerList ? (
-                                <div className={`col-span-full xl:col-span-3`}>
+                    <TooltipProvider>
+                        {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (
+                            <ResizablePanelGroup direction="horizontal" className="flex flex-1">
+                                <ResizablePanel minSize={25} className="mx-0">
                                     <TableCard />
-                                </div>
-                            ) : null}
-                            {dashboardPrefs?.showLoggerMap ? (
-                                <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9 : 'full'} z-0`}>
+                                </ResizablePanel>
+                                <ResizableHandle withHandle />
+                                <ResizablePanel defaultSize={76} minSize={45} className="mx-0">
                                     <Suspense fallback={<MapFallback />}>
-                                        <LoggerMapCard />
+                                        <LoggerMap />
                                     </Suspense>
-                                </div>
-                            ) : null}
-                        </div>
-                    )}
+                                </ResizablePanel>
+                            </ResizablePanelGroup>
+                        ) : (
+                            <div className="grid grid-cols-12 gap-4">
+                                {dashboardPrefs?.showLoggerList ? (
+                                    <div className={`col-span-full xl:col-span-3`}>
+                                        <TableCard />
+                                    </div>
+                                ) : null}
+                                {dashboardPrefs?.showLoggerMap ? (
+                                    <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9 : 'full'} z-0`}>
+                                        <Suspense fallback={<MapFallback />}>
+                                            <LoggerMap />
+                                        </Suspense>
+                                    </div>
+                                ) : null}
+                            </div>
+                        )}
+                    </TooltipProvider>
                 </DrawerProvider>
             </DialogProvider>
         </div>

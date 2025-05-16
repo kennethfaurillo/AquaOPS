@@ -1,19 +1,18 @@
+import { useDialogContext } from "@/hooks/useDialogContext";
 import { DropletsIcon, PlusCircleIcon, RouterIcon } from "lucide-react";
 import { useState } from "react";
+import LatestLogTable from "./LatestLogTable";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Separator } from "./ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
-import LatestLogTable from "./LatestLogTable";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import WaterSourceTable from "./WaterSourceTable";
-import { useDialogContext } from "@/hooks/useDialogContext";
 
 function TableCard() {
     const [activeTab, setActiveTab] = useState("loggers")
     const { addSourceDialogOpen, setAddSourceDialogOpen } = useDialogContext()
     return (
-        <>
-            <TooltipProvider delayDuration={200}>
+        <section className="h-full">
                 <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} >
                     <TabsList className="grid grid-cols-2 w-full mr-1 bg-slate-200/80">
                         <TabsTrigger value="loggers">Loggers</TabsTrigger>
@@ -39,9 +38,9 @@ function TableCard() {
                             <CardHeader className="py-4 rounded-t-lg bg-piwad-lightblue-600">
                                 <div className="relative flex-row">
                                     <CardTitle className="text-piwad-lightyellow-400 flex gap-x-1">
-                                        <DropletsIcon/>
+                                        <DropletsIcon />
                                         Water Sources
-                                        </CardTitle>
+                                    </CardTitle>
                                     <Tooltip>
                                         <TooltipTrigger asChild><PlusCircleIcon color="white" className="absolute right-1 top-1 text-slate-900 cursor-pointer" onClick={() => {
                                             setAddSourceDialogOpen(!addSourceDialogOpen)
@@ -58,8 +57,7 @@ function TableCard() {
                         </Card>
                     </TabsContent>
                 </Tabs>
-            </TooltipProvider>
-        </>
+        </section>
     )
 }
 
