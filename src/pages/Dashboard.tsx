@@ -7,11 +7,12 @@ import useIsFirstRender from "@/hooks/useIsFirstRender";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useLogData } from "@/hooks/useLogData";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import '../App.css';
 import Header from "../components/Header";
 import '../index.css';
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ChevronUpIcon } from "lucide-react";
 const LoggerMap = lazy(() => import('@/components/LoggerMap'));
 
 
@@ -35,6 +36,7 @@ function DashboardPage() {
     const { fetchData } = useLogData()
     const isFirstRender = useIsFirstRender()
     const isWideScreen = window.innerWidth >= 1280
+    const [showScrollButton, setShowScrollButton] = useState(false)
 
     // fetch on render
     useEffect(() => {
@@ -56,6 +58,16 @@ function DashboardPage() {
         fetchData()
     }, [isFirstRender, triggerFetch]); // Depend on triggerFetch
 
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            setShowScrollButton(scrollTop > 400);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     return (
         <div className='flex flex-col min-h-dvh overflow-hidden bg-slate-100'>
             <Header user={{ "FirstName": "Piwad", "LastName": user?.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
@@ -64,28 +76,36 @@ function DashboardPage() {
                     <TooltipProvider>
                         {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (
                             <ResizablePanelGroup direction="horizontal" className="flex flex-1">
-                                <ResizablePanel minSize={25} className="mx-0">
+                                <ResizablePanel minSize={25} >
                                     <TableCard />
                                 </ResizablePanel>
                                 <ResizableHandle withHandle />
-                                <ResizablePanel defaultSize={76} minSize={45} className="mx-0">
+                                <ResizablePanel defaultSize={76} minSize={45} >
                                     <Suspense fallback={<MapFallback />}>
                                         <LoggerMap />
                                     </Suspense>
                                 </ResizablePanel>
                             </ResizablePanelGroup>
                         ) : (
-                            <div className="grid grid-cols-12 gap-4">
+                            <div className="grid grid-cols-12 gap-4 mx-4">
                                 {dashboardPrefs?.showLoggerList ? (
                                     <div className={`col-span-full xl:col-span-3`}>
                                         <TableCard />
                                     </div>
                                 ) : null}
                                 {dashboardPrefs?.showLoggerMap ? (
-                                    <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9 : 'full'} z-0`}>
+                                    <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9 : 'full'} z-0 min-h-dvh`}>
                                         <Suspense fallback={<MapFallback />}>
                                             <LoggerMap />
                                         </Suspense>
+                                        <button
+                                            type="button"
+                                            className={`fixed bottom-4 left-4 bg-blue-500 text-white rounded-full p-2 shadow-lg hover:bg-blue-600 transition duration-300 ease-in-out ${showScrollButton ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                                            aria-label="Scroll to top"
+                                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                        >
+                                            <ChevronUpIcon size={24} />
+                                        </button>
                                     </div>
                                 ) : null}
                             </div>
