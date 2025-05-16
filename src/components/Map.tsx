@@ -11,10 +11,10 @@ import { addMinutes } from 'date-fns'
 import { DivIcon, Icon, LatLng } from 'leaflet'
 import 'leaflet.fullscreen/Control.FullScreen.css'
 import 'leaflet.fullscreen/Control.FullScreen.js'
-import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, EarthIcon, FoldVerticalIcon, LucideIcon, MapPinIcon, MoonIcon, SunIcon, UnfoldVerticalIcon } from 'lucide-react'
+import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, EarthIcon, FoldVerticalIcon, LucideIcon, MapIcon, MapPinIcon, MoonIcon, SunIcon, UnfoldVerticalIcon } from 'lucide-react'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
-import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMapEvents } from 'react-leaflet'
+import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMapEvents, ZoomControl } from 'react-leaflet'
 import { toast } from 'sonner'
 import './Map.css'
 import { DataLog, Datalogger, LoggerLog, Source } from './Types'
@@ -457,11 +457,15 @@ function LoggerMapCard() {
     <TooltipProvider>
       <MapContainer
         className='cursor-crosshair'
-        center={[13.589451, 123.2871642]} ref={setMap} style={{ height: '78dvh' }} fullscreenControl={{ pseudoFullscreen: true }}
-        scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false} 
+        center={[13.589451, 123.2871642]} ref={setMap} style={{ height: '88dvh' }}
+        // fullscreenControlOptions={{forcePseudoFullscreen: true, position:'bottomleft'}} 
+        fullscreenControl={true} fullscreenControlOptions={{position:'bottomleft'}} zoomControl={false}
+        scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
         maxBounds={[[13.696173, 123.111745], [13.456072, 123.456730]]}>
-        <ResetViewControl title="Reset View" icon={"🔍"} />
-        <LayersControl position='topright'>
+        <ZoomControl position='bottomleft' />
+        <ResetViewControl position='bottomleft' title="Reset View" icon={"🔍"} />
+
+        <LayersControl position='topright' >
           <BaseLayer name='Street Map' checked>
             <TileLayer
               url={basemap ? basemap.url : "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"}
@@ -682,8 +686,8 @@ function LoggerMapCard() {
 
   return (
     <>
-      <Card className='col-span-full xl:col-span-9 z-0 drop-shadow-xl rounded-b-lg overflow-hidden'>
-        <CardHeader className='rounded-t-lg bg-piwad-lightblue-600 py-4 space-y-0'>
+      <Card className='col-span-full xl:col-span-9 z-0 drop-shadow-xl'>
+        {/* <CardHeader className='rounded-t-lg bg-piwad-lightblue-600 py-4 space-y-0'>
           <CardTitle className='flex justify-between'>
             <div className='space-y-1'>
               <div className='text-piwad-lightyellow-400 flex gap-x-1 '>
@@ -699,11 +703,39 @@ function LoggerMapCard() {
           </CardTitle>
           <CardDescription />
           <Separator />
-        </CardHeader>
-        <CardContent className='p-0'>
+        </CardHeader> */}
+
+        <CardContent className='p-0 relative'>
           {displayMap()}
+          {/* Map Card Label */}
+          <div className='absolute top-4 left-4 z-[400] p-3 text-white bg-piwad-lightblue-600 rounded-lg flex gap-x-2 items-center'>
+            {/* <MapPinIcon size={24} /> */}
+            <MapIcon size={24} />
+            <div className='flex-col'>
+              <div className='font-semibold '>
+              Utility Map
+              </div>
+              <div className='text-blue-100 font-normal text-xs tracking-normal'>
+                {map ? <>Coordinates: <DisplayPosition map={map} /> </> : null}
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
+      {/* move zoom controls to the middle left */}
+      <style>
+        {`
+          .leaflet-bottom.leaflet-left {
+            top: 12rem;
+            left: 0.5rem;
+            transform: translateY(-50%);
+            display: flex;
+            height: fit-content;
+            flex-direction: column;
+            gap: 4px;
+          }
+        `}
+      </style>
     </>
   )
 }
