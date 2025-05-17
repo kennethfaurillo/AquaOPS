@@ -13,7 +13,7 @@ import 'leaflet.fullscreen/Control.FullScreen.css'
 import 'leaflet.fullscreen/Control.FullScreen.js'
 import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, EarthIcon, FoldVerticalIcon, LucideIcon, MapIcon, MoonIcon, SunIcon, UnfoldVerticalIcon } from 'lucide-react'
 import moment from 'moment'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMapEvents, ZoomControl } from 'react-leaflet'
 import { toast } from 'sonner'
 import './Map.css'
@@ -33,6 +33,7 @@ import icLogger from '../assets/meter.png'
 import icStation from '../assets/Station.svg'
 import icSpring from '../assets/Tank.svg'
 import icValve from '../assets/Tube.svg'
+import FloatingCardLabel from './FloatingCardLabel'
 import Time from './Time'
 import { Separator } from './ui/separator'
 
@@ -92,7 +93,7 @@ const voltageIconMap = {
 }
 
 const pressureClassMap = {
-  red: '!text-red-500 font-bold',
+  red: '!text-red-500 font-bold animate-pulse',
   normal: '!text-piwad-blue-600 font-bold',
   yellow: '!text-yellow-600 font-bold',
   invalid: 'hidden'
@@ -359,15 +360,6 @@ function LoggerMap() {
     }
   }
 
-  const DisplayPosition = ({ map }) => {
-    const center = [13.586680, 123.279893]
-    const zoom = 13.5
-    const onClick = useCallback(() => {
-      map.setView(center, zoom)
-    }, [map])
-    return `${position.lat.toFixed(6)}°, ${position.lng.toFixed(6)}°`
-  }
-
   const onEachPipeline = (feature, layer) => {
     layer.bindTooltip(`Pipeline: ${feature.properties?.location.toUpperCase()}`, { direction: 'center' })
     if (feature.properties && feature.properties.ogr_fid) {
@@ -457,17 +449,9 @@ function LoggerMap() {
     <>
       <div className='col-span-full xl:col-span-9 z-0 drop-shadow-xl h-full bg-red-500'>
         {/* Map Card Label */}
-        <div className='absolute top-4 left-4 z-[401] p-3 text-white bg-piwad-lightblue-600 rounded-lg flex gap-x-2 items-center'>
-          <MapIcon size={24} />
-          <div className='flex-col'>
-            <div className='font-semibold '>
-              Utility Map
-            </div>
-            <div className='text-blue-100 font-normal text-xs tracking-normal'>
-              {map ? <>Coordinates: <DisplayPosition map={map} /> </> : null}
-            </div>
-          </div>
-        </div>
+        <FloatingCardLabel className='absolute top-4 left-4 z-[401]'
+          title='Utility Map' subtitle={map ? `Coordinates: ${position.lat.toFixed(6)}°, ${position.lng.toFixed(6)}°` : ''}
+          icon={<MapIcon size={24} />} />
         <div className='h-full bg-blue-500'>
           <MapContainer
             className='cursor-crosshair size-full'

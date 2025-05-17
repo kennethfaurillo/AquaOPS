@@ -24,8 +24,14 @@ import avatarSoftwareEng from '../assets/software-engineer.png';
 import EventLogsDialog from "./EventLogsDialog";
 import HeaderTime from "./HeaderTime";
 import NewUserDialog from "./NewUserDialog";
+import { DashboardPrefs } from "./Types";
 
-function Header(props) {
+interface HeaderProps {
+    dashboardPrefs: DashboardPrefs;
+    setDashboardPrefs: (prefs: DashboardPrefs) => void;
+}
+
+function Header(props: HeaderProps) {
     const { user, logout } = useAuth()
     const [logoutAlertOpen, setLogoutAlertOpen] = useState(false)
     const [eventlogsDialogOpen, setEventlogsDialogOpen] = useState(false)
@@ -72,78 +78,75 @@ function Header(props) {
                     <img src={logoHorizontal} className="h-full p-2" />
                 </a>
                 <div className="flex ml-auto">
-                    {/* Clock */}
-                    <div>
-                        <HeaderTime color="black" />
-                    </div>
-                    {props.user ? <>
-                            <DropdownMenu modal={false}>
-                                <DropdownMenuTrigger className="flex gap-1 text-slate-50 text-2xl items-center outline-none">
-                                    <>
-                                        <div className="text-slate-700 text-2xl lg:block">{user.Username?.toUpperCase() ?? "UserName"}</div>
-                                        <Avatar className="m-2 mr-4 size-9 sm:size-12 cursor-pointer" >
-                                            <AvatarImage src={piwadLogo} />
-                                            <AvatarFallback>PIWAD</AvatarFallback>
-                                        </Avatar>
-                                    </>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56">
-                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
-                                        <DropdownMenuItem disabled>
-                                            <User className="mr-2 h-4 w-4" />
-                                            <span>Profile</span>
-                                        </DropdownMenuItem>
-                                        {user.Type == 'admin' ? <DropdownMenuItem onSelect={setNewUserDialogOpen}>
-                                            <UserPlus className="mr-2 h-4 w-4" />
-                                            <span>Create New User</span>
-                                        </DropdownMenuItem> : null}
+                    <HeaderTime color="black" />
+                    {user ? <>
+                        <DropdownMenu modal={false}>
+                            <DropdownMenuTrigger className="flex gap-1 text-slate-50 text-2xl items-center outline-none">
+                                <>
+                                    <div className="text-slate-700 text-2xl lg:block">{user.Username?.toUpperCase() ?? "UserName"}</div>
+                                    <Avatar className="m-2 mr-4 size-9 sm:size-12 cursor-pointer" >
+                                        <AvatarImage src={piwadLogo} />
+                                        <AvatarFallback>PIWAD</AvatarFallback>
+                                    </Avatar>
+                                </>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56">
+                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuGroup>
+                                    <DropdownMenuItem disabled>
+                                        <User className="mr-2 h-4 w-4" />
+                                        <span>Profile</span>
+                                    </DropdownMenuItem>
+                                    {user.Type == 'admin' ? <DropdownMenuItem onSelect={() => setNewUserDialogOpen(true)}>
+                                        <UserPlus className="mr-2 h-4 w-4" />
+                                        <span>Create New User</span>
+                                    </DropdownMenuItem> : null}
 
-                                        <DropdownMenuItem disabled>
-                                            <BarChartHorizontal className="mr-2 h-4 w-4" />
-                                            <span>Statistics</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={setSheetOpen}>
-                                            <Settings className="mr-2 h-4 w-4" />
-                                            <span>Settings</span>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onSelect={() => window.open('https://github.com/kennethfaurillo/PDMS', '_blank')?.focus()}>
-                                        <GithubIcon className="mr-2 h-4 w-4" />
-                                        <span>GitHub</span>
-                                    </DropdownMenuItem>
                                     <DropdownMenuItem disabled>
-                                        <LifeBuoyIcon className="mr-2 h-4 w-4" />
-                                        <span>Support</span>
+                                        <BarChartHorizontal className="mr-2 h-4 w-4" />
+                                        <span>Statistics</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem disabled>
-                                        <CloudIcon className="mr-2 h-4 w-4" />
-                                        <span>API</span>
+                                    <DropdownMenuItem onSelect={() => setSheetOpen(true)}>
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        <span>Settings</span>
                                     </DropdownMenuItem>
-                                    <Tooltip delayDuration={200}>
-                                        <TooltipTrigger className="cursor-default w-full">
-                                            <DropdownMenuItem onSelect={() => {
-                                                fetchEventLogs()
-                                                setEventlogsDialogOpen(true)
-                                            }} disabled={user.Type != "admin"}>
-                                                <FileClockIcon className="mr-2 h-4 w-4" />
-                                                <span>System Event Logs</span>
-                                            </DropdownMenuItem>
-                                        </TooltipTrigger>
-                                        {user.Type != "admin" ?
-                                            <TooltipContent>
-                                                <p>{capitalize(user.Type)} not authorized to view System Logs</p>
-                                            </TooltipContent> : null}
-                                    </Tooltip>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onSelect={setLogoutAlertOpen}>
-                                        <LogOutIcon className="mr-2 h-4 w-4" />
-                                        <span>Log out</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                                </DropdownMenuGroup>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={() => window.open('https://github.com/kennethfaurillo/PDMS', '_blank')?.focus()}>
+                                    <GithubIcon className="mr-2 h-4 w-4" />
+                                    <span>GitHub</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem disabled>
+                                    <LifeBuoyIcon className="mr-2 h-4 w-4" />
+                                    <span>Support</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem disabled>
+                                    <CloudIcon className="mr-2 h-4 w-4" />
+                                    <span>API</span>
+                                </DropdownMenuItem>
+                                <Tooltip delayDuration={200}>
+                                    <TooltipTrigger className="cursor-default w-full">
+                                        <DropdownMenuItem onSelect={() => {
+                                            fetchEventLogs()
+                                            setEventlogsDialogOpen(true)
+                                        }} disabled={user.Type != "admin"}>
+                                            <FileClockIcon className="mr-2 h-4 w-4" />
+                                            <span>System Event Logs</span>
+                                        </DropdownMenuItem>
+                                    </TooltipTrigger>
+                                    {user.Type != "admin" ?
+                                        <TooltipContent>
+                                            <p>{capitalize(user.Type)} not authorized to view System Logs</p>
+                                        </TooltipContent> : null}
+                                </Tooltip>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={() => setLogoutAlertOpen(true)}>
+                                    <LogOutIcon className="mr-2 h-4 w-4" />
+                                    <span>Log out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                             <SheetContent className="backdrop-blur-md rounded-l-xl ">
                                 <SheetHeader>

@@ -1,7 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table"
-import { ColumnDef, flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
-import { Button } from "./button"
-import { Skeleton } from "./skeleton"
+import { ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
 
 
 interface DataTableProps<TData, TValue, TInitState, TSorting, TSetSorting, TLoading> {
@@ -14,17 +12,11 @@ interface DataTableProps<TData, TValue, TInitState, TSorting, TSetSorting, TLoad
 }
 
 export function DataTable<TData, TValue, TInitState, TSorting, TSetSorting, TLoading>({ columns, data, initialState, sorting, setSorting, loading }: DataTableProps<TData, TValue, TInitState, TSorting, TSetSorting, TLoading>) {
-  const test = {
-    pagination: {
-      pageSize: 8,
-    }
-  }
   const table = useReactTable({
     data,
     columns,
-    initialState: initialState ?? test,
+    initialState: initialState ?? {},
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     state: {
@@ -33,7 +25,6 @@ export function DataTable<TData, TValue, TInitState, TSorting, TSetSorting, TLoa
   })
 
   return (
-    // <div className="rounded-md border">
     <>
       <div className="-mx-5 sm:-mx-4">
         <Table>
@@ -89,14 +80,6 @@ export function DataTable<TData, TValue, TInitState, TSorting, TSetSorting, TLoa
                 </div>
               </div>
              : null}
-      </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-          Previous
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-          Next
-        </Button>
       </div>
     </>
   )

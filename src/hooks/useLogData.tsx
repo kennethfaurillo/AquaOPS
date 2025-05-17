@@ -27,7 +27,7 @@ export const LogDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         loggersData,
         latestLogsData,
         fetchData
-    }), [loggersData, latestLogsData])
+    }), [loggersData, latestLogsData, fetchData])
 
 
     return <LogDataContext.Provider value={value}>{children}</LogDataContext.Provider>

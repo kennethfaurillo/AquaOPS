@@ -1,18 +1,17 @@
 import TableCard from "@/components/TableCard";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { useAuth } from "@/hooks/useAuth";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { DialogProvider } from "@/hooks/useDialogContext";
 import { DrawerProvider } from "@/hooks/useDrawerContext";
 import useIsFirstRender from "@/hooks/useIsFirstRender";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useLogData } from "@/hooks/useLogData";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { ChevronUpIcon } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import '../App.css';
 import Header from "../components/Header";
 import '../index.css';
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { ChevronUpIcon } from "lucide-react";
 const LoggerMap = lazy(() => import('@/components/LoggerMap'));
 
 
@@ -27,7 +26,6 @@ const MapFallback = () => (
 )
 
 function DashboardPage() {
-    const { user } = useAuth()
     const [dashboardPrefs, setDashboardPrefs] = useLocalStorage('dashboardPrefs', {
         showLoggerList: true,
         showLoggerMap: true
@@ -41,7 +39,7 @@ function DashboardPage() {
     // fetch on render
     useEffect(() => {
         fetchData()
-    }, [])
+    }, [fetchData])
 
     // refetch on dashboardPrefs change
     useEffect(() => {
@@ -49,14 +47,14 @@ function DashboardPage() {
             return
         }
         fetchData()
-    }, [isFirstRender, dashboardPrefs])
+    }, [isFirstRender, dashboardPrefs, fetchData])
 
     useEffect(() => {
         if (isFirstRender) {
             return
         }
         fetchData()
-    }, [isFirstRender, triggerFetch]); // Depend on triggerFetch
+    }, [isFirstRender, triggerFetch, fetchData]); // Depend on triggerFetch
 
     useEffect(() => {
         const handleScroll = () => {
@@ -70,24 +68,24 @@ function DashboardPage() {
 
     return (
         <div className='flex flex-col min-h-dvh overflow-hidden bg-slate-100'>
-            <Header user={{ "FirstName": "Piwad", "LastName": user?.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
-            <DialogProvider>
-                <DrawerProvider>
-                    <TooltipProvider>
+            <TooltipProvider>
+                <DialogProvider>
+                    <DrawerProvider>
+                        <Header dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
                         {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (
                             <ResizablePanelGroup direction="horizontal" className="flex flex-1">
-                                <ResizablePanel minSize={25} >
+                                <ResizablePanel minSize={23} >
                                     <TableCard />
                                 </ResizablePanel>
                                 <ResizableHandle withHandle />
-                                <ResizablePanel defaultSize={76} minSize={45} >
+                                <ResizablePanel defaultSize={77} minSize={45} >
                                     <Suspense fallback={<MapFallback />}>
                                         <LoggerMap />
                                     </Suspense>
                                 </ResizablePanel>
                             </ResizablePanelGroup>
                         ) : (
-                            <div className="grid grid-cols-12 gap-4 mx-4">
+                            <div className="grid grid-cols-12 gap-4">
                                 {dashboardPrefs?.showLoggerList ? (
                                     <div className={`col-span-full xl:col-span-3`}>
                                         <TableCard />
@@ -110,9 +108,9 @@ function DashboardPage() {
                                 ) : null}
                             </div>
                         )}
-                    </TooltipProvider>
-                </DrawerProvider>
-            </DialogProvider>
+                    </DrawerProvider>
+                </DialogProvider>
+            </TooltipProvider>
         </div>
     )
 }

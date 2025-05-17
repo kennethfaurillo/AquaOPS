@@ -21,7 +21,7 @@ const HeaderTime: React.FC<HeaderTimeProps> = ({ color = 'white' }) => {
     const dateColor = color === 'black' ? 'text-gray-600' : 'text-slate-50';
 
     return (
-        <div className='flex gap-x-4 items-center h-full mx-4'>
+        <div className='flex gap-x-4 items-center w-0 sm:w-fit overflow-hidden mx-4'>
             <div className={`py-1 px-3 rounded-full bg-gray-200 flex gap-x-1 font-medium ${timeColor} text-base`}>
                 {time.toLocaleTimeString().slice(0, -2)}
                 <div className={`font-normal ${subTextColor} text-sm self-center`}>

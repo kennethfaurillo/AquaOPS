@@ -53,15 +53,14 @@ function LoggerTable() {
         )
       },
       cell: ({ row }) => {
-        const nameSplit = (row.getValue("Name") as string).split('_') 
+        const nameSplit = (row.getValue("Name") as string).split('_')
         const name = nameSplit.slice(2).toString().replace(/-/g, ' ').replace(/=/g, '-')
-        const type = nameSplit.slice(1, 2)
         return (
           <>
             <Button variant={"link"} onClick={() => {
               setChartDrawerOpen(true)
               setLogger(row.original)
-            }} className="p-0 block text-left whitespace-pre-wrap max-w-20 h-fit"><p className="font-bold">{name}</p><p className="text-muted-foreground">{row.getValue("LoggerId")}</p></Button>
+            }} className="p-0 block text-left whitespace-pre-wrap max-w-20 h-fit"><p className="font-bold">{name}</p><p className="text-gray-500 text-xs">{row.getValue("LoggerId")}</p></Button>
           </>
         )
       },
@@ -139,7 +138,10 @@ function LoggerTable() {
         )
       },
       cell: ({ row }) => {
-        if (!Number.isNaN(parseFloat(row.getValue("CurrentPressure")))) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentPressure"))} <em>psi</em></div>
+        if (!Number.isNaN(parseFloat(row.getValue("CurrentPressure")))) {
+          const pressure = parseFloat(row.getValue("CurrentPressure"))
+          return <div className={`font-semibold text-right ${pressure < 10 ? pressure < 5 ? 'text-red-400 animate-pulse' :'text-orange-400':''}`}>{pressure.toFixed(1)} <em>psi</em></div>
+        }
         return (<div className="text-gray-300 font-semibold text-right">NA</div>)
       }
     },
@@ -159,7 +161,7 @@ function LoggerTable() {
         )
       },
       cell: ({ row }) => {
-        if (!Number.isNaN(parseFloat(row.getValue("CurrentFlow")))) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentFlow"))} <em>lps</em></div>
+        if (!Number.isNaN(parseFloat(row.getValue("CurrentFlow")))) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentFlow").toFixed(1))} <em>lps</em></div>
         return (<div className="text-gray-300 font-semibold text-right">NA</div>)
       }
     },
@@ -226,10 +228,7 @@ function LoggerTable() {
   const initialState = {
     columnVisibility: {
       LogId: false, Timestamp: false, LoggerId: false, actions: false
-    },
-    pagination: {
-      pageSize: 7,
-    },
+    }
   }
 
   return (

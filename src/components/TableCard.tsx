@@ -1,62 +1,20 @@
-import { useDialogContext } from "@/hooks/useDialogContext";
-import { DropletsIcon, PlusCircleIcon, RouterIcon } from "lucide-react";
-import { useState } from "react";
+import { RouterIcon } from "lucide-react";
+import FloatingCardLabel from "./FloatingCardLabel";
 import LatestLogTable from "./LatestLogTable";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Separator } from "./ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import WaterSourceTable from "./WaterSourceTable";
+import { ScrollArea } from "./ui/scroll-area";
 
 function TableCard() {
-    const [activeTab, setActiveTab] = useState("loggers")
-    const { addSourceDialogOpen, setAddSourceDialogOpen } = useDialogContext()
     return (
-        <section className="h-full">
-                <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} >
-                    <TabsList className="grid grid-cols-2 w-full mr-1 bg-slate-200/80">
-                        <TabsTrigger value="loggers">Loggers</TabsTrigger>
-                        <TabsTrigger value="stations">Water Sources</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="loggers" forceMount hidden={activeTab != "loggers"}>
-                        <Card>
-                            <CardHeader className="py-4 rounded-t-lg bg-piwad-lightblue-600 space-y-1">
-                                <CardTitle className="text-piwad-lightyellow-400 flex gap-x-1">
-                                    <RouterIcon />
-                                    Data Logger
-                                </CardTitle>
-                                <CardDescription className="text-white/80">View and manage data loggers</CardDescription>
-                                <Separator />
-                            </CardHeader>
-                            <CardContent>
-                                <LatestLogTable />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                    <TabsContent value="stations" forceMount hidden={activeTab != "stations"}>
-                        <Card>
-                            <CardHeader className="py-4 rounded-t-lg bg-piwad-lightblue-600">
-                                <div className="relative flex-row">
-                                    <CardTitle className="text-piwad-lightyellow-400 flex gap-x-1">
-                                        <DropletsIcon />
-                                        Water Sources
-                                    </CardTitle>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild><PlusCircleIcon color="white" className="absolute right-1 top-1 text-slate-900 cursor-pointer" onClick={() => {
-                                            setAddSourceDialogOpen(!addSourceDialogOpen)
-                                        }} /></TooltipTrigger>
-                                        <TooltipContent>Add New Source</TooltipContent>
-                                    </Tooltip>
-                                    <CardDescription className="text-white/80">Water Sources overview</CardDescription>
-                                    <Separator />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <WaterSourceTable />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
+        <section className="h-[calc(100vh-3.5rem)] flex flex-col bg-white">
+            <ScrollArea className="flex-1">
+            <div className="flex justify-center pt-4">
+                <FloatingCardLabel className="w-full mx-4"
+                    title="Data Loggers" subtitle="View and manage data loggers" icon={<RouterIcon size={24} />} />
+            </div>
+            <div className="mx-4 ">
+                <LatestLogTable />
+            </div>
+            </ScrollArea>
         </section>
     )
 }

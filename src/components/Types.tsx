@@ -95,3 +95,8 @@ export type UserInfo = {
     Username: string,
     Type: 'admin' | 'user',
 }
+
+export type DashboardPrefs = {
+    showLoggerList: boolean,
+    showLoggerMap: boolean,
+}
