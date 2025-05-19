@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 
+declare const __BUILD_VERSION__: string;
 export const LoginPage = () => {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
@@ -18,14 +19,14 @@ export const LoginPage = () => {
     const handleLogin = async (event: React.FormEvent) => {
         event.preventDefault()
         const attemptLogin = await login(username, password)
-        if(!attemptLogin){
+        if (!attemptLogin) {
             setPassword('')
             setAlertOpen(true)
         }
     }
 
     return (
-        <> 
+        <>
             <AlertDialog open={alertOpen} onOpenChange={setAlertOpen} >
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -84,7 +85,10 @@ export const LoginPage = () => {
                         </div>
                     </div>
                 </div>
+                <div className="absolute bottom-2 right-4 text-xs text-slate-500">
+                    {__BUILD_VERSION__}
+                </div>
             </div>
-        </> 
+        </>
     )
 }

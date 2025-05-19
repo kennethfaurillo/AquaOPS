@@ -26,9 +26,10 @@ import HeaderTime from "./HeaderTime";
 import NewUserDialog from "./NewUserDialog";
 import { DashboardPrefs } from "./Types";
 
+declare const __BUILD_VERSION__: string;
 interface HeaderProps {
-    dashboardPrefs: DashboardPrefs;
-    setDashboardPrefs: (prefs: DashboardPrefs) => void;
+    dashboardPrefs?: DashboardPrefs;
+    setDashboardPrefs?: (prefs: DashboardPrefs) => void;
 }
 
 function Header(props: HeaderProps) {
@@ -38,7 +39,6 @@ function Header(props: HeaderProps) {
     const [newUserDialogOpen, setNewUserDialogOpen] = useState(false)
     const [sheetOpen, setSheetOpen] = useState(false)
     const [eventLogs, setEventLogs] = useState([])
-
     const dashboardPrefs = props.dashboardPrefs
     const setDashboardPrefs = props.setDashboardPrefs
 
@@ -238,10 +238,10 @@ function Header(props: HeaderProps) {
                                             </CardHeader>
                                             <CardContent className="space-y-2">
                                                 <div className="flex space-x-2 items-center">
-                                                    <Switch id="swDataloggerList" checked={dashboardPrefs.showLoggerList} onCheckedChange={() => setDashboardPrefs({ ...dashboardPrefs, showLoggerList: !dashboardPrefs.showLoggerList })} /> <Label htmlFor="swDataloggerList" className="cursor-pointer">Datalogger List</Label>
+                                                    <Switch id="swDataloggerList" checked={dashboardPrefs?.showLoggerList} onCheckedChange={() => setDashboardPrefs({ ...dashboardPrefs, showLoggerList: !dashboardPrefs?.showLoggerList })} /> <Label htmlFor="swDataloggerList" className="cursor-pointer">Datalogger List</Label>
                                                 </div>
                                                 <div className="flex space-x-2 items-center">
-                                                    <Switch id="swDataloggerMap" checked={dashboardPrefs.showLoggerMap} onCheckedChange={() => setDashboardPrefs({ ...dashboardPrefs, showLoggerMap: !dashboardPrefs.showLoggerMap })} /> <Label htmlFor="swDataloggerMap" className="cursor-pointer">Datalogger Map</Label>
+                                                    <Switch id="swDataloggerMap" checked={dashboardPrefs?.showLoggerMap} onCheckedChange={() => setDashboardPrefs({ ...dashboardPrefs, showLoggerMap: !dashboardPrefs.showLoggerMap })} /> <Label htmlFor="swDataloggerMap" className="cursor-pointer">Datalogger Map</Label>
                                                 </div>
                                                 <div className="flex space-x-2 items-center">
                                                     <Switch id="swTotalVolume" disabled /> <Label htmlFor="swTotalVolume" className="cursor-pointer">Total Volume for the Day</Label>
@@ -278,6 +278,9 @@ function Header(props: HeaderProps) {
                                         <SheetClose asChild >
                                             <Button>Close</Button>
                                         </SheetClose>
+                                    </div>
+                                    <div className="absolute bottom-4 right-4 text-xs text-slate-500">
+                                        {__BUILD_VERSION__}
                                     </div>
                                 </SheetFooter>
                             </SheetContent>

@@ -12,6 +12,7 @@ import logoHorizontal from './assets/logo-horizontal.png'
 import { WebSocketProvider } from "./hooks/useWebSocket"
 import { LogDataProvider } from "./hooks/useLogData"
 import ProtectedRoutes from "./components/ProtectedRoutes"
+import { TooltipProvider } from "./components/ui/tooltip"
 
 const ErrorFallback = () => (
   <div className="flex flex-col items-center justify-center h-screen border-black rounded-xl">
@@ -34,18 +35,20 @@ function App() {
     <AuthProvider>
       <ErrorBoundary fallback={<ErrorFallback />}>
         <SharedStateProvider>
-          <Routes >
-            <Route path="/aquaops/login" element={<LoginPage />} />
-            <Route element={<ProtectedRoutes />}>
-              <Route path="/aquaops/*" element={
-                <LogDataProvider>
-                  <WebSocketProvider>
-                    <DashboardPage />
-                  </WebSocketProvider>
-                </LogDataProvider>
-              } />
-            </Route>
-          </Routes>
+          <TooltipProvider>
+            <Routes >
+              <Route path="/aquaops/login" element={<LoginPage />} />
+              <Route element={<ProtectedRoutes />}>
+                <Route path="/aquaops/*" element={
+                  <LogDataProvider>
+                    <WebSocketProvider>
+                      <DashboardPage />
+                    </WebSocketProvider>
+                  </LogDataProvider>
+                } />
+              </Route>
+            </Routes>
+          </TooltipProvider>
           <Toaster richColors />
         </SharedStateProvider>
       </ErrorBoundary>
