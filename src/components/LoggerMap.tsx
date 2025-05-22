@@ -4,7 +4,11 @@ import hydrants from '@/assets/geoHdyrant.json'
 import pipelines from '@/assets/geoPipeline.json'
 import proposed_wellsite from '@/assets/geoProposedWellSite.json'
 import specific_capacity from '@/assets/geoSpecificCapacity.json'
-import { capitalize, isValueInRange, lerp } from '@/lib/utils'
+import useIsFirstRender from '@/hooks/useIsFirstRender'
+import { useLogData } from '@/hooks/useLogData'
+import { usePocketBaseContext } from '@/hooks/usePocketbase'
+import { useSharedStateContext } from '@/hooks/useSharedStateContext'
+import { capitalize, isValueInRange, lerp, testSample } from '@/lib/utils'
 import ResetViewControl from '@20tab/react-leaflet-resetview'
 import axios from 'axios'
 import { addMinutes } from 'date-fns'
@@ -14,17 +18,8 @@ import 'leaflet.fullscreen/Control.FullScreen.js'
 import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, EarthIcon, FoldVerticalIcon, LucideIcon, MapIcon, MoonIcon, SunIcon, UnfoldVerticalIcon } from 'lucide-react'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
-import { GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMapEvents, ZoomControl } from 'react-leaflet'
+import { Circle, GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMapEvents, ZoomControl } from 'react-leaflet'
 import { toast } from 'sonner'
-import './Map.css'
-import { DataLog, Datalogger, LoggerLog, Source } from './Types'
-import { Button } from './ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { Tooltip as HoverTooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
-
-import useIsFirstRender from '@/hooks/useIsFirstRender'
-import { useLogData } from '@/hooks/useLogData'
-import { useSharedStateContext } from '@/hooks/useSharedStateContext'
 import icProposedWellsite from '../assets/button.png'
 import icSurface from '../assets/Filter.svg'
 import icHydrant from '../assets/Hydrant.svg'
@@ -34,8 +29,13 @@ import icStation from '../assets/Station.svg'
 import icSpring from '../assets/Tank.svg'
 import icValve from '../assets/Tube.svg'
 import FloatingCardLabel from './FloatingCardLabel'
+import './Map.css'
 import Time from './Time'
+import { DataLog, Datalogger, LoggerLog, Source } from './Types'
+import { Button } from './ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Separator } from './ui/separator'
+import { Tooltip as HoverTooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 
 const loggerIcon = new Icon({
@@ -248,6 +248,8 @@ function LoggerMap() {
   const isFirstRender = useIsFirstRender()
   const { BaseLayer, Overlay } = LayersControl
   const scaleFactor = 1
+
+  const { samplingPoints } = usePocketBaseContext()
 
   useEffect(() => {
     if (isFirstRender) {
@@ -570,6 +572,42 @@ function LoggerMap() {
                   }
                 </LayerGroup>
               </Overlay>
+              {samplingPoints.length &&
+                <>
+                  <Overlay name='Chlorine Samples' checked>
+                    <LayerGroup>
+                      {samplingPoints.map((samplingPoint, index) => {
+                        // console.log(samplingPoint.expand?.samples)
+                        let descString = "Not yet sampled"
+                        let isPass = undefined
+                        if (samplingPoint.expand?.samples) {
+                          isPass = true
+                          descString = "Samples:\n"
+                          samplingPoint.expand.samples.map((sample) => {
+                            descString += `${sample.value} ppm\n`
+                          })
+                          if(!testSample(samplingPoint.expand.samples.at(-1))) {
+                            isPass = false
+                          }
+                        }
+                        return (
+                          <div key={samplingPoint.id}>
+                            <Circle center={[+samplingPoint.coordinates.lat, +samplingPoint.coordinates.lon]} radius={200} pathOptions={{ color: isPass? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 0.5 }}
+                              eventHandlers={{ click: () => {
+                                if(isPass){
+                                  return toast.success("Sampling Point: " + samplingPoint.name, { description: descString })
+                                } else if(isPass === false){
+                                  return toast.error("Sampling Point: " + samplingPoint.name, { description: descString })
+                                }
+                                return toast.info("Sampling Point: " + samplingPoint.name, { description: descString })
+                                }, }} />
+                          </div>
+                        )
+                      })}
+                    </LayerGroup>
+                  </Overlay>
+                </>
+              }
             </LayersControl>
             <MapEvents />
             <div className='absolute top-16 right-3 rounded-lg bg-slate-50 font-semibold text-sm cursor-default p-2 z-[400] flex items-center gap-x-1 outline outline-2 outline-black/20'

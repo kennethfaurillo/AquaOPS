@@ -21,6 +21,7 @@ import avatarEng from '../assets/engineer.png';
 import logoHorizontal from '../assets/logo-horizontal.png';
 import piwadLogo from '../assets/piwad-logo.png';
 import avatarSoftwareEng from '../assets/software-engineer.png';
+import avatarCsd from '../assets/customer-service.png';
 import EventLogsDialog from "./EventLogsDialog";
 import HeaderTime from "./HeaderTime";
 import NewUserDialog from "./NewUserDialog";
@@ -152,7 +153,7 @@ function Header(props: HeaderProps) {
                                 <SheetHeader>
                                     <SheetTitle className="flex items-center text-2xl gap-2">
                                         <Avatar className="m-2 mr-2 size-14 sm:size-16">
-                                            <AvatarImage src={user.Type == 'admin' ? avatarSoftwareEng : avatarEng} />
+                                            <AvatarImage src={user.Type == 'admin' ? avatarSoftwareEng : user.Username.toLowerCase() == 'csd' ? avatarCsd : avatarEng} />
                                             <AvatarFallback>User</AvatarFallback>
                                         </Avatar>
                                         <div className="grid grid-cols-2">

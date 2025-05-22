@@ -1,3 +1,4 @@
+import { Sample } from "@/components/Types"
 import axios from "axios"
 import { type ClassValue, clsx } from "clsx"
 import { addDays } from "date-fns"
@@ -125,4 +126,23 @@ export function dateDiff(date: Date, unit: 'ms' | 's' | 'm' | 'h' | 'd') {
   const diffInMs = now - new Date(date)
 
   return diffInMs / (unitDividers[unit] || 1)
+}
+
+/**
+ * Function to test if a sample is within the acceptable range
+ * @param sample Sample object to test
+ * 
+ * @returns true if the sample is within the range, false otherwise
+ */
+export function testSample(sample: Sample | undefined) {
+    if (!sample) return false
+    const { clType } = sample
+    const range = {
+        clo2: [0.2, 0.4],
+        cl: [0.3, 1.5]
+    }
+    if (clType === 'clo2' || clType === 'cl') {
+        return sample.value >= range[clType][0] && sample.value <= range[clType][1]
+    }
+    return false
 }
