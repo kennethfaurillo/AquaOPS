@@ -24,6 +24,7 @@ import icProposedWellsite from '../assets/button.png'
 import icSurface from '../assets/Filter.svg'
 import icHydrant from '../assets/Hydrant.svg'
 import logoMain from '../assets/logo-main.png'
+import logoPiwad from '../assets/piwad-logo.png'
 import icLogger from '../assets/meter.png'
 import icStation from '../assets/Station.svg'
 import icSpring from '../assets/Tank.svg'
@@ -586,21 +587,23 @@ function LoggerMap() {
                           samplingPoint.expand.samples.map((sample) => {
                             descString += `${sample.value} ppm\n`
                           })
-                          if(!testSample(samplingPoint.expand.samples.at(-1))) {
+                          if (!testSample(samplingPoint.expand.samples.at(-1))) {
                             isPass = false
                           }
                         }
                         return (
                           <div key={samplingPoint.id}>
-                            <Circle center={[+samplingPoint.coordinates.lat, +samplingPoint.coordinates.lon]} radius={200} pathOptions={{ color: isPass? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 0.5 }}
-                              eventHandlers={{ click: () => {
-                                if(isPass){
-                                  return toast.success("Sampling Point: " + samplingPoint.name, { description: descString })
-                                } else if(isPass === false){
-                                  return toast.error("Sampling Point: " + samplingPoint.name, { description: descString })
-                                }
-                                return toast.info("Sampling Point: " + samplingPoint.name, { description: descString })
-                                }, }} />
+                            <Circle center={[+samplingPoint.coordinates.lat, +samplingPoint.coordinates.lon]} radius={200} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 0.5 }}
+                              eventHandlers={{
+                                click: () => {
+                                  if (isPass) {
+                                    return toast.success("Sampling Point: " + samplingPoint.name, { description: descString })
+                                  } else if (isPass === false) {
+                                    return toast.error("Sampling Point: " + samplingPoint.name, { description: descString })
+                                  }
+                                  return toast.info("Sampling Point: " + samplingPoint.name, { description: descString })
+                                },
+                              }} />
                           </div>
                         )
                       })}
@@ -665,12 +668,12 @@ function LoggerMap() {
                 : <Button className='absolute bottom-8 right-4 z-[401] size-12 p-0 rounded-full opacity-80' variant={"secondary"} onClick={themeToggleOnclick}><SunIcon /></Button>
               : null}
             {fullscreenMap ?
-              <>
-                <div className='absolute bottom-4 left-4 p-2 rounded-full z-[400]'>
-                  <img src={logoMain} className='h-12 sm:h-16 md:h-20' />
-                </div>
-              </>
-              : null}
+              <div className='absolute bottom-4 left-4 p-2 rounded-full z-[400]'>
+                <img src={logoMain} className='h-12 sm:h-16 md:h-20' />
+              </div>
+              : <div className='absolute bottom-4 left-4 p-2 rounded-full z-[400]'>
+                <img src={logoPiwad} className='h-14' />
+              </div>}
             {fullscreenMap ?
               <div className='absolute top-2 left-12 p-2 rounded-full z-[400]'>
                 <Time color='black' />

@@ -86,7 +86,7 @@ function Header(props: HeaderProps) {
                                 <>
                                     <div className="text-slate-700 text-2xl lg:block">{user.Username?.toUpperCase() ?? "UserName"}</div>
                                     <Avatar className="m-2 mr-4 size-9 sm:size-12 cursor-pointer" >
-                                        <AvatarImage src={piwadLogo} />
+                                        <AvatarImage src={user.Type == 'admin' ? avatarSoftwareEng : user.Username.toLowerCase() == 'csd' ? avatarCsd : avatarEng}/>
                                         <AvatarFallback>PIWAD</AvatarFallback>
                                     </Avatar>
                                 </>
