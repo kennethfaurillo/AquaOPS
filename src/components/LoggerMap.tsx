@@ -593,7 +593,7 @@ function LoggerMap() {
                         }
                         return (
                           <div key={samplingPoint.id}>
-                            <Circle center={[+samplingPoint.coordinates.lat, +samplingPoint.coordinates.lon]} radius={200} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 0.5 }}
+                            <Circle center={[+samplingPoint.coordinates.lat, +samplingPoint.coordinates.lon]} radius={200} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 0.4 }}
                               eventHandlers={{
                                 click: () => {
                                   if (isPass) {
