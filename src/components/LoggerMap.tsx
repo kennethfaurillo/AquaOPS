@@ -573,8 +573,7 @@ function LoggerMap() {
                   }
                 </LayerGroup>
               </Overlay>
-              {samplingPoints.length &&
-                <>
+              {samplingPoints.length ?
                   <Overlay name='Chlorine Samples' checked>
                     <LayerGroup>
                       {samplingPoints.map((samplingPoint, index) => {
@@ -593,7 +592,7 @@ function LoggerMap() {
                         }
                         return (
                           <div key={samplingPoint.id}>
-                            <Circle center={[+samplingPoint.coordinates.lat, +samplingPoint.coordinates.lon]} radius={200} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 0.4 }}
+                            <Circle center={[+samplingPoint.coordinates.lat, +samplingPoint.coordinates.lon]} radius={300} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 0.2 }}
                               eventHandlers={{
                                 click: () => {
                                   if (isPass) {
@@ -604,12 +603,16 @@ function LoggerMap() {
                                   return toast.info("Sampling Point: " + samplingPoint.name, { description: descString })
                                 },
                               }} />
+                            {samplingPoint.expand.samples?.map((sample, index) => {
+                              let isPass = testSample(sample) ? true : false
+                              return <Circle center={[+sample.coordinates.lat, +sample.coordinates.lon]} radius={10} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 1 }} />
+                            })}
                           </div>
                         )
                       })}
                     </LayerGroup>
                   </Overlay>
-                </>
+                  : null
               }
             </LayersControl>
             <MapEvents />
