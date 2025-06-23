@@ -31,19 +31,16 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
             setTriggerFetchLogData(data.filename ?? new Date())
           }
           if (data.type === 'notification' && data.event === 'new') {
-            console.log("New notification received:", data)
+            // console.log("New notification received:", data)
             setTriggerFetchNotification(data.notificationId)
           }
         } catch (error) {
           // Non-JSON data, ignore
-          console.log(msgEvent.data.toString())
+          console.error("WebSocket message parsing error:", error)
         }
       };
-      ws.onopen = () => {
-        // console.log("WebSocket Connection Opened")
-      }
       ws.onclose = () => {
-        console.log("WebSocket disconnected, retrying...")
+        // console.log("WebSocket disconnected, retrying...")
         reconTimeout = setTimeout(() => connectWs(), 5000)
       }
       ws.onerror = (error) => {

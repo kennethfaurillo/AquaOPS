@@ -22,23 +22,23 @@ type SampleNotificationType = {
 }
 
 export function NotificationDropdown({ }) {
-    const [notifications, setNotifications] = useState<Notification[] | undefined>(undefined)
+    const [notifications, setNotifications] = useState<Notification[]>([])
     const { triggerFetchNotification } = useWebSocket()
     const { isAuthenticated } = useAuth()
     const unreadCount = useMemo(() => {
-        return notifications ? notifications.filter(n => !n.IsRead).length : 0
+        return notifications.filter(n => !n.IsRead).length
     }, [notifications])
 
     const fetchNotifications = async (includeRead?: boolean,) => {
         try {
-            const notificationResponse = await axios.get(`${import.meta.env.VITE_API}/api/notifications`, {
+            const notificationsResponse = await axios.get(`${import.meta.env.VITE_API}/api/notifications`, {
                 withCredentials: true,
                 params: {
                     includeRead: includeRead ?? false, // Default to false if not provided
                     test: 'testdata'
                 }
             })
-            const data: Notification[] = notificationResponse.data
+            const data: Notification[] = notificationsResponse.data
             setNotifications(data)
         } catch (error) {
             console.error("Error fetching notifications:", error)
@@ -57,7 +57,10 @@ export function NotificationDropdown({ }) {
             const data: Notification = notificationResponse.data
             const sampleData: SampleNotificationType = JSON.parse(notificationResponse.data.Data)
             console.log("Fetched notification:", data)
-            setNotifications([data, ...(notifications || [])])
+            setNotifications((prev) => {
+                const exists = prev.some(n => n.NotificationId === data.NotificationId)
+                return exists ? prev : [data, ...prev]
+            })
             if (data.Priority == 1) {
                 toast.error(notificationResponse.data.Message, {
                     description: `Value: ${sampleData.value ?? 'N/A'}`,
@@ -88,7 +91,7 @@ export function NotificationDropdown({ }) {
 
     // set realtime subscriptions for notifications
     useEffect(() => {
-        if (Number.isNaN(triggerFetchNotification) || triggerFetchNotification == undefined) {
+        if (triggerFetchNotification == undefined) {
             return
         }
         fetchNotification(triggerFetchNotification)
@@ -145,10 +148,10 @@ export function NotificationDropdown({ }) {
                                 const markAsRead = async () => {
                                     if (notification.IsRead) return;
                                     try {
-                                        setNotifications((prev: Notification[] | undefined) =>
-                                            prev ? prev.map((n) =>
+                                        setNotifications((prev: Notification[]) =>
+                                            prev.map((n) =>
                                                 n.NotificationId === notification.NotificationId ? { ...n, IsRead: true } : n
-                                            ) : []
+                                            ) 
                                         );
                                     } catch (err) {
                                         console.error("Failed to mark notification as read", err);

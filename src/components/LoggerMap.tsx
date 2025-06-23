@@ -445,7 +445,7 @@ function LoggerMap() {
         map.toggleFullscreen()
       }
     })
-    return false
+    return null
   }
 
   return (
@@ -605,7 +605,7 @@ function LoggerMap() {
                               }} />
                             {samplingPoint.expand.samples?.map((sample, index) => {
                               let isPass = testSample(sample) ? true : false
-                              return <Circle center={[+sample.coordinates.lat, +sample.coordinates.lon]} radius={10} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 1 }} />
+                              return <Circle key={sample.id} center={[+sample.coordinates.lat, +sample.coordinates.lon]} radius={10} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 1 }} />
                             })}
                           </div>
                         )
