@@ -434,11 +434,11 @@ function LoggerMap() {
 
   const MapEvents = () => {
     useMapEvents({
-      mousemove(e) {
-        setPosition({ lat: e.latlng.lat, lng: e.latlng.lng })
-      },
       moveend(e) {
         setPosition(map.getCenter())
+      },
+      dblclick(e) {
+        map.setView(e.latlng, map.getZoom() + 1)
       },
       keypress(e) {
         if (!(e.originalEvent.key == 'f' || e.originalEvent.key == 'F')) return
@@ -574,7 +574,7 @@ function LoggerMap() {
                 </LayerGroup>
               </Overlay>
               {samplingPoints.length ?
-                  <Overlay name='Chlorine Samples' checked>
+                  <Overlay name='Chlorine Samples'>
                     <LayerGroup>
                       {samplingPoints.map((samplingPoint, index) => {
                         // console.log(samplingPoint.expand?.samples)
