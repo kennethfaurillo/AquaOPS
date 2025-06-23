@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { capitalize } from "@/lib/utils";
 import axios from "axios";
-import { BarChartHorizontal, CloudIcon, FileClockIcon, GithubIcon, LifeBuoyIcon, LogInIcon, LogOutIcon, Settings, User, UserPlus } from "lucide-react";
+import { BarChartHorizontal, CloudIcon, FileClockIcon, GithubIcon, LifeBuoyIcon, LogOutIcon, Settings, User, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -15,23 +15,31 @@ import { Separator } from "./ui/separator";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "./ui/sheet";
 import { Switch } from "./ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 import avatarEng from '../assets/engineer.png';
 import logoHorizontal from '../assets/logo-horizontal.png';
 import piwadLogo from '../assets/piwad-logo.png';
 import avatarSoftwareEng from '../assets/software-engineer.png';
-import EventLogsDialog from "./eventLogsDialog";
+import avatarCsd from '../assets/customer-service.png';
+import EventLogsDialog from "./EventLogsDialog";
+import HeaderTime from "./HeaderTime";
 import NewUserDialog from "./NewUserDialog";
+import { DashboardPrefs } from "./Types";
 
-function Header(props) {
+declare const __BUILD_VERSION__: string;
+interface HeaderProps {
+    dashboardPrefs?: DashboardPrefs;
+    setDashboardPrefs?: (prefs: DashboardPrefs) => void;
+}
+
+function Header(props: HeaderProps) {
     const { user, logout } = useAuth()
     const [logoutAlertOpen, setLogoutAlertOpen] = useState(false)
     const [eventlogsDialogOpen, setEventlogsDialogOpen] = useState(false)
     const [newUserDialogOpen, setNewUserDialogOpen] = useState(false)
     const [sheetOpen, setSheetOpen] = useState(false)
     const [eventLogs, setEventLogs] = useState([])
-
     const dashboardPrefs = props.dashboardPrefs
     const setDashboardPrefs = props.setDashboardPrefs
 
@@ -66,87 +74,86 @@ function Header(props) {
             </AlertDialog>
             <EventLogsDialog eventlogsDialogOpen={eventlogsDialogOpen} setEventlogsDialogOpen={setEventlogsDialogOpen} eventLogs={eventLogs} />
             <NewUserDialog newUserDialogOpen={newUserDialogOpen} setNewUserDialogOpen={setNewUserDialogOpen} />
-            <div className='flex gap-4 sticky top-0 mb-2 max-w-dvw bg-slate-50/80 backdrop-blur drop-shadow-xl z-10 h-12 sm:h-16 overflow-hidden'>
+            <header className='flex gap-4 sticky top-0 max-h-14 max-w-dvw bg-slate-50/80 backdrop-blur drop-shadow-xl z-10 h-12 sm:h-16 overflow-hidden'>
                 <a href="/aquaops">
                     <img src={logoHorizontal} className="h-full p-2" />
                 </a>
                 <div className="flex ml-auto">
-                    {props.user ? <>
-                        <TooltipProvider>
-                            <DropdownMenu modal={false}>
-                                <DropdownMenuTrigger className="flex gap-1 text-slate-50 text-2xl items-center outline-none">
-                                    <>
-                                        <div className="text-slate-700 text-2xl lg:block">{user.Username?.toUpperCase() ?? "UserName"}</div>
-                                        <Avatar className="m-2 mr-4 size-9 sm:size-14 cursor-pointer" >
-                                            <AvatarImage src={piwadLogo} />
-                                            <AvatarFallback>PIWAD</AvatarFallback>
-                                        </Avatar>
-                                    </>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56">
-                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
-                                        <DropdownMenuItem disabled>
-                                            <User className="mr-2 h-4 w-4" />
-                                            <span>Profile</span>
-                                        </DropdownMenuItem>
-                                        {user.Type == 'admin' ? <DropdownMenuItem onSelect={setNewUserDialogOpen}>
-                                            <UserPlus className="mr-2 h-4 w-4" />
-                                            <span>Create New User</span>
-                                        </DropdownMenuItem> : null}
+                    <HeaderTime color="black" />
+                    {user ? <>
+                        <DropdownMenu modal={false}>
+                            <DropdownMenuTrigger className="flex gap-1 text-slate-50 text-2xl items-center outline-none">
+                                <>
+                                    <div className="text-slate-700 text-2xl lg:block">{user.Username?.toUpperCase() ?? "UserName"}</div>
+                                    <Avatar className="m-2 mr-4 size-9 sm:size-12 cursor-pointer" >
+                                        <AvatarImage src={user.Type == 'admin' ? avatarSoftwareEng : user.Username.toLowerCase() == 'csd' ? avatarCsd : avatarEng}/>
+                                        <AvatarFallback>PIWAD</AvatarFallback>
+                                    </Avatar>
+                                </>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56">
+                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuGroup>
+                                    <DropdownMenuItem disabled>
+                                        <User className="mr-2 h-4 w-4" />
+                                        <span>Profile</span>
+                                    </DropdownMenuItem>
+                                    {user.Type == 'admin' ? <DropdownMenuItem onSelect={() => setNewUserDialogOpen(true)}>
+                                        <UserPlus className="mr-2 h-4 w-4" />
+                                        <span>Create New User</span>
+                                    </DropdownMenuItem> : null}
 
-                                        <DropdownMenuItem disabled>
-                                            <BarChartHorizontal className="mr-2 h-4 w-4" />
-                                            <span>Statistics</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={setSheetOpen}>
-                                            <Settings className="mr-2 h-4 w-4" />
-                                            <span>Settings</span>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onSelect={() => window.open('https://github.com/kennethfaurillo/PDMS', '_blank')?.focus()}>
-                                        <GithubIcon className="mr-2 h-4 w-4" />
-                                        <span>GitHub</span>
-                                    </DropdownMenuItem>
                                     <DropdownMenuItem disabled>
-                                        <LifeBuoyIcon className="mr-2 h-4 w-4" />
-                                        <span>Support</span>
+                                        <BarChartHorizontal className="mr-2 h-4 w-4" />
+                                        <span>Statistics</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem disabled>
-                                        <CloudIcon className="mr-2 h-4 w-4" />
-                                        <span>API</span>
+                                    <DropdownMenuItem onSelect={() => setSheetOpen(true)}>
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        <span>Settings</span>
                                     </DropdownMenuItem>
-                                    <Tooltip delayDuration={200}>
-                                        <TooltipTrigger className="cursor-default w-full">
-                                            <DropdownMenuItem onSelect={() => {
-                                                fetchEventLogs()
-                                                setEventlogsDialogOpen(true)
-                                            }} disabled={user.Type != "admin"}>
-                                                <FileClockIcon className="mr-2 h-4 w-4" />
-                                                <span>System Event Logs</span>
-                                            </DropdownMenuItem>
-                                        </TooltipTrigger>
-                                        {user.Type != "admin" ?
-                                            <TooltipContent>
-                                                <p>{capitalize(user.Type)} not authorized to view System Logs</p>
-                                            </TooltipContent> : null}
-                                    </Tooltip>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onSelect={setLogoutAlertOpen}>
-                                        <LogOutIcon className="mr-2 h-4 w-4" />
-                                        <span>Log out</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TooltipProvider>
+                                </DropdownMenuGroup>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={() => window.open('https://github.com/kennethfaurillo/PDMS', '_blank')?.focus()}>
+                                    <GithubIcon className="mr-2 h-4 w-4" />
+                                    <span>GitHub</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem disabled>
+                                    <LifeBuoyIcon className="mr-2 h-4 w-4" />
+                                    <span>Support</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem disabled>
+                                    <CloudIcon className="mr-2 h-4 w-4" />
+                                    <span>API</span>
+                                </DropdownMenuItem>
+                                <Tooltip delayDuration={200}>
+                                    <TooltipTrigger className="cursor-default w-full">
+                                        <DropdownMenuItem onSelect={() => {
+                                            fetchEventLogs()
+                                            setEventlogsDialogOpen(true)
+                                        }} disabled={user.Type != "admin"}>
+                                            <FileClockIcon className="mr-2 h-4 w-4" />
+                                            <span>System Event Logs</span>
+                                        </DropdownMenuItem>
+                                    </TooltipTrigger>
+                                    {user.Type != "admin" ?
+                                        <TooltipContent>
+                                            <p>{capitalize(user.Type)} not authorized to view System Logs</p>
+                                        </TooltipContent> : null}
+                                </Tooltip>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={() => setLogoutAlertOpen(true)}>
+                                    <LogOutIcon className="mr-2 h-4 w-4" />
+                                    <span>Log out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                             <SheetContent className="backdrop-blur-md rounded-l-xl ">
                                 <SheetHeader>
                                     <SheetTitle className="flex items-center text-2xl gap-2">
                                         <Avatar className="m-2 mr-2 size-14 sm:size-16">
-                                            <AvatarImage src={user.Type == 'admin' ? avatarSoftwareEng : avatarEng} />
+                                            <AvatarImage src={user.Type == 'admin' ? avatarSoftwareEng : user.Username.toLowerCase() == 'csd' ? avatarCsd : avatarEng} />
                                             <AvatarFallback>User</AvatarFallback>
                                         </Avatar>
                                         <div className="grid grid-cols-2">
@@ -232,10 +239,10 @@ function Header(props) {
                                             </CardHeader>
                                             <CardContent className="space-y-2">
                                                 <div className="flex space-x-2 items-center">
-                                                    <Switch id="swDataloggerList" checked={dashboardPrefs.showLoggerList} onCheckedChange={() => setDashboardPrefs({ ...dashboardPrefs, showLoggerList: !dashboardPrefs.showLoggerList })} /> <Label htmlFor="swDataloggerList" className="cursor-pointer">Datalogger List</Label>
+                                                    <Switch id="swDataloggerList" checked={dashboardPrefs?.showLoggerList} onCheckedChange={() => setDashboardPrefs({ ...dashboardPrefs, showLoggerList: !dashboardPrefs?.showLoggerList })} /> <Label htmlFor="swDataloggerList" className="cursor-pointer">Datalogger List</Label>
                                                 </div>
                                                 <div className="flex space-x-2 items-center">
-                                                    <Switch id="swDataloggerMap" checked={dashboardPrefs.showLoggerMap} onCheckedChange={() => setDashboardPrefs({ ...dashboardPrefs, showLoggerMap: !dashboardPrefs.showLoggerMap })} /> <Label htmlFor="swDataloggerMap" className="cursor-pointer">Datalogger Map</Label>
+                                                    <Switch id="swDataloggerMap" checked={dashboardPrefs?.showLoggerMap} onCheckedChange={() => setDashboardPrefs({ ...dashboardPrefs, showLoggerMap: !dashboardPrefs.showLoggerMap })} /> <Label htmlFor="swDataloggerMap" className="cursor-pointer">Datalogger Map</Label>
                                                 </div>
                                                 <div className="flex space-x-2 items-center">
                                                     <Switch id="swTotalVolume" disabled /> <Label htmlFor="swTotalVolume" className="cursor-pointer">Total Volume for the Day</Label>
@@ -273,13 +280,16 @@ function Header(props) {
                                             <Button>Close</Button>
                                         </SheetClose>
                                     </div>
+                                    <div className="absolute bottom-4 right-4 text-xs text-slate-500">
+                                        {__BUILD_VERSION__}
+                                    </div>
                                 </SheetFooter>
                             </SheetContent>
                         </Sheet>
                     </> : <></>}
 
                 </div>
-            </div>
+            </header>
         </>
     )
 }

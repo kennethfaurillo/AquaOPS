@@ -16,7 +16,7 @@ import { Label } from "./ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
 
 interface ReportDialogProps {
     reportDialogOpen: boolean
@@ -98,7 +98,6 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
     }, [reportDialogOpen])
 
     return (<>
-        <TooltipProvider>
             <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -455,7 +454,6 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                     <DialogClose asChild><Button>Close</Button></DialogClose>
                 </DialogContent>
             </Dialog>
-        </TooltipProvider >
     </>
     )
 }

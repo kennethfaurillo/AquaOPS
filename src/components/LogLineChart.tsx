@@ -164,7 +164,7 @@ function LogLineChart(props) {
         return stats
     }
 
-    function StatCard({ title, value, unit, timestamp }: { title: string, value: string, unit: string, timestamp: string }) {
+    function StatCard({ title, value, unit, timestamp }: { title: string, value: string, unit: string, timestamp?: string }) {
         return (
             <Card className='bg-piwad-blue-50 p-4'>
                 <CardHeader className="flex flex-row items-center justify-between p-0 pb-1">
@@ -224,6 +224,8 @@ function LogLineChart(props) {
                 <LineChart height={200} data={filteredLogData}  >
                     <XAxis dataKey={'LogTime'} tick={{ fontSize: 12 }} tickFormatter={timeStr => moment(timeStr).utcOffset('+0000').format('h:mm a')} />
                     <YAxis width={30} tick={{ fontSize: 10 }} domain={["dataMin-5", "auto"]} allowDecimals={false} allowDataOverflow={true} />
+                    <ReferenceLine y={5} stroke="red" strokeDasharray={"3 3"}/>
+                    <ReferenceLine y={0} stroke="gray" strokeDasharray={"3 3"}/>
                     <CartesianGrid strokeDasharray={"5 10"} />
                     <Legend onClick={(e) =>{
                         if(['TotalFlowPositive', 'TotalFlowNegative'].includes(e.dataKey)){

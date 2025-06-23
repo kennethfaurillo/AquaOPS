@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 return status < 500;
             }
         })
+        setUser(null);
         setIsAuthenticated(false)
     }
 

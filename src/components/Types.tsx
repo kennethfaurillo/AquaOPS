@@ -95,3 +95,62 @@ export type UserInfo = {
     Username: string,
     Type: 'admin' | 'user',
 }
+
+export type DashboardPrefs = {
+    showLoggerList: boolean,
+    showLoggerMap: boolean,
+}
+
+// RCMS Types
+export type Sample = {
+    id: string,
+    clType: 'cl' | 'clo2' | 'variable',
+    coordinates: {
+        lat: number,
+        lon: number
+    },
+    gpsVerified: boolean,
+    value: number,
+    user: string,
+    samplingPoint: string,
+    expand: {
+        samplingPoint: SamplingPoint,
+        user: User
+    }
+}
+
+export type SamplingPoint = {
+    id: string,
+    name: string,
+    clType: "cl" | "clo2" | "variable",
+    coordinates: {
+        lat: number,
+        lon: number
+    },
+    samples: string[],
+    expand: {
+        samples: Sample[],
+        samplingLocations: SamplingLocation[]
+    }
+}
+
+export type SamplingLocation = {
+    id: string,
+    name: string,
+    coordinates: {
+        lat: number,
+        lon: number
+    },
+    expand: {
+        samplingPoint: SamplingPoint
+    }
+    radius: number,
+    samplingPoint: number
+}
+
+export type User = {
+    id: string,
+    email: string,
+    verified: boolean,
+    name: string,
+}

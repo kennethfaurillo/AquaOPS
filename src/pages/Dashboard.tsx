@@ -1,17 +1,16 @@
 import TableCard from "@/components/TableCard";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { useAuth } from "@/hooks/useAuth";
-import { DialogProvider } from "@/hooks/useDialogContext";
 import { DrawerProvider } from "@/hooks/useDrawerContext";
 import useIsFirstRender from "@/hooks/useIsFirstRender";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useLogData } from "@/hooks/useLogData";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import { lazy, Suspense, useEffect } from "react";
+import { ChevronUpIcon } from "lucide-react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import '../App.css';
 import Header from "../components/Header";
 import '../index.css';
-const LoggerMapCard = lazy(() => import('@/components/Map'));
+const LoggerMap = lazy(() => import('@/components/LoggerMap'));
 
 
 const MapFallback = () => (
@@ -25,7 +24,6 @@ const MapFallback = () => (
 )
 
 function DashboardPage() {
-    const { user } = useAuth()
     const [dashboardPrefs, setDashboardPrefs] = useLocalStorage('dashboardPrefs', {
         showLoggerList: true,
         showLoggerMap: true
@@ -34,11 +32,12 @@ function DashboardPage() {
     const { fetchData } = useLogData()
     const isFirstRender = useIsFirstRender()
     const isWideScreen = window.innerWidth >= 1280
+    const [showScrollButton, setShowScrollButton] = useState(false)
 
     // fetch on render
     useEffect(() => {
         fetchData()
-    }, [])
+    }, [fetchData])
 
     // refetch on dashboardPrefs change
     useEffect(() => {
@@ -46,50 +45,66 @@ function DashboardPage() {
             return
         }
         fetchData()
-    }, [isFirstRender, dashboardPrefs])
+    }, [isFirstRender, dashboardPrefs, fetchData])
 
     useEffect(() => {
         if (isFirstRender) {
             return
         }
         fetchData()
-    }, [isFirstRender, triggerFetch]); // Depend on triggerFetch
+    }, [isFirstRender, triggerFetch, fetchData]); // Depend on triggerFetch
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            setShowScrollButton(scrollTop > 400);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     return (
-        <div className='h-[cmd80dvh] sm:h-[100dvh] overflow-hidden bg-slate-100'>
-            <Header user={{ "FirstName": "Piwad", "LastName": user?.Username }} dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
-            <DialogProvider>
-                <DrawerProvider>
-                    {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (
-                        <ResizablePanelGroup direction="horizontal">
-                            <ResizablePanel minSize={25} className="mx-2">
+        <div className='flex flex-col min-h-dvh overflow-hidden bg-slate-100'>
+            <DrawerProvider>
+                <Header dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
+                {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (
+                    <ResizablePanelGroup direction="horizontal" className="flex flex-1">
+                        <ResizablePanel minSize={23} >
+                            <TableCard />
+                        </ResizablePanel>
+                        <ResizableHandle withHandle />
+                        <ResizablePanel defaultSize={77} minSize={45} >
+                            <Suspense fallback={<MapFallback />}>
+                                <LoggerMap />
+                            </Suspense>
+                        </ResizablePanel>
+                    </ResizablePanelGroup>
+                ) : (
+                    <div className="grid grid-cols-12 gap-4">
+                        {dashboardPrefs?.showLoggerList ? (
+                            <div className={`col-span-full xl:col-span-3`}>
                                 <TableCard />
-                            </ResizablePanel>
-                            <ResizableHandle withHandle />
-                            <ResizablePanel defaultSize={76} minSize={45} className="mx-2">
+                            </div>
+                        ) : null}
+                        {dashboardPrefs?.showLoggerMap ? (
+                            <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9 : 'full'} z-0 min-h-dvh`}>
                                 <Suspense fallback={<MapFallback />}>
-                                    <LoggerMapCard />
+                                    <LoggerMap />
                                 </Suspense>
-                            </ResizablePanel>
-                        </ResizablePanelGroup>
-                    ) : (
-                        <div className="grid grid-cols-12 gap-4">
-                            {dashboardPrefs?.showLoggerList ? (
-                                <div className={`col-span-full xl:col-span-3`}>
-                                    <TableCard />
-                                </div>
-                            ) : null}
-                            {dashboardPrefs?.showLoggerMap ? (
-                                <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9 : 'full'} z-0`}>
-                                    <Suspense fallback={<MapFallback />}>
-                                        <LoggerMapCard />
-                                    </Suspense>
-                                </div>
-                            ) : null}
-                        </div>
-                    )}
-                </DrawerProvider>
-            </DialogProvider>
+                                <button
+                                    type="button"
+                                    className={`fixed bottom-4 left-4 bg-blue-500 text-white rounded-full p-2 shadow-lg hover:bg-blue-600 transition duration-300 ease-in-out ${showScrollButton ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                                    aria-label="Scroll to top"
+                                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                >
+                                    <ChevronUpIcon size={24} />
+                                </button>
+                            </div>
+                        ) : null}
+                    </div>
+                )}
+            </DrawerProvider>
         </div>
     )
 }
