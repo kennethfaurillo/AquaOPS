@@ -1,16 +1,17 @@
-import TableCard from "@/components/TableCard";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { DrawerProvider } from "@/hooks/useDrawerContext";
-import useIsFirstRender from "@/hooks/useIsFirstRender";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { useLogData } from "@/hooks/useLogData";
-import { useWebSocket } from "@/hooks/useWebSocket";
-import { ChevronUpIcon } from "lucide-react";
-import { lazy, Suspense, useEffect, useState } from "react";
-import '../App.css';
-import Header from "../components/Header";
-import '../index.css';
-const LoggerMap = lazy(() => import('@/components/LoggerMap'));
+import TableCard from "@/components/TableCard"
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
+import { DrawerProvider } from "@/hooks/useDrawerContext"
+import useIsFirstRender from "@/hooks/useIsFirstRender"
+import { useLocalStorage } from "@/hooks/useLocalStorage"
+import { useLogData } from "@/hooks/useLogData"
+import { useWebSocket } from "@/hooks/useWebSocket"
+import { ChevronUpIcon, WifiOffIcon } from "lucide-react"
+import { lazy, Suspense, useEffect, useState } from "react"
+import '../App.css'
+import Header from "../components/Header"
+import '../index.css'
+import useOnlineStatus from "@/hooks/useOnlineStatus"
+const LoggerMap = lazy(() => import('@/components/LoggerMap'))
 
 
 const MapFallback = () => (
@@ -28,16 +29,17 @@ function DashboardPage() {
         showLoggerList: true,
         showLoggerMap: true
     })
-    const { triggerFetch } = useWebSocket()
+    const { triggerFetchLogData } = useWebSocket()
     const { fetchData } = useLogData()
     const isFirstRender = useIsFirstRender()
     const isWideScreen = window.innerWidth >= 1280
     const [showScrollButton, setShowScrollButton] = useState(false)
+    const { isOnline } = useOnlineStatus()
 
     // fetch on render
     useEffect(() => {
         fetchData()
-    }, [fetchData])
+    }, [])
 
     // refetch on dashboardPrefs change
     useEffect(() => {
@@ -45,24 +47,24 @@ function DashboardPage() {
             return
         }
         fetchData()
-    }, [isFirstRender, dashboardPrefs, fetchData])
+    }, [isFirstRender, dashboardPrefs])
 
     useEffect(() => {
         if (isFirstRender) {
             return
         }
         fetchData()
-    }, [isFirstRender, triggerFetch, fetchData]); // Depend on triggerFetch
+    }, [isFirstRender, triggerFetchLogData]) // Depend on triggerFetch
 
     useEffect(() => {
         const handleScroll = () => {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            setShowScrollButton(scrollTop > 400);
+            setShowScrollButton(scrollTop > 400)
         };
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+        window.addEventListener('scroll', handleScroll)
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
 
     return (
         <div className='flex flex-col min-h-dvh overflow-hidden bg-slate-100'>
@@ -105,6 +107,12 @@ function DashboardPage() {
                     </div>
                 )}
             </DrawerProvider>
+            { isOnline ? null :
+                <div className="fixed bottom-4 right-1/2 translate-x-1/2 rounded-full bg-red-200 hover:opacity-60 bg-opacity-50 backdrop-blur-sm cursor-pointer items-center justify-center flex p-2 px-4">
+                    <WifiOffIcon size={20} className="text-red-500" />
+                    <div className="text-red-500 text-sm font-semibold ml-2">Offline</div>
+                </div>
+            }
         </div>
     )
 }

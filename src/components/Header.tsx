@@ -2,7 +2,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { capitalize } from "@/lib/utils";
 import axios from "axios";
 import { BarChartHorizontal, CloudIcon, FileClockIcon, GithubIcon, LifeBuoyIcon, LogOutIcon, Settings, User, UserPlus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import avatarCsd from '../assets/customer-service.png';
+import avatarEng from '../assets/engineer.png';
+import logoHorizontal from '../assets/logo-horizontal.png';
+import avatarSoftwareEng from '../assets/software-engineer.png';
+import EventLogsDialog from "./EventLogsDialog";
+import HeaderTime from "./HeaderTime";
+import NewUserDialog from "./NewUserDialog";
+import { NotificationDropdown } from "./NotificationDropdown";
+import { DashboardPrefs } from "./Types";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -17,16 +26,6 @@ import { Switch } from "./ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
-import avatarEng from '../assets/engineer.png';
-import logoHorizontal from '../assets/logo-horizontal.png';
-import piwadLogo from '../assets/piwad-logo.png';
-import avatarSoftwareEng from '../assets/software-engineer.png';
-import avatarCsd from '../assets/customer-service.png';
-import EventLogsDialog from "./EventLogsDialog";
-import HeaderTime from "./HeaderTime";
-import NewUserDialog from "./NewUserDialog";
-import { DashboardPrefs } from "./Types";
-
 declare const __BUILD_VERSION__: string;
 interface HeaderProps {
     dashboardPrefs?: DashboardPrefs;
@@ -34,7 +33,7 @@ interface HeaderProps {
 }
 
 function Header(props: HeaderProps) {
-    const { user, logout } = useAuth()
+    const { user, isAuthenticated, logout } = useAuth()
     const [logoutAlertOpen, setLogoutAlertOpen] = useState(false)
     const [eventlogsDialogOpen, setEventlogsDialogOpen] = useState(false)
     const [newUserDialogOpen, setNewUserDialogOpen] = useState(false)
@@ -42,12 +41,6 @@ function Header(props: HeaderProps) {
     const [eventLogs, setEventLogs] = useState([])
     const dashboardPrefs = props.dashboardPrefs
     const setDashboardPrefs = props.setDashboardPrefs
-
-    useEffect(() => {
-        return () => {
-            setEventLogs([])
-        }
-    }, [])
 
     const fetchEventLogs = async () => {
         const eventLogResponse = await axios.get(`${import.meta.env.VITE_API}/auth/event-log`, { withCredentials: true })
@@ -80,13 +73,14 @@ function Header(props: HeaderProps) {
                 </a>
                 <div className="flex ml-auto">
                     <HeaderTime color="black" />
+                    {isAuthenticated && <NotificationDropdown />}
                     {user ? <>
                         <DropdownMenu modal={false}>
                             <DropdownMenuTrigger className="flex gap-1 text-slate-50 text-2xl items-center outline-none">
                                 <>
                                     <div className="text-slate-700 text-2xl lg:block">{user.Username?.toUpperCase() ?? "UserName"}</div>
                                     <Avatar className="m-2 mr-4 size-9 sm:size-12 cursor-pointer" >
-                                        <AvatarImage src={user.Type == 'admin' ? avatarSoftwareEng : user.Username.toLowerCase() == 'csd' ? avatarCsd : avatarEng}/>
+                                        <AvatarImage src={user.Type == 'admin' ? avatarSoftwareEng : user.Username.toLowerCase() == 'csd' ? avatarCsd : avatarEng} />
                                         <AvatarFallback>PIWAD</AvatarFallback>
                                     </Avatar>
                                 </>
@@ -152,7 +146,7 @@ function Header(props: HeaderProps) {
                             <SheetContent className="backdrop-blur-md rounded-l-xl ">
                                 <SheetHeader>
                                     <SheetTitle className="flex items-center text-2xl gap-2">
-                                        <Avatar className="m-2 mr-2 size-14 sm:size-16">
+                                        <Avatar className="size-14 sm:size-16">
                                             <AvatarImage src={user.Type == 'admin' ? avatarSoftwareEng : user.Username.toLowerCase() == 'csd' ? avatarCsd : avatarEng} />
                                             <AvatarFallback>User</AvatarFallback>
                                         </Avatar>
@@ -182,10 +176,10 @@ function Header(props: HeaderProps) {
                                             </CardHeader>
                                             <CardContent>
                                                 <div>
-                                                    <Checkbox id="cbNotifications" /> <Label htmlFor="cbNotifications" className="cursor-pointer">Enable Notifications</Label>
+                                                    <Checkbox id="cbNotifications" checked disabled /> <Label htmlFor="cbNotifications" className="cursor-pointer">Enable Notifications</Label>
                                                 </div>
                                                 <div>
-                                                    <Checkbox id="cbDarkMode" /> <Label htmlFor="cbDarkMode" className="cursor-pointer">Dark Mode</Label>
+                                                    <Checkbox id="cbDarkMode" disabled /> <Label htmlFor="cbDarkMode" className="cursor-pointer">Dark Mode</Label>
                                                 </div>
                                                 <div>
                                                     <Checkbox id="cbAutoUpdate" disabled /> <Label htmlFor="cbAutoUpdate" className="cursor-pointer">Auto-Update</Label>
@@ -209,11 +203,11 @@ function Header(props: HeaderProps) {
                                             <CardContent className="relative">
                                                 <div className="mb-2">
                                                     <Label htmlFor="changeDisplayName" className="cursor-pointer">Change Display Name</Label>
-                                                    <Input id="changeDisplayName" placeholder="Enter new display name" />
+                                                    <Input id="changeDisplayName" placeholder="Enter new display name" disabled />
                                                 </div>
                                                 <div className=" mb-2">
                                                     <Label htmlFor="changeProfilePicture" className="cursor-pointer">Change Profile Picture</Label>
-                                                    <Input type="file" id="changeProfilePicture" accept="image/*" />
+                                                    <Input type="file" id="changeProfilePicture" accept="image/*" disabled />
                                                 </div>
                                                 <div className="mt-2 mb-2">
                                                     <Label htmlFor="changeUsername" className="cursor-pointer">Change Username</Label>

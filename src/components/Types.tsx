@@ -154,3 +154,16 @@ export type User = {
     verified: boolean,
     name: string,
 }
+
+export type Notification = {
+    NotificationId: string,
+    Title: string,
+    Message: string,
+    Data: string,
+    UserId: number,
+    IsRead: boolean,
+    Timestamp: Date,
+    Type: 'info' | 'warning' | 'error' | 'sample-pass' | 'sample-resample' | 'sample-fail',
+    Priority: 1 | 2 | 3,
+    Source: 'aquaops' | 'crms' 
+}

@@ -434,18 +434,18 @@ function LoggerMap() {
 
   const MapEvents = () => {
     useMapEvents({
-      mousemove(e) {
-        setPosition({ lat: e.latlng.lat, lng: e.latlng.lng })
-      },
       moveend(e) {
         setPosition(map.getCenter())
+      },
+      dblclick(e) {
+        map.setView(e.latlng, map.getZoom() + 1)
       },
       keypress(e) {
         if (!(e.originalEvent.key == 'f' || e.originalEvent.key == 'F')) return
         map.toggleFullscreen()
       }
     })
-    return false
+    return null
   }
 
   return (
@@ -573,9 +573,8 @@ function LoggerMap() {
                   }
                 </LayerGroup>
               </Overlay>
-              {samplingPoints.length &&
-                <>
-                  <Overlay name='Chlorine Samples' checked>
+              {samplingPoints.length ?
+                  <Overlay name='Chlorine Samples'>
                     <LayerGroup>
                       {samplingPoints.map((samplingPoint, index) => {
                         // console.log(samplingPoint.expand?.samples)
@@ -593,7 +592,7 @@ function LoggerMap() {
                         }
                         return (
                           <div key={samplingPoint.id}>
-                            <Circle center={[+samplingPoint.coordinates.lat, +samplingPoint.coordinates.lon]} radius={200} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 0.4 }}
+                            <Circle center={[+samplingPoint.coordinates.lat, +samplingPoint.coordinates.lon]} radius={300} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 0.2 }}
                               eventHandlers={{
                                 click: () => {
                                   if (isPass) {
@@ -604,12 +603,16 @@ function LoggerMap() {
                                   return toast.info("Sampling Point: " + samplingPoint.name, { description: descString })
                                 },
                               }} />
+                            {samplingPoint.expand.samples?.map((sample, index) => {
+                              let isPass = testSample(sample) ? true : false
+                              return <Circle key={sample.id} center={[+sample.coordinates.lat, +sample.coordinates.lon]} radius={10} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 1 }} />
+                            })}
                           </div>
                         )
                       })}
                     </LayerGroup>
                   </Overlay>
-                </>
+                  : null
               }
             </LayersControl>
             <MapEvents />

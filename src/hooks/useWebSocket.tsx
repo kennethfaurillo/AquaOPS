@@ -1,45 +1,49 @@
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react"
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 
 type WebSocketContextType = {
-  triggerFetch: Date
+  triggerFetchLogData: Date;
+  triggerFetchNotification: string | undefined;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null)
+let isInit = false
 
 export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
-  const [triggerFetch, setTriggerFetch] = useState(new Date())
-  const toggleTrigger = useCallback(() => {
-    setTriggerFetch(new Date())
-  }, [])
+  const [triggerFetchLogData, setTriggerFetchLogData] = useState(new Date())
+  const [triggerFetchNotification, setTriggerFetchNotification] = useState(undefined)
   let ws: WebSocket
   let reconTimeout: NodeJS.Timeout
 
   useEffect(() => {
+    if (isInit) return // WebSocket already initialized, skip reconnection
+    isInit = true
     function connectWs() {
       // check if ws is already open
       if (ws && ws.readyState === ws.OPEN) {
         return
       }
       ws = new WebSocket(`${import.meta.env.VITE_WS}`)
-      // console.log("WebSocket Connecting...")
       ws.onmessage = (msgEvent) => {
-        // console.log("WebSocket Message Received")
+        // Types of messages:
+        // watchdog updates: {"type":"watchdog","event":"update","filename":"LOGGER_ID_TIMESTAMP.txt"}
+        // notifications: {"type":"notification","event":"new","notificationId":"NOTIFICATION_ID" 
+        // TODO: add "read" and "delete" events
         try {
           const data = JSON.parse(msgEvent.data);
           if (data.type === 'watchdog' && data.event == 'update') {
-            // console.log('update')
-            toggleTrigger()
+            setTriggerFetchLogData(data.filename ?? new Date())
+          }
+          if (data.type === 'notification' && data.event === 'new') {
+            // console.log("New notification received:", data)
+            setTriggerFetchNotification(data.notificationId)
           }
         } catch (error) {
           // Non-JSON data, ignore
-          console.log(msgEvent.data.toString());
+          console.error("WebSocket message parsing error:", error)
         }
       };
-      ws.onopen = () => {
-        // console.log("WebSocket Connection Opened")
-      }
       ws.onclose = () => {
-        console.log("WebSocket disconnected, retrying...")
+        // console.log("WebSocket disconnected, retrying...")
         reconTimeout = setTimeout(() => connectWs(), 5000)
       }
       ws.onerror = (error) => {
@@ -60,9 +64,13 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
+  const value = useMemo(() => ({
+    triggerFetchLogData,
+    triggerFetchNotification,
+  }), [triggerFetchLogData, triggerFetchNotification])
 
   return (
-    <WebSocketContext.Provider value={{ triggerFetch }}>
+    <WebSocketContext.Provider value={value}>
       {children}
     </WebSocketContext.Provider>
   )
