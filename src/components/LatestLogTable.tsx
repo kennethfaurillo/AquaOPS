@@ -2,13 +2,12 @@ import useIsFirstRender from "@/hooks/useIsFirstRender"
 import { useLogData } from "@/hooks/useLogData"
 import { useSharedStateContext } from "@/hooks/useSharedStateContext"
 import { ColumnDef, SortingState } from "@tanstack/react-table"
-import { ArrowDownIcon, ArrowUpIcon, CircleGaugeIcon, Clock4Icon, MoreHorizontal, RouterIcon, ScatterChartIcon, SettingsIcon, WavesIcon } from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon, CircleGaugeIcon, Clock4Icon, RouterIcon, WavesIcon } from "lucide-react"
 import moment from "moment"
 import { useEffect, useState } from "react"
 import { DataLog, Datalogger, } from "./Types"
 import { Button } from "./ui/button"
 import { DataTable } from "./ui/data-table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
 
 function LoggerTable() {
   const [loggerData, setLoggerData] = useState([])
@@ -140,7 +139,7 @@ function LoggerTable() {
       cell: ({ row }) => {
         if (!Number.isNaN(parseFloat(row.getValue("CurrentPressure")))) {
           const pressure = parseFloat(row.getValue("CurrentPressure"))
-          return <div className={`font-semibold text-right ${pressure < 10 ? pressure < 5 ? 'text-red-400 animate-pulse' :'text-orange-400':''}`}>{pressure.toFixed(1)} <em>psi</em></div>
+          return <div className={`font-semibold text-right ${pressure < 10 ? pressure < 5 ? 'text-red-400 animate-pulse' : 'text-orange-400' : ''}`}>{pressure.toFixed(1)} <em>psi</em></div>
         }
         return (<div className="text-gray-300 font-semibold text-right">NA</div>)
       }
@@ -164,33 +163,6 @@ function LoggerTable() {
         if (!Number.isNaN(parseFloat(row.getValue("CurrentFlow")))) return <div className="font-semibold text-right">{parseFloat(row.getValue("CurrentFlow").toFixed(1))} <em>lps</em></div>
         return (<div className="text-gray-300 font-semibold text-right">NA</div>)
       }
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={async () => {
-                const newLogger = (await fetchLoggerInfo(row.original.LoggerId))[0]
-                setLoggerInfo(newLogger)
-                setLoggerDialogOpen(true)
-              }}><SettingsIcon className="size-1/6 mr-1" />Edit Logger Info</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => {
-                setChartDrawerOpen(true)
-                setLogger(row.original)
-              }}><ScatterChartIcon className="size-1/6 mr-1" />View Logger Data</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
-      },
     },
   ]
 

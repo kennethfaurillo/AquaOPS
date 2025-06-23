@@ -14,6 +14,7 @@ import ProtectedRoutes from "./components/ProtectedRoutes"
 import { TooltipProvider } from "./components/ui/tooltip"
 import { PocketBaseProvider } from "./hooks/usePocketbase"
 import { ErrorFallback } from "./components/ErrorFallback"
+import { EnvironmentBanner } from "./components/EnvironmentBanner"
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <SharedStateProvider>
             <WebSocketProvider>
               <TooltipProvider>
+                <EnvironmentBanner/>
                 <Routes >
                   <Route path="/aquaops/login" element={<LoginPage />} />
                   <Route element={<ProtectedRoutes />}>

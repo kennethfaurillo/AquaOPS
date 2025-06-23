@@ -6,6 +6,7 @@ type WebSocketContextType = {
 }
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null)
+let isInit = false
 
 export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
   const [triggerFetchLogData, setTriggerFetchLogData] = useState(new Date())
@@ -14,6 +15,8 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
   let reconTimeout: NodeJS.Timeout
 
   useEffect(() => {
+    if (isInit) return // WebSocket already initialized, skip reconnection
+    isInit = true
     function connectWs() {
       // check if ws is already open
       if (ws && ws.readyState === ws.OPEN) {

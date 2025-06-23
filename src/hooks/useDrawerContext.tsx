@@ -8,7 +8,7 @@ import { Button } from "../components/ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "../components/ui/drawer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useSharedStateContext } from "./useSharedStateContext";
-const ReportDialog = lazy(() => import('@/components/reportDialog'));
+const ReportDialog = lazy(() => import('@/components/ReportDialog'));
 const LogLineChart = lazy(() => import('@/components/LogLineChart'));
 
 type DrawerContextType = {
@@ -23,7 +23,7 @@ type DrawerContextType = {
 
 const DrawerContext = createContext<DrawerContextType | undefined>(undefined)
 
-export function DrawerProvider({ children } :{ children: React.ReactNode }) {
+export function DrawerProvider({ children }: { children: React.ReactNode }) {
     // // Time interval for chart display
     const [chartTimeRange, setChartTimeRange] = useState("12")
     // Allowed dates for report generation
@@ -112,7 +112,7 @@ export function DrawerProvider({ children } :{ children: React.ReactNode }) {
                                 <SelectItem value="72">Last 3 Days</SelectItem>
                                 <SelectItem value={`${24 * 7}`}>Last Week</SelectItem>
                                 <SelectItem value={`${24 * 30}`}>Last Month</SelectItem>
-                                <SelectItem value={`${24 * 90}`}>Last 3 Months</SelectItem>
+                                <SelectItem value={`${24 * 90}`} disabled>Last 3 Months</SelectItem>
                                 <SelectItem value={`${24 * 180}`} disabled>Last 6 Months</SelectItem>
                             </SelectContent>
                         </Select>

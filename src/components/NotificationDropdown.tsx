@@ -1,12 +1,13 @@
 import { BellIcon, XIcon, AlertCircleIcon } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "./ui/dropdown-menu"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Notification } from "./Types"
 import axios from "axios"
 import { useWebSocket } from "@/hooks/useWebSocket"
 import { useAuth } from "@/hooks/useAuth"
 import { toast } from "sonner"
 import { ScrollArea } from "./ui/scroll-area"
+import NotificationDropDownItem from "./NotificationDropDownItem"
 
 type SampleNotificationType = {
     sampleId: string
@@ -34,8 +35,7 @@ export function NotificationDropdown({ }) {
             const notificationsResponse = await axios.get(`${import.meta.env.VITE_API}/api/notifications`, {
                 withCredentials: true,
                 params: {
-                    includeRead: includeRead ?? false, // Default to false if not provided
-                    test: 'testdata'
+                    includeRead: includeRead ?? false,
                 }
             })
             const data: Notification[] = notificationsResponse.data
@@ -81,6 +81,25 @@ export function NotificationDropdown({ }) {
             console.error("Failed to fetch notifications", error)
         }
     }
+    const setNotificationRead = useCallback(
+        async (notification: Notification) => {
+            if (notification.IsRead) return;
+            try {
+                // Update notification as read in the backend
+                await axios.post(`${import.meta.env.VITE_API}/api/notifications/read`, {
+                    notificationId: notification.NotificationId
+                }, {
+                    withCredentials: true
+                });
+                setNotifications((prev: Notification[]) =>
+                    prev.map((n) =>
+                        n.NotificationId === notification.NotificationId ? { ...n, IsRead: true } : n
+                    )
+                );
+            } catch (err) {
+                console.error("Failed to mark notification as read", err);
+            }
+        }, [])
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -126,52 +145,9 @@ export function NotificationDropdown({ }) {
                     </button>
                 </DropdownMenuLabel>
                 <ScrollArea className={`${notifications?.length ? 'h-72' : 'h-12'}`}>
-                    {/* Notification Card */}
-                    {notifications?.length ? notifications.map((notification: Notification, index) => {
-                        let iconColor
-                        switch (notification.Type) {
-                            case "sample-pass":
-                                iconColor = 'text-green-500'
-                                break
-                            case 'sample-resample':
-                                iconColor = 'text-yellow-500'
-                                break
-                            case 'sample-fail':
-                                iconColor = 'text-red-500'
-                                break
-                            default:
-                                iconColor = 'text-blue-500'
-                                break
-                        }
-                        return (
-                            <div className=" bg-blue-500" onClick={() => {
-                                const markAsRead = async () => {
-                                    if (notification.IsRead) return;
-                                    try {
-                                        setNotifications((prev: Notification[]) =>
-                                            prev.map((n) =>
-                                                n.NotificationId === notification.NotificationId ? { ...n, IsRead: true } : n
-                                            ) 
-                                        );
-                                    } catch (err) {
-                                        console.error("Failed to mark notification as read", err);
-                                    }
-                                };
-                                markAsRead();
-                            }} key={notification.NotificationId} >
-                                <DropdownMenuItem className={`rounded-none p-0`} >
-                                    <div className={`flex items-center gap-2 ${iconColor} ${notification.IsRead ? 'bg-white' : 'bg-blue-50'} p-2 hover:bg-gray-200 flex-1`}>
-                                        <AlertCircleIcon size={16} className="shrink-0" />
-                                        <div className="flex-col mr-1">
-                                            <div className="text-sm text-black font-semibold">{notification.Title}</div>
-                                            <div className="text-xs text-gray-600">{notification.Message}</div>
-                                            <div className="text-xs text-gray-400">{new Date(notification.Timestamp).toLocaleString()}</div>
-                                        </div>
-                                    </div>
-                                </DropdownMenuItem>
-                            </div>
-                        )
-                    }) :
+                    {notifications?.length ? notifications.map((notification: Notification) =>
+                        <NotificationDropDownItem key={notification.NotificationId} notification={notification} onClick={() => setNotificationRead(notification)} />
+                    ) :
                         <div className="text-center pb-2 text-sm text-gray-400"> No Notifications</div>
                     }
                 </ScrollArea>

@@ -8,7 +8,7 @@ import { useAuth } from './useAuth'
 interface PocketBaseContextType {
     samplingPoints: SamplingPoint[]
 }
-let isPBauth = false
+let isInit = false
 
 const PocketBaseContext = createContext<PocketBaseContextType | null>(null)
 
@@ -19,12 +19,6 @@ export function PocketBaseProvider({ children }: { children: React.ReactNode }) 
 
     // fetches auth record and token from PocketBase
     async function authPocketBase() {
-        // TODO: remove prod?
-        if (isPBauth) {
-            // console.log('PocketBase already initialized, skipping auth')
-            return
-        }
-        isPBauth = true
         try {
             const res = await axios.get(`${import.meta.env.VITE_API}/auth/login-crms`, { withCredentials: true })
             // console.log('PocketBase authenticated')
@@ -62,6 +56,9 @@ export function PocketBaseProvider({ children }: { children: React.ReactNode }) 
     }
 
     useEffect(() => {
+        if (isInit) return // PocketBase already initialized, skip reconnection
+        isInit = true
+        
         if (!isAuthenticated) {
             // console.warn('User is not authenticated, skipping PocketBase auth and data fetch')
             return
