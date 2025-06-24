@@ -2,6 +2,7 @@ export type Datalogger = {
     LoggerId: number,
     Name: string,
     Model: string,
+    Type: string,
     Enabled: boolean,
     FwVersion: string,
     Latitude: number,
@@ -40,7 +41,7 @@ export type DataLog = {
     LogId: number,
     Timestamp: Date,
     LoggerId: number,
-    LogTime: Date,
+    LogTime: string,
     AverageVoltage: number,
     CurrentPressure: number,
     CurrentFlow: number
@@ -64,6 +65,7 @@ export type LoggerLog = {
     LoggerId: number,
     Name: string,
     Model: string,
+    Type: string,
     FwVersion: string,
     Latitude: number,
     Longitude: number,
@@ -72,9 +74,10 @@ export type LoggerLog = {
     FlowLimit: string,
     Imei: number,
     Sim: number,
+    Visibility: string,
     LogId: number,
     Timestamp: Date,
-    LogTime: Date,
+    LogTime: string,
     AverageVoltage: number,
     CurrentPressure: number,
     CurrentFlow: number
@@ -165,5 +168,5 @@ export type Notification = {
     Timestamp: Date,
     Type: 'info' | 'warning' | 'error' | 'sample-pass' | 'sample-resample' | 'sample-fail',
     Priority: 1 | 2 | 3,
-    Source: 'aquaops' | 'crms' 
+    Source: 'aquaops' | 'crms'
 }

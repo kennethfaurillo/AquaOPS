@@ -1,49 +1,5 @@
-import { Icon } from 'leaflet';
-import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
 import { lerp } from '@/lib/utils';
-import icLogger from '../../assets/meter.png';
-import icStation from '../../assets/Station.svg';
-import icSpring from '../../assets/Tank.svg';
-import icSurface from '../../assets/Filter.svg';
-import icValve from '../../assets/Tube.svg';
-import icHydrant from '../../assets/Hydrant.svg';
-import icProposedWellsite from '../../assets/button.png';
-
-// Export all icon constants
-export const loggerIcon = new Icon({
-    iconUrl: icLogger,
-    iconSize: [24, 24],
-})
-
-export const StationIcon = new Icon({
-    iconUrl: icStation,
-    iconSize: [22, 22],
-})
-
-export const springIcon = new Icon({
-    iconUrl: icSpring,
-    iconSize: [24, 24],
-})
-
-export const surfaceIcon = new Icon({
-    iconUrl: icSurface,
-    iconSize: [24, 24],
-})
-
-export const valveIcon = new Icon({
-    iconUrl: icValve,
-    iconSize: [7, 7],
-})
-
-export const hydrantIcon = new Icon({
-    iconUrl: icHydrant,
-    iconSize: [10, 10],
-})
-
-export const proposedWellsiteIcon = new Icon({
-    iconUrl: icProposedWellsite,
-    iconSize: [10, 10]
-})
+import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, EarthIcon, LucideIcon, MoonIcon, SunIcon } from 'lucide-react';
 
 export type Basemap = {
     name: string,
@@ -79,13 +35,6 @@ export const voltageIconMap = {
     medium: <BatteryMediumIcon color='orange' className='size-4' />,
     low: <BatteryLowIcon color='red' className='size-4' />,
     critical: <BatteryWarningIcon color='red' className='size-4 animate-pulse' />
-};
-
-export const pressureClassMap = {
-    red: '!text-red-500 font-bold animate-pulse',
-    normal: '!text-piwad-blue-600 font-bold',
-    yellow: '!text-yellow-600 font-bold',
-    invalid: 'hidden'
 };
 
 export function checkVoltage(voltage: number, voltageLimit: string): 'critical' | 'low' | 'medium' | 'high' | 'full' {
@@ -124,6 +73,12 @@ export function checkPressure(pressure: number, pressureLimit: string): 'red' | 
 }
 
 export function pressureDisplay(currentPressure: number, pressureLimit: string) {
+    const pressureClassMap = {
+        red: '!text-red-500 font-bold animate-pulse',
+        normal: '!text-piwad-blue-600 font-bold',
+        yellow: '!text-yellow-600 font-bold',
+        invalid: 'hidden'
+    };
     if (pressureLimit == null)
         return <div className='font-bold'>{currentPressure.toFixed(1)} <em> psi</em><br /></div>
     return (

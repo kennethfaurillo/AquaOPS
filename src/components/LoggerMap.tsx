@@ -1,127 +1,46 @@
-import valve_blowOff from '@/assets/geoBlowOff.json'
-import piliBoundary from '@/assets/geoBoundary.json'
-import hydrants from '@/assets/geoHdyrant.json'
-import pipelines from '@/assets/geoPipeline.json'
-import proposed_wellsite from '@/assets/geoProposedWellSite.json'
-import specific_capacity from '@/assets/geoSpecificCapacity.json'
 import useIsFirstRender from '@/hooks/useIsFirstRender'
 import { useLogData } from '@/hooks/useLogData'
-import { usePocketBaseContext } from '@/hooks/usePocketbase'
 import { useSharedStateContext } from '@/hooks/useSharedStateContext'
-import { capitalize, isValueInRange, testSample } from '@/lib/utils'
+import { isValueInRange } from '@/lib/utils'
 import ResetViewControl from '@20tab/react-leaflet-resetview'
-import axios from 'axios'
 import { addMinutes } from 'date-fns'
-import { DivIcon, LatLng } from 'leaflet'
+import { LatLng, Map as LMap } from 'leaflet'
 import 'leaflet.fullscreen/Control.FullScreen.css'
 import 'leaflet.fullscreen/Control.FullScreen.js'
 import { FoldVerticalIcon, MapIcon, MoonIcon, SunIcon, UnfoldVerticalIcon } from 'lucide-react'
-import moment from 'moment'
-import { useEffect, useState } from 'react'
-import { Circle, GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMapEvents, ZoomControl } from 'react-leaflet'
-import { toast } from 'sonner'
-import icSurface from '../assets/Filter.svg'
-import icHydrant from '../assets/Hydrant.svg'
+import { useCallback, useEffect, useState } from 'react'
+import { LayersControl, MapContainer, TileLayer, useMapEvents, ZoomControl } from 'react-leaflet'
 import logoMain from '../assets/logo-main.png'
 import logoPiwad from '../assets/piwad-logo.png'
-import icStation from '../assets/Station.svg'
-import icSpring from '../assets/Tank.svg'
 import FloatingCardLabel from './FloatingCardLabel'
 import './Map.css'
+import BarangayLayer from './map/BarangayLayer'
+import BlowoffLayer from './map/BlowoffLayer'
+import CapacityLayer from './map/CapacityLayer'
+import HydrantLayer from './map/HydrantLayer'
+import { LoggerLayer } from './map/LoggerLayer'
+import { PipelineLayer } from './map/PipelineLayer'
+import ProposedSiteLayer from './map/ProposedSiteLayer'
+import { SampleLayer } from './map/SampleLayer'
+import { SourceLayer } from './map/SourceLayer'
 import {
-  Basemap, basemaps,
-  checkVoltage,
-  hydrantIcon,
-  loggerIcon,
-  pressureDisplay,
-  proposedWellsiteIcon,
-  springIcon,
-  StationIcon,
-  surfaceIcon,
-  valveIcon,
-  voltageIconMap
+  Basemap, basemaps
 } from './map/utils'
 import Time from './Time'
-import { DataLog, Datalogger, LoggerLog, Source } from './Types'
+import { Datalogger, LoggerLog } from './Types'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Separator } from './ui/separator'
 import { Tooltip as HoverTooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
-const colorMap = {
-  '32mm': '#65aff5',
-  '50mm': '#f20a82',
-  '75mm': '#3ff9ff',
-  '100mm': '#a1e751',
-  '150mm': '#8879eb',
-  '200mm': '#d674ee',
-  '250mm': '#def31e',
-  '300mm': '#eacb50',
-}
-
-
-function SourceMarker({ source }: { source: Source }) {
-  if (source.Type == 'well')
-    return (
-      <Marker position={[source.Latitude, source.Longitude]} icon={StationIcon}>
-        <Popup className='custom-popup'>
-          <div className="popup-container">
-            <div className="popup-header flex space-x-2">
-              <img src={icStation} alt="Icon" className="size-6" />
-              <div className='my-auto'>PS {source.SourceIdNo} {source.Name}</div>
-            </div>
-            <div className="popup-content">
-              <div><strong>Water Permit:</strong> {source.WaterPermitNo}</div>
-              <div><strong>Capacity:</strong> {source.Capacity} <em>lps</em></div>
-              <div><strong>HP Rating:</strong> {source.HpRating} <em>hp</em></div>
-              <div><strong>Supply Voltage:</strong> {source.SupplyVoltage} <em>V</em></div>
-            </div>
-          </div>
-        </Popup>
-      </Marker>
-    )
-  if (source.Type == 'spring')
-    return (
-      <Marker position={[source.Latitude, source.Longitude]} icon={springIcon}>
-        <Popup className='custom-popup'>
-          <div className="popup-container">
-            <div className="popup-header flex space-x-2">
-              <img src={icSpring} alt="Icon" className="size-6" />
-              <div className='my-auto'>{source.Name}</div>
-            </div>
-            <div className="popup-content">
-              <div><strong>Water Permit:</strong> {source.WaterPermitNo}</div>
-              <div><strong>Capacity:</strong> {source.Capacity} <em>lps</em></div>
-            </div>
-          </div>
-        </Popup>
-      </Marker>
-    )
-  if (source.Type == 'surface')
-    return (
-      <Marker position={[source.Latitude, source.Longitude]} icon={surfaceIcon}>
-        <Popup className='custom-popup'>
-          <div className="popup-container">
-            <div className="popup-header flex space-x-2">
-              <img src={icSurface} alt="Icon" className="size-6" />
-              <div className='my-auto'>{source.Name}</div>
-            </div>
-            <div className="popup-content">
-              <div><strong>Water Permit:</strong> {source.WaterPermitNo}</div>
-              <div><strong>Capacity:</strong> {source.Capacity} <em>lps</em></div>
-            </div>
-          </div>
-        </Popup>
-      </Marker>
-    )
-}
+// Extend Leaflet.Map type to include toggleFullscreen (possible typo)
+type LeafletMap = LMap & { toggleFullscreen: () => void }
 
 function LoggerMap() {
   const [loggersLatest, setLoggersLatest] = useState<Map<string, LoggerLog>>(new Map())
-  const [map, setMap] = useState<L.Map | null>(null)
+  const [map, setMap] = useState<LeafletMap | null>(null)
   const [weight, setWeight] = useState<number>(5)
   const [basemap, setBasemap] = useState<Basemap | undefined>(basemaps.at(0))
-  const [sources, setSources] = useState<Source[]>([])
   const [loggersStatus, setLoggersStatus] = useState<{ Active: number; Delayed: number; Inactive: number; Disabled: number }>({ Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 })
   const [position, setPosition] = useState<{ lat: number; lng: number }>({ lat: 13.586680, lng: 123.279893 })
   const [fullscreenMap, setFullscreenMap] = useState<boolean>(false)
@@ -132,10 +51,18 @@ function LoggerMap() {
   const { setChartDrawerOpen, setLogger } = useSharedStateContext()
   const { loggersData, latestLogsData } = useLogData()
   const isFirstRender = useIsFirstRender()
-  const { BaseLayer, Overlay } = LayersControl
+  const { BaseLayer } = LayersControl
   const scaleFactor = 1
 
-  const { samplingPoints } = usePocketBaseContext()
+  const updateWeight = useCallback(() => {
+    if (!map) {
+      return
+    }
+    const zoom = map.getZoom();
+    // Adjust weight based on zoom level
+    const newWeight = Math.max(2, 1 + (zoom - 13) / scaleFactor);
+    setWeight(newWeight);
+  }, [map]);
 
   useEffect(() => {
     if (isFirstRender) {
@@ -149,13 +76,6 @@ function LoggerMap() {
   useEffect(() => {
     if (!map) return
 
-    const updateWeight = () => {
-      const zoom = map.getZoom();
-      // Adjust weight based on zoom level
-      const newWeight = Math.max(2, 1 + (zoom - 13) / scaleFactor);
-      setWeight(newWeight);
-    };
-
     map.on('enterFullscreen exitFullscreen', (e) => {
       if (e.type == "enterFullscreen") {
         setFullscreenMap(true);
@@ -164,11 +84,8 @@ function LoggerMap() {
       }
     });
 
-    map.on('zoomend', updateWeight);
-    updateWeight(); // Set initial weight based on initial zoom
-
     return () => {
-      map.off('zoomend', updateWeight);
+      map.off('enterFullscreen exitFullscreen');
     };
   }, [map]);
 
@@ -196,11 +113,6 @@ function LoggerMap() {
     }
   }, [loggersLatest])
 
-  // Initial load/op
-  useEffect(() => {
-    fetchSources()
-  }, [])
-
   /**
    * Fetch latest logs with Datalogger Information
    */
@@ -209,7 +121,7 @@ function LoggerMap() {
       const tempLoggersStatus = { Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 }
       let tempLoggersLatest = new Map()
       loggersData.map((logger: Datalogger) => {
-        latestLogsData.map((log: DataLog) => {
+        latestLogsData.map((log: LoggerLog) => {
           if (logger.LoggerId == log.LoggerId) {
             if (!logger.Enabled) {
               tempLoggersStatus.Disabled++
@@ -236,94 +148,31 @@ function LoggerMap() {
     }
   }
 
-  /**
-   * Fetch Pump Station Information
-   */
-  async function fetchSources() {
-    try {
-      const sourceInfo = await axios.get(`${import.meta.env.VITE_API}/api/source/`, { withCredentials: true })
-      setSources(sourceInfo.data)
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
-  const onEachPipeline = (feature, layer) => {
-    layer.bindTooltip(`Pipeline: ${feature.properties?.location.toUpperCase()}`, { direction: 'center' })
-    if (feature.properties && feature.properties.ogr_fid) {
-      layer.on('click', () => {
-        toast.info(`Pipeline #${feature.properties?.ogr_fid} ${capitalize(feature.properties?.location)}`, {
-          description: <>
-            <span>Size: {feature?.properties.size}</span>
-            <span> | Length: {feature?.properties.lenght.replace('.', '')}</span>
-            <div>
-              {feature.properties["year inst."] ? <>Install Date: {feature.properties["year inst."].toUpperCase()}</> : <span>{null}</span>}
-            </div>
-          </>,
-        })
-      });
-    }
-  }
-
-  const onEachArea = (feature, layer) => {
-    if (feature.properties && feature.properties.Name) {
-      layer.on('dblclick', () => {
-        console.log(feature.properties)
-        toast.info(`Barangay ${feature.properties?.Name}`)
-      });
-    }
-  }
-
-  const onEachSpecificCapacity = (feature, layer) => {
-    layer.bindTooltip(feature.properties?.cap, { direction: 'center' })
-    layer.on('dblclick', () => {
-      toast.info(`Capacity: ${feature.properties?.cap}`)
-    });
-  }
-
-  const onEachBlowOff = (feature, layer) => {
-    layer.setIcon(valveIcon)
-    layer.bindTooltip('Blow-off Valve: ' + feature.properties?.location.toUpperCase() + '\n' + feature.properties?.size, { direction: 'top' })
-  }
-
-  const onEachProposedWellsite = (feature, layer) => {
-    layer.setIcon(proposedWellsiteIcon)
-    layer.bindTooltip('Proposed Well Site: ' + capitalize(feature.properties?.location.toUpperCase()) + '\n', { direction: 'top' })
-  }
-
-  const onEachHydrant = (feature, layer) => {
-    layer.setIcon(hydrantIcon)
-    layer.bindTooltip('Hydrant: ' + capitalize(feature.properties?.location) + '\n', { direction: 'top' })
-    layer.bindPopup(() => `
-    <div class="popup-container">
-      <div class="popup-header flex space-x-2">
-        <img src=${icHydrant} alt="Icon" class="size-6" />
-        <div class='my-auto'>${capitalize(feature.properties?.location) || 'No Data'}</div>
-      </div>
-      <div class="popup-content">
-        <div><strong>Date Installed:</strong> ${moment(feature.properties['year inst.'], true).format('MM-DD-YYYY') || 'No Data'}</div>
-        <div><strong>Type:</strong> ${capitalize(feature.properties?.type) || 'No Data'}</div>
-        <div><strong>Pipe Size:</strong> ${feature.properties?.size || 'No Data'}</div>
-      </div>
-    </div>
-    ` , {
-      className: 'custom-popup',
-      offset: [100, 150]
-    }
-    )
-  }
-
   const themeToggleOnclick = () => {
     setBasemap(basemaps.find((bmap) => bmap.name != basemap.name))
   }
 
+  const handleLoggerClick = useCallback((loggerData: LoggerLog) => {
+    if (map && fullscreenMap) {
+      map.toggleFullscreen()
+    }
+    setChartDrawerOpen(true)
+    setLogger(loggerData)
+  }, [map, fullscreenMap])
+
   const MapEvents = () => {
+    if (!map) {
+      return
+    }
     useMapEvents({
-      moveend(e) {
+      moveend() {
         setPosition(map.getCenter())
       },
       dblclick(e) {
         map.setView(e.latlng, map.getZoom() + 1)
+      },
+      zoomend() {
+        updateWeight()
       },
       keypress(e) {
         if (!(e.originalEvent.key == 'f' || e.originalEvent.key == 'F')) return
@@ -335,15 +184,21 @@ function LoggerMap() {
 
   return (
     <>
-      <div className='col-span-full xl:col-span-9 z-0 drop-shadow-xl h-full bg-red-500'>
+      <div className='col-span-full xl:col-span-9 z-0 drop-shadow-xl h-full'>
         {/* Map Card Label */}
         <FloatingCardLabel className='absolute top-4 left-4 z-[401]'
           title='Utility Map' subtitle={map ? `Coordinates: ${position.lat.toFixed(6)}°, ${position.lng.toFixed(6)}°` : ''}
           icon={<MapIcon size={24} />} />
         <div className='h-full bg-blue-500'>
           <MapContainer
+            whenReady={() => {
+              updateWeight()
+            }}
             className='cursor-crosshair size-full'
-            center={[13.589451, 123.2871642]} ref={setMap}
+            center={[13.589451, 123.2871642]}
+            ref={(instance) => {
+              setMap(instance as LeafletMap)
+            }}
             fullscreenControl={true} fullscreenControlOptions={{ position: 'bottomleft' }} zoomControl={false}
             scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
             maxBounds={[[13.696173, 123.111745], [13.456072, 123.456730]]}>
@@ -362,145 +217,19 @@ function LoggerMap() {
                   attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
                 />
               </BaseLayer>
-              <Overlay name='Barangay Boundaries'>
-                <GeoJSON data={piliBoundary} style={{ fillOpacity: 0, weight: 1, color: 'orange' }} onEachFeature={onEachArea} />
-              </Overlay>
-              <Overlay name='Specific Capacity'>
-                <GeoJSON data={specific_capacity} style={{ fillOpacity: 0, weight: 1, color: 'violet' }} onEachFeature={onEachSpecificCapacity} />
-              </Overlay>
-              <Overlay name='Pipelines' checked>
-                <GeoJSON data={pipelines} style={(feature) => ({
-                  color: basemap?.name === "stdDark" ? colorMap[feature?.properties.size] : "#58D68D90",
-                  weight: weight,
-                })}
-                  onEachFeature={onEachPipeline}
-                />
-              </Overlay>
-              <Overlay name='Fire Hydrants' checked>
-                <GeoJSON data={hydrants} onEachFeature={onEachHydrant} />
-              </Overlay>
-              <Overlay name='Blow Off Valves' >
-                <GeoJSON data={valve_blowOff} onEachFeature={onEachBlowOff} />
-              </Overlay>
-              <Overlay name='Water Sources' checked>
-                <LayerGroup>
-                  {sources.length ?
-                    sources.map((source: Source, index) => (
-                      <div key={index}>
-                        <SourceMarker source={source} />
-                      </div>
-                    )) : null}
-                </LayerGroup>
-              </Overlay>
-              <Overlay name='Proposed Well Sites' checked>
-                <GeoJSON data={proposed_wellsite} onEachFeature={onEachProposedWellsite} />
-              </Overlay>
-              <Overlay name='Data Loggers' checked>
-                <LayerGroup>
-                  {loggersLatest.size ?
-                    <>
-                      {Array.from(loggersLatest, ([loggerId, loggerData]) =>
-                      (
-                        <div key={loggerId}>
-                          <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={loggerIcon} eventHandlers={{
-                            click: () => {
-                              if (fullscreenMap) map.toggleFullscreen()
-                              setChartDrawerOpen(true)
-                              setLogger(loggerData)
-                            },
-                          }}>
-                            {!(loggerData?.Visibility.split(',').includes('map')) ? null : <Tooltip permanent direction={'top'} interactive={true}>
-                              <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
-                                {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('MMM D h:mm a')}<br /></> : null}
-                              </div>
-                              <div className='flex justify-between space-x-2'>
-                                {loggerData.CurrentPressure == null ? null :
-                                  pressureDisplay(loggerData.CurrentPressure, loggerData.PressureLimit)
-                                }
-                                <HoverTooltip delayDuration={75}>
-                                  <TooltipTrigger >
-                                    {loggerData.Type.includes('pressure') ? voltageIconMap[checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit)] : null}
-                                  </TooltipTrigger>
-                                  <TooltipContent side='right' className='text-red-600 text-xs'>
-                                    <>
-                                      <strong>{loggerData.AverageVoltage} <em>V</em></strong>
-                                    </>
-                                  </TooltipContent>
-                                </HoverTooltip>
-                              </div>
-                              <div className='flex justify-between space-x-2'>
-                                {loggerData.CurrentFlow == null ? null :
-                                  <div className='font-bold'>{loggerData.CurrentFlow}<em> lps</em> </div>
-                                }
-                                <HoverTooltip delayDuration={75}>
-                                  <TooltipTrigger >
-                                    {loggerData.Type.includes('flow') && !loggerData.Type.includes('pressure') ? voltageIconMap[checkVoltage(loggerData.AverageVoltage, loggerData.VoltageLimit)] : null}
-                                  </TooltipTrigger>
-                                  <TooltipContent side='right' className='text-red-600 text-xs'>
-                                    <>
-                                      <strong>{loggerData.AverageVoltage} <em>V</em></strong>
-                                    </>
-                                  </TooltipContent>
-                                </HoverTooltip>
-                              </div>
-                            </Tooltip>}
-                          </Marker>
-                          <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
-                            {basemap?.name == "stdDark" ?
-                              <div><Tooltip permanent direction='bottom' className='logger-label-dark'>{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip></div> :
-                              <Tooltip permanent direction='bottom'>{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip>
-                            }
-                          </Marker>
-                        </div>
-                      ))}
-                    </>
-                    : null
-                  }
-                </LayerGroup>
-              </Overlay>
-              {samplingPoints.length ?
-                <Overlay name='Chlorine Samples'>
-                  <LayerGroup>
-                    {samplingPoints.map((samplingPoint, index) => {
-                      // console.log(samplingPoint.expand?.samples)
-                      let descString = "Not yet sampled"
-                      let isPass = undefined
-                      if (samplingPoint.expand?.samples) {
-                        isPass = true
-                        descString = "Samples:\n"
-                        samplingPoint.expand.samples.map((sample) => {
-                          descString += `${sample.value} ppm\n`
-                        })
-                        if (!testSample(samplingPoint.expand.samples.at(-1))) {
-                          isPass = false
-                        }
-                      }
-                      return (
-                        <div key={samplingPoint.id}>
-                          <Circle center={[+samplingPoint.coordinates.lat, +samplingPoint.coordinates.lon]} radius={300} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 0.2 }}
-                            eventHandlers={{
-                              click: () => {
-                                if (isPass) {
-                                  return toast.success("Sampling Point: " + samplingPoint.name, { description: descString })
-                                } else if (isPass === false) {
-                                  return toast.error("Sampling Point: " + samplingPoint.name, { description: descString })
-                                }
-                                return toast.info("Sampling Point: " + samplingPoint.name, { description: descString })
-                              },
-                            }} />
-                          {samplingPoint.expand.samples?.map((sample, index) => {
-                            let isPass = testSample(sample) ? true : false
-                            return <Circle key={sample.id} center={[+sample.coordinates.lat, +sample.coordinates.lon]} radius={10} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 1 }} />
-                          })}
-                        </div>
-                      )
-                    })}
-                  </LayerGroup>
-                </Overlay>
-                : null
-              }
+              <BarangayLayer />
+              <CapacityLayer />
+              <BlowoffLayer />
+              <PipelineLayer basemap={basemap} weight={weight} />
+              <SourceLayer />
+              <HydrantLayer />
+              <ProposedSiteLayer />
+              <LoggerLayer basemap={basemap} loggersLatestData={loggersLatest}
+                onMarkerClick={handleLoggerClick} />
+              <SampleLayer />
             </LayersControl>
             <MapEvents />
+            {/* Logger Status Indicator */}
             <div className='absolute top-16 right-3 rounded-lg bg-slate-50 font-semibold text-sm cursor-default p-2 z-[400] flex items-center gap-x-1 outline outline-2 outline-black/20'
               onMouseOver={() => setExpandLoggerStatus(true)}
               onMouseOut={() => setExpandLoggerStatus(false)}>
@@ -584,7 +313,7 @@ function LoggerMap() {
                     {loggersLatest.size && expandMapTable ?
                       <>
                         {Array.from(loggersLatest, ([loggerId, loggerData]) => (
-                          map.getBounds().contains(new LatLng(loggerData.Latitude, loggerData.Longitude))) ?
+                          map?.getBounds().contains(new LatLng(loggerData.Latitude, loggerData.Longitude))) ?
                           <div key={loggerId}>
                             <div className='flex items-center gap-x-2'>
                               <div className='w-[14ch] font-semibold cursor-pointer text-xs sm:text-sm text-slate-800 font-sans'
