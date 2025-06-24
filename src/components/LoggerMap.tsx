@@ -8,71 +8,45 @@ import useIsFirstRender from '@/hooks/useIsFirstRender'
 import { useLogData } from '@/hooks/useLogData'
 import { usePocketBaseContext } from '@/hooks/usePocketbase'
 import { useSharedStateContext } from '@/hooks/useSharedStateContext'
-import { capitalize, isValueInRange, lerp, testSample } from '@/lib/utils'
+import { capitalize, isValueInRange, testSample } from '@/lib/utils'
 import ResetViewControl from '@20tab/react-leaflet-resetview'
 import axios from 'axios'
 import { addMinutes } from 'date-fns'
-import { DivIcon, Icon, LatLng } from 'leaflet'
+import { DivIcon, LatLng } from 'leaflet'
 import 'leaflet.fullscreen/Control.FullScreen.css'
 import 'leaflet.fullscreen/Control.FullScreen.js'
-import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, BatteryWarningIcon, EarthIcon, FoldVerticalIcon, LucideIcon, MapIcon, MoonIcon, SunIcon, UnfoldVerticalIcon } from 'lucide-react'
+import { FoldVerticalIcon, MapIcon, MoonIcon, SunIcon, UnfoldVerticalIcon } from 'lucide-react'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
 import { Circle, GeoJSON, LayerGroup, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMapEvents, ZoomControl } from 'react-leaflet'
 import { toast } from 'sonner'
-import icProposedWellsite from '../assets/button.png'
 import icSurface from '../assets/Filter.svg'
 import icHydrant from '../assets/Hydrant.svg'
 import logoMain from '../assets/logo-main.png'
 import logoPiwad from '../assets/piwad-logo.png'
-import icLogger from '../assets/meter.png'
 import icStation from '../assets/Station.svg'
 import icSpring from '../assets/Tank.svg'
-import icValve from '../assets/Tube.svg'
 import FloatingCardLabel from './FloatingCardLabel'
 import './Map.css'
+import {
+  Basemap, basemaps,
+  checkVoltage,
+  hydrantIcon,
+  loggerIcon,
+  pressureDisplay,
+  proposedWellsiteIcon,
+  springIcon,
+  StationIcon,
+  surfaceIcon,
+  valveIcon,
+  voltageIconMap
+} from './map/utils'
 import Time from './Time'
 import { DataLog, Datalogger, LoggerLog, Source } from './Types'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Separator } from './ui/separator'
 import { Tooltip as HoverTooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
-
-
-const loggerIcon = new Icon({
-  iconUrl: icLogger,
-  iconSize: [24, 24],
-})
-
-const StationIcon = new Icon({
-  iconUrl: icStation,
-  iconSize: [22, 22],
-})
-
-const springIcon = new Icon({
-  iconUrl: icSpring,
-  iconSize: [24, 24],
-})
-
-const surfaceIcon = new Icon({
-  iconUrl: icSurface,
-  iconSize: [24, 24],
-})
-
-const valveIcon = new Icon({
-  iconUrl: icValve,
-  iconSize: [7, 7],
-})
-
-const hydrantIcon = new Icon({
-  iconUrl: icHydrant,
-  iconSize: [10, 10],
-})
-
-const proposedWellsiteIcon = new Icon({
-  iconUrl: icProposedWellsite,
-  iconSize: [10, 10]
-})
 
 const colorMap = {
   '32mm': '#65aff5',
@@ -85,25 +59,8 @@ const colorMap = {
   '300mm': '#eacb50',
 }
 
-const voltageIconMap = {
-  full: <BatteryFullIcon color='green' className='size-4' />,
-  high: <BatteryMediumIcon color='green' className='size-4' />,
-  medium: <BatteryMediumIcon color='orange' className='size-4' />,
-  low: <BatteryLowIcon color='red' className='size-4' />,
-  critical: <BatteryWarningIcon color='red' className='size-4 animate-pulse' />
-}
 
-const pressureClassMap = {
-  red: '!text-red-500 font-bold animate-pulse',
-  normal: '!text-piwad-blue-600 font-bold',
-  yellow: '!text-yellow-600 font-bold',
-  invalid: 'hidden'
-}
-interface Props {
-  source: Source
-}
-
-function SourceMarker({ source }: Props) {
+function SourceMarker({ source }: { source: Source }) {
   if (source.Type == 'well')
     return (
       <Marker position={[source.Latitude, source.Longitude]} icon={StationIcon}>
@@ -159,90 +116,18 @@ function SourceMarker({ source }: Props) {
     )
 }
 
-const pressureDisplay = (currentPressure: number, pressureLimit: string) => {
-  if (pressureLimit == null)
-    return <div className='font-bold'>{currentPressure.toFixed(1)} <em> psi</em><br /></div>
-  return (
-    <div className={pressureClassMap[checkPressure(currentPressure, pressureLimit)]}>
-      <>{currentPressure.toFixed(1)}<em> psi</em><br /></>
-    </div>)
-}
-
-type Basemap = {
-  name: String,
-  label: String,
-  url: String,
-  icon: LucideIcon
-}
-
-const basemaps: Basemap[] = [
-  {
-    name: "osmLight",
-    label: "Light Map",
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    icon: SunIcon
-  },
-  {
-    name: "stdDark",
-    label: "Dark Map",
-    url: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
-    icon: MoonIcon
-  },
-  {
-    name: "arcSat",
-    label: "Sat Map",
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    icon: EarthIcon
-  },
-]
-
-function checkVoltage(voltage: number, voltageLimit: string): 'critical' | 'low' | 'medium' | 'high' | 'full' {
-  let [min, max] = voltageLimit.split(',')
-  const perc = lerp(min, max, voltage)
-  if (perc >= 83) {
-    return 'full'
-  } else if (perc >= 58) {
-    return 'high'
-  } else if (perc >= 33) {
-    return 'medium'
-  } else if (perc >= 16) {
-    return 'low'
-  } else {
-    return 'critical'
-  }
-}
-
-function checkPressure(pressure: number, pressureLimit: string): 'red' | 'yellow' | 'normal' | 'invalid' {
-  let [min, max] = pressureLimit.split(',').map((val) => +val)
-  pressure = +pressure.toFixed(1)
-  if (pressure < -10) {
-    return 'invalid'
-  }
-  if (pressure >= max + 20) {
-    return 'red'
-  } else if (pressure >= max) {
-    return 'yellow'
-  } else if (pressure >= min) {
-    return 'normal'
-  } else if (pressure >= (min - 5)) {
-    return 'yellow'
-  } else {
-    return 'red'
-  }
-}
-
 function LoggerMap() {
-  const [loggersLatest, setLoggersLatest] = useState(new Map())
-  const [map, setMap] = useState(null)
-  const [weight, setWeight] = useState(5)
-  const [basemap, setBasemap] = useState(basemaps.at(0))
-  const [sources, setSources] = useState([])
-  const [loggersStatus, setLoggersStatus] = useState({ Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 })
-  const [position, setPosition] = useState({ lat: 13.586680, lng: 123.279893 })
-  const [fullscreenMap, setFullscreenMap] = useState(false)
-  const [alarm, setAlarm] = useState({})
-  const [expandLoggerStatus, setExpandLoggerStatus] = useState(false)
-  const [expandMapTable, setExpandMapTable] = useState(false)
+  const [loggersLatest, setLoggersLatest] = useState<Map<string, LoggerLog>>(new Map())
+  const [map, setMap] = useState<L.Map | null>(null)
+  const [weight, setWeight] = useState<number>(5)
+  const [basemap, setBasemap] = useState<Basemap | undefined>(basemaps.at(0))
+  const [sources, setSources] = useState<Source[]>([])
+  const [loggersStatus, setLoggersStatus] = useState<{ Active: number; Delayed: number; Inactive: number; Disabled: number }>({ Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 })
+  const [position, setPosition] = useState<{ lat: number; lng: number }>({ lat: 13.586680, lng: 123.279893 })
+  const [fullscreenMap, setFullscreenMap] = useState<boolean>(false)
+  const [alarm, setAlarm] = useState<Record<string, { Voltage: boolean; Pressure: boolean; Flow: boolean }>>({})
+  const [expandLoggerStatus, setExpandLoggerStatus] = useState<boolean>(false)
+  const [expandMapTable, setExpandMapTable] = useState<boolean>(false)
 
   const { setChartDrawerOpen, setLogger } = useSharedStateContext()
   const { loggersData, latestLogsData } = useLogData()
@@ -291,7 +176,7 @@ function LoggerMap() {
   useEffect(() => {
     if (loggersLatest.size) {
       let _alarm = { ...alarm }
-      loggersLatest.forEach((logger: LoggerLog, key) => {
+      loggersLatest.forEach((logger: LoggerLog) => {
         const loggerId = logger.LoggerId
         _alarm = { ..._alarm, [loggerId]: { Voltage: false, Pressure: false, Flow: false } }
         // check voltage
@@ -574,45 +459,45 @@ function LoggerMap() {
                 </LayerGroup>
               </Overlay>
               {samplingPoints.length ?
-                  <Overlay name='Chlorine Samples'>
-                    <LayerGroup>
-                      {samplingPoints.map((samplingPoint, index) => {
-                        // console.log(samplingPoint.expand?.samples)
-                        let descString = "Not yet sampled"
-                        let isPass = undefined
-                        if (samplingPoint.expand?.samples) {
-                          isPass = true
-                          descString = "Samples:\n"
-                          samplingPoint.expand.samples.map((sample) => {
-                            descString += `${sample.value} ppm\n`
-                          })
-                          if (!testSample(samplingPoint.expand.samples.at(-1))) {
-                            isPass = false
-                          }
+                <Overlay name='Chlorine Samples'>
+                  <LayerGroup>
+                    {samplingPoints.map((samplingPoint, index) => {
+                      // console.log(samplingPoint.expand?.samples)
+                      let descString = "Not yet sampled"
+                      let isPass = undefined
+                      if (samplingPoint.expand?.samples) {
+                        isPass = true
+                        descString = "Samples:\n"
+                        samplingPoint.expand.samples.map((sample) => {
+                          descString += `${sample.value} ppm\n`
+                        })
+                        if (!testSample(samplingPoint.expand.samples.at(-1))) {
+                          isPass = false
                         }
-                        return (
-                          <div key={samplingPoint.id}>
-                            <Circle center={[+samplingPoint.coordinates.lat, +samplingPoint.coordinates.lon]} radius={300} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 0.2 }}
-                              eventHandlers={{
-                                click: () => {
-                                  if (isPass) {
-                                    return toast.success("Sampling Point: " + samplingPoint.name, { description: descString })
-                                  } else if (isPass === false) {
-                                    return toast.error("Sampling Point: " + samplingPoint.name, { description: descString })
-                                  }
-                                  return toast.info("Sampling Point: " + samplingPoint.name, { description: descString })
-                                },
-                              }} />
-                            {samplingPoint.expand.samples?.map((sample, index) => {
-                              let isPass = testSample(sample) ? true : false
-                              return <Circle key={sample.id} center={[+sample.coordinates.lat, +sample.coordinates.lon]} radius={10} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 1 }} />
-                            })}
-                          </div>
-                        )
-                      })}
-                    </LayerGroup>
-                  </Overlay>
-                  : null
+                      }
+                      return (
+                        <div key={samplingPoint.id}>
+                          <Circle center={[+samplingPoint.coordinates.lat, +samplingPoint.coordinates.lon]} radius={300} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 0.2 }}
+                            eventHandlers={{
+                              click: () => {
+                                if (isPass) {
+                                  return toast.success("Sampling Point: " + samplingPoint.name, { description: descString })
+                                } else if (isPass === false) {
+                                  return toast.error("Sampling Point: " + samplingPoint.name, { description: descString })
+                                }
+                                return toast.info("Sampling Point: " + samplingPoint.name, { description: descString })
+                              },
+                            }} />
+                          {samplingPoint.expand.samples?.map((sample, index) => {
+                            let isPass = testSample(sample) ? true : false
+                            return <Circle key={sample.id} center={[+sample.coordinates.lat, +sample.coordinates.lon]} radius={10} pathOptions={{ color: isPass ? 'lightGreen' : isPass === false ? 'red' : 'teal', stroke: false, fillOpacity: 1 }} />
+                          })}
+                        </div>
+                      )
+                    })}
+                  </LayerGroup>
+                </Overlay>
+                : null
               }
             </LayersControl>
             <MapEvents />
@@ -742,5 +627,3 @@ function LoggerMap() {
 }
 
 export default LoggerMap;
-
-
