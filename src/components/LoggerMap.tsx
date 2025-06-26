@@ -30,12 +30,13 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Separator } from './ui/separator'
 import { Tooltip as HoverTooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
+import { useMapContext } from '@/hooks/useMapContext'
 
 // Extend Leaflet.Map type to include toggleFullscreen (possible typo)
 type LeafletMap = LMap & { toggleFullscreen: () => void }
 
 function LoggerMap() {
-  const [map, setMap] = useState<LeafletMap | null>(null)
+  const { map, setMap } = useMapContext();
   const [weight, setWeight] = useState<number>(5)
   const [basemap, setBasemap] = useState<Basemap>(basemaps[0])
   const [position, setPosition] = useState<{ lat: number; lng: number }>({ lat: 13.586680, lng: 123.279893 })
@@ -128,7 +129,7 @@ function LoggerMap() {
         setPosition(map.getCenter())
       },
       dblclick(e) {
-        map.setView(e.latlng, map.getZoom() + 1)
+        map.flyTo(e.latlng, map.getZoom() + 1)
       },
       zoomend() {
         updateWeight()
@@ -276,8 +277,8 @@ function LoggerMap() {
                           <div key={loggerId}>
                             <div className='flex items-center gap-x-2'>
                               <div className='w-[14ch] font-semibold cursor-pointer text-xs sm:text-sm text-slate-800 font-sans'
-                                onClick={() => map.setView([loggerData.Latitude, loggerData.Longitude])}
-                                onDoubleClick={() => map.setView([loggerData.Latitude, loggerData.Longitude], 20)}>
+                                onClick={() => map.flyTo([loggerData.Latitude, loggerData.Longitude])}
+                                onDoubleClick={() => map.flyTo([loggerData.Latitude, loggerData.Longitude], 20)}>
                                 {loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').at(-1)}
                               </div>
                               <div className='text-right w-[10ch] font-sans text-slate-800'>

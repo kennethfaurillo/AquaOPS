@@ -11,6 +11,8 @@ import '../App.css'
 import Header from "../components/Header"
 import '../index.css'
 import useOnlineStatus from "@/hooks/useOnlineStatus"
+import { MapProvider } from '@/hooks/useMapContext';
+
 const LoggerMap = lazy(() => import('@/components/LoggerMap'))
 
 
@@ -69,43 +71,45 @@ function DashboardPage() {
     return (
         <div className='flex flex-col min-h-dvh overflow-hidden bg-slate-100'>
             <DrawerProvider>
-                <Header dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
-                {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (
-                    <ResizablePanelGroup direction="horizontal" className="flex flex-1">
-                        <ResizablePanel minSize={23} >
-                            <TableCard />
-                        </ResizablePanel>
-                        <ResizableHandle withHandle />
-                        <ResizablePanel defaultSize={77} minSize={45} >
-                            <Suspense fallback={<MapFallback />}>
-                                <LoggerMap />
-                            </Suspense>
-                        </ResizablePanel>
-                    </ResizablePanelGroup>
-                ) : (
-                    <div className="grid grid-cols-12 gap-4">
-                        {dashboardPrefs?.showLoggerList ? (
-                            <div className={`col-span-full xl:col-span-3`}>
+                <MapProvider>
+                    <Header dashboardPrefs={dashboardPrefs} setDashboardPrefs={setDashboardPrefs} />
+                    {isWideScreen && dashboardPrefs?.showLoggerList && dashboardPrefs?.showLoggerMap ? (
+                        <ResizablePanelGroup direction="horizontal" className="flex flex-1">
+                            <ResizablePanel minSize={23} >
                                 <TableCard />
-                            </div>
-                        ) : null}
-                        {dashboardPrefs?.showLoggerMap ? (
-                            <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9 : 'full'} z-0 min-h-dvh`}>
+                            </ResizablePanel>
+                            <ResizableHandle withHandle />
+                            <ResizablePanel defaultSize={77} minSize={45} >
                                 <Suspense fallback={<MapFallback />}>
                                     <LoggerMap />
                                 </Suspense>
-                                <button
-                                    type="button"
-                                    className={`fixed bottom-4 left-4 bg-blue-500 text-white rounded-full p-2 shadow-lg hover:bg-blue-600 transition duration-300 ease-in-out ${showScrollButton ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-                                    aria-label="Scroll to top"
-                                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                                >
-                                    <ChevronUpIcon size={24} />
-                                </button>
-                            </div>
-                        ) : null}
-                    </div>
-                )}
+                            </ResizablePanel>
+                        </ResizablePanelGroup>
+                    ) : (
+                        <div className="grid grid-cols-12 gap-4">
+                            {dashboardPrefs?.showLoggerList ? (
+                                <div className={`col-span-full xl:col-span-3`}>
+                                    <TableCard />
+                                </div>
+                            ) : null}
+                            {dashboardPrefs?.showLoggerMap ? (
+                                <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9 : 'full'} z-0 min-h-dvh`}>
+                                    <Suspense fallback={<MapFallback />}>
+                                        <LoggerMap />
+                                    </Suspense>
+                                    <button
+                                        type="button"
+                                        className={`fixed bottom-4 left-4 bg-blue-500 text-white rounded-full p-2 shadow-lg hover:bg-blue-600 transition duration-300 ease-in-out ${showScrollButton ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                                        aria-label="Scroll to top"
+                                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                    >
+                                        <ChevronUpIcon size={24} />
+                                    </button>
+                                </div>
+                            ) : null}
+                        </div>
+                    )}
+                </MapProvider>
             </DrawerProvider>
             { isOnline ? null :
                 <div className="fixed bottom-4 right-1/2 translate-x-1/2 rounded-full bg-red-200 hover:opacity-60 bg-opacity-50 backdrop-blur-sm cursor-pointer items-center justify-center flex p-2 px-4">
