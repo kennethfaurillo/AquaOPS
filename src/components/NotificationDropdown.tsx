@@ -83,12 +83,11 @@ export function NotificationDropdown({ }) {
     }
     const setNotificationRead = useCallback(
         async (notification: Notification) => {
-            if (notification.IsRead) return;
+            console.log("Setting notification as read:", notification.NotificationId)
+            if (notification.IsRead || (notification.NotificationId == null)) return;
             try {
                 // Update notification as read in the backend
-                await axios.post(`${import.meta.env.VITE_API}/api/notifications/read`, {
-                    notificationId: notification.NotificationId
-                }, {
+                await axios.patch(`${import.meta.env.VITE_API}/api/notification/${notification.NotificationId}/read`, {}, {
                     withCredentials: true
                 });
                 setNotifications((prev: Notification[]) =>
@@ -146,7 +145,8 @@ export function NotificationDropdown({ }) {
                 </DropdownMenuLabel>
                 <ScrollArea className={`${notifications?.length ? 'h-72' : 'h-12'}`}>
                     {notifications?.length ? notifications.map((notification: Notification) =>
-                        <NotificationDropDownItem key={notification.NotificationId} notification={notification} onClick={() => setNotificationRead(notification)} />
+                        <NotificationDropDownItem key={notification.NotificationId} notification={notification} 
+                        onClick={() => setNotificationRead(notification)} />
                     ) :
                         <div className="text-center pb-2 text-sm text-gray-400"> No Notifications</div>
                     }

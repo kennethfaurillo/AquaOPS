@@ -1,14 +1,12 @@
-import useIsFirstRender from '@/hooks/useIsFirstRender'
 import { useLogData } from '@/hooks/useLogData'
 import { useSharedStateContext } from '@/hooks/useSharedStateContext'
-import { isValueInRange } from '@/lib/utils'
 import ResetViewControl from '@20tab/react-leaflet-resetview'
 import { addMinutes } from 'date-fns'
 import { LatLng, Map as LMap } from 'leaflet'
 import 'leaflet.fullscreen/Control.FullScreen.css'
 import 'leaflet.fullscreen/Control.FullScreen.js'
 import { FoldVerticalIcon, MapIcon, MoonIcon, SunIcon, UnfoldVerticalIcon } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { LayersControl, MapContainer, TileLayer, useMapEvents, ZoomControl } from 'react-leaflet'
 import logoMain from '../assets/logo-main.png'
 import logoPiwad from '../assets/piwad-logo.png'
@@ -37,22 +35,47 @@ import { Tooltip as HoverTooltip, TooltipContent, TooltipTrigger } from './ui/to
 type LeafletMap = LMap & { toggleFullscreen: () => void }
 
 function LoggerMap() {
-  const [loggersLatest, setLoggersLatest] = useState<Map<string, LoggerLog>>(new Map())
   const [map, setMap] = useState<LeafletMap | null>(null)
   const [weight, setWeight] = useState<number>(5)
-  const [basemap, setBasemap] = useState<Basemap | undefined>(basemaps.at(0))
-  const [loggersStatus, setLoggersStatus] = useState<{ Active: number; Delayed: number; Inactive: number; Disabled: number }>({ Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 })
+  const [basemap, setBasemap] = useState<Basemap>(basemaps[0])
   const [position, setPosition] = useState<{ lat: number; lng: number }>({ lat: 13.586680, lng: 123.279893 })
   const [fullscreenMap, setFullscreenMap] = useState<boolean>(false)
-  const [alarm, setAlarm] = useState<Record<string, { Voltage: boolean; Pressure: boolean; Flow: boolean }>>({})
   const [expandLoggerStatus, setExpandLoggerStatus] = useState<boolean>(false)
   const [expandMapTable, setExpandMapTable] = useState<boolean>(false)
 
   const { setChartDrawerOpen, setLogger } = useSharedStateContext()
   const { loggersData, latestLogsData } = useLogData()
-  const isFirstRender = useIsFirstRender()
   const { BaseLayer } = LayersControl
   const scaleFactor = 1
+
+  const { loggersStatus, loggersLatest }: { loggersStatus: { Active: number; Delayed: number; Inactive: number; Disabled: number }, loggersLatest: Map<string, LoggerLog> } = useMemo(() => {
+    const loggersStatus = { Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 }
+    let loggersLatest = new Map()
+    loggersData.map((logger: Datalogger) => {
+      latestLogsData.map((log: LoggerLog) => {
+        if (logger.LoggerId == log.LoggerId) {
+          if (!logger.Enabled) {
+            loggersStatus.Disabled++
+            return
+          }
+          // Count as Active if last log within 30m, Delayed: 3h, Inactive: beyond 3h
+          const logTime = new Date(log.LogTime.slice(0, -1))
+          if (logTime > addMinutes(new Date(), -30)) {
+            loggersStatus.Active++
+          } else if (logTime > addMinutes(new Date(), -180)) {
+            loggersStatus.Delayed++
+          } else {
+            loggersStatus.Inactive++
+          }
+          loggersLatest.set(log.LoggerId, { ...logger, ...log })
+        }
+      })
+    })
+    return {
+      loggersStatus,
+      loggersLatest
+    }
+  }, [loggersData, latestLogsData])
 
   const updateWeight = useCallback(() => {
     if (!map) {
@@ -64,15 +87,7 @@ function LoggerMap() {
     setWeight(newWeight);
   }, [map]);
 
-  useEffect(() => {
-    if (isFirstRender) {
-      return
-    }
-    if (loggersData.length && latestLogsData.length) {
-      fetchLatestLogsInfo()
-    }
-  }, [loggersData, latestLogsData])
-
+  // Map event listeners for fullscreen toggle
   useEffect(() => {
     if (!map) return
 
@@ -89,67 +104,11 @@ function LoggerMap() {
     };
   }, [map]);
 
-  // Check for alarms
-  useEffect(() => {
-    if (loggersLatest.size) {
-      let _alarm = { ...alarm }
-      loggersLatest.forEach((logger: LoggerLog) => {
-        const loggerId = logger.LoggerId
-        _alarm = { ..._alarm, [loggerId]: { Voltage: false, Pressure: false, Flow: false } }
-        // check voltage
-        if (!isValueInRange(logger.VoltageLimit, logger.AverageVoltage)) {
-          _alarm[loggerId].Voltage = true
-        }
-        // check pressure
-        if (logger.PressureLimit && !isValueInRange(logger.PressureLimit, logger.CurrentPressure)) {
-          _alarm[loggerId].Pressure = true
-        }
-        // check voltage
-        if (logger.FlowLimit && !isValueInRange(logger.FlowLimit, logger.CurrentFlow)) {
-          _alarm[loggerId].Flow = true
-        }
-      })
-      setAlarm(_alarm)
-    }
-  }, [loggersLatest])
-
-  /**
-   * Fetch latest logs with Datalogger Information
-   */
-  async function fetchLatestLogsInfo() {
-    try {
-      const tempLoggersStatus = { Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 }
-      let tempLoggersLatest = new Map()
-      loggersData.map((logger: Datalogger) => {
-        latestLogsData.map((log: LoggerLog) => {
-          if (logger.LoggerId == log.LoggerId) {
-            if (!logger.Enabled) {
-              tempLoggersStatus.Disabled++
-              return
-            }
-            // Count as Active if last log within 30m, Delayed: 3h, Inactive: beyond 3h
-            const logTime = new Date(log.LogTime.slice(0, -1))
-            if (logTime > addMinutes(new Date(), -30)) {
-              tempLoggersStatus.Active++
-            } else if (logTime > addMinutes(new Date(), -180)) {
-              tempLoggersStatus.Delayed++
-            } else {
-              tempLoggersStatus.Inactive++
-            }
-            tempLoggersLatest.set(log.LoggerId, { ...logger, ...log })
-          }
-        })
-      })
-      setLoggersStatus(tempLoggersStatus)
-      setLoggersLatest(tempLoggersLatest)
-    }
-    catch (error) {
-      console.log(error)
-    }
-  }
-
   const themeToggleOnclick = () => {
-    setBasemap(basemaps.find((bmap) => bmap.name != basemap.name))
+    const newBasemap = basemaps.find((bmap) => bmap.name != basemap.name)
+    if (newBasemap) {
+      setBasemap(newBasemap)
+    }
   }
 
   const handleLoggerClick = useCallback((loggerData: LoggerLog) => {
