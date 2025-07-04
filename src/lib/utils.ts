@@ -74,7 +74,7 @@ export async function generateReport(loggerInfo, fields, dateRange, user) {
         newData.push(newLog)
         return newData
       }, [])
-      console.log(newData)
+      // console.log(newData)
       return newData
     }
   } else {

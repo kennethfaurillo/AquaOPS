@@ -15,6 +15,7 @@ import { TooltipProvider } from "./components/ui/tooltip"
 import { PocketBaseProvider } from "./hooks/usePocketbase"
 import { ErrorFallback } from "./components/ErrorFallback"
 import { EnvironmentBanner } from "./components/EnvironmentBanner"
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 function App() {
   return (
@@ -24,7 +25,7 @@ function App() {
           <SharedStateProvider>
             <WebSocketProvider>
               <TooltipProvider>
-                <EnvironmentBanner/>
+                <EnvironmentBanner />
                 <Routes >
                   <Route path="/aquaops/login" element={<LoginPage />} />
                   <Route element={<ProtectedRoutes />}>

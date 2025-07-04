@@ -1,5 +1,5 @@
 export type Datalogger = {
-    LoggerId: number,
+    LoggerId: string,
     Name: string,
     Model: string,
     Type: string,
@@ -62,7 +62,7 @@ export type Source = {
 }
 
 export type LoggerLog = {
-    LoggerId: number,
+    LoggerId: string,
     Name: string,
     Model: string,
     Type: string,

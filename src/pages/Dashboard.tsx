@@ -1,17 +1,18 @@
 import TableCard from "@/components/TableCard"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
+import UtilityMap from "@/components/UtilityMap"
 import { DrawerProvider } from "@/hooks/useDrawerContext"
 import useIsFirstRender from "@/hooks/useIsFirstRender"
 import { useLocalStorage } from "@/hooks/useLocalStorage"
 import { useLogData } from "@/hooks/useLogData"
+import { MapProvider } from '@/hooks/useMapContext'
+import useOnlineStatus from "@/hooks/useOnlineStatus"
 import { useWebSocket } from "@/hooks/useWebSocket"
 import { ChevronUpIcon, WifiOffIcon } from "lucide-react"
 import { lazy, Suspense, useEffect, useState } from "react"
 import '../App.css'
 import Header from "../components/Header"
 import '../index.css'
-import useOnlineStatus from "@/hooks/useOnlineStatus"
-import { MapProvider } from '@/hooks/useMapContext';
 
 const LoggerMap = lazy(() => import('@/components/LoggerMap'))
 
@@ -81,7 +82,7 @@ function DashboardPage() {
                             <ResizableHandle withHandle />
                             <ResizablePanel defaultSize={77} minSize={45} >
                                 <Suspense fallback={<MapFallback />}>
-                                    <LoggerMap />
+                                    <UtilityMap />
                                 </Suspense>
                             </ResizablePanel>
                         </ResizablePanelGroup>
@@ -95,7 +96,7 @@ function DashboardPage() {
                             {dashboardPrefs?.showLoggerMap ? (
                                 <div className={`col-span-full xl:col-span-${dashboardPrefs?.showLoggerList ? 9 : 'full'} z-0 min-h-dvh`}>
                                     <Suspense fallback={<MapFallback />}>
-                                        <LoggerMap />
+                                        <UtilityMap />
                                     </Suspense>
                                     <button
                                         type="button"
@@ -111,7 +112,7 @@ function DashboardPage() {
                     )}
                 </MapProvider>
             </DrawerProvider>
-            { isOnline ? null :
+            {isOnline ? null :
                 <div className="fixed bottom-4 right-1/2 translate-x-1/2 rounded-full bg-red-200 hover:opacity-60 bg-opacity-50 backdrop-blur-sm cursor-pointer items-center justify-center flex p-2 px-4">
                     <WifiOffIcon size={20} className="text-red-500" />
                     <div className="text-red-500 text-sm font-semibold ml-2">Offline</div>

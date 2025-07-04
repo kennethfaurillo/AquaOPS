@@ -86,3 +86,13 @@ export function pressureDisplay(currentPressure: number, pressureLimit: string) 
             <>{currentPressure.toFixed(1)}<em> psi</em><br /></>
         </div>)
 }
+
+export function parseLoggerName(name: string) {
+    return name.replaceAll('-', ' ').replaceAll('=', '-').split('_').at(2) ?? "Logger Name"
+}
+
+export function formatLoggerName(displayName: string, loggerName: string) {
+    const replaced = displayName.replaceAll('-', '=').replaceAll(' ', '-');
+    const prefix = loggerName.split('_').slice(0, 2).join('_')
+    return `${prefix}_${replaced}`;
+}

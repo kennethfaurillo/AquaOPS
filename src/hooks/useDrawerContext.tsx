@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useSharedStateContext } from "./useSharedStateContext";
 const ReportDialog = lazy(() => import('@/components/ReportDialog'));
 const LogLineChart = lazy(() => import('@/components/LogLineChart'));
-
+//TODO: REFACTOR!!!
 type DrawerContextType = {
     chartTimeRange: string
     setChartTimeRange: (timeRange: string) => void
@@ -21,7 +21,7 @@ type DrawerContextType = {
     LoggerStatus: (props: { logger: any }) => JSX.Element
 }
 
-const DrawerContext = createContext<DrawerContextType | undefined>(undefined)
+const DrawerContext = createContext<null>(null)
 
 export function DrawerProvider({ children }: { children: React.ReactNode }) {
     // // Time interval for chart display
@@ -78,7 +78,7 @@ export function DrawerProvider({ children }: { children: React.ReactNode }) {
 
     return (
         // Logger Chart Drawer
-        <DrawerContext.Provider value={value}>
+        <DrawerContext.Provider value={null}>
             <Drawer open={chartDrawerOpen} onOpenChange={setChartDrawerOpen}>
                 <DrawerContent className="w-full lg:w-[1024px] mx-auto">
                     <DrawerHeader className="relative">
