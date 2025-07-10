@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/useAuth"
 import { useLogData } from "@/hooks/useLogData"
+import { parseLoggerName } from "@/lib/utils"
 import axios from "axios"
 import { Loader2Icon } from "lucide-react"
 import moment from "moment"
@@ -16,19 +17,78 @@ import { Switch } from "./ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
 
+type LoggerConfigInput = {
+    Latitude?: string
+    Longitude?: string
+    SIM?: string
+    VoltageLow?: string
+    VoltageHigh?: string
+    FlowLow?: string
+    FlowHigh?: string
+    PressureLow?: string
+    PressureHigh?: string
+}
 
-function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
-    const [loggerConfig, setLoggerConfig] = useState({})
+type LoggerLimits = {
+    VoltageLimit?: string
+    PrevVoltageLimit?: string
+    FlowLimit?: string
+    PrevFlowLimit?: string
+    PressureLimit?: string
+    PrevPressureLimit?: string
+}
+
+type LoggerConfig = {
+    LoggerName?: string
+    PrevLoggerName?: string
+    LoggerId?: string
+    PrevLoggerId?: string
+    SimCard?: string
+    PrevSimCard?: string
+    Coordinates?: string
+    PrevCoordinates?: string
+    Visibility?: string
+}
+
+type ConfigLog = {
+    LogId: string
+    Username: string
+    LoggerId?: string
+    Parameter: string
+    ChangedValues: string
+    Timestamp: string
+    IpAddress?: string
+}
+
+interface LoggerDialogProps {
+    loggerDialogOpen: boolean
+    setLoggerDialogOpen: (open: boolean) => void
+    loggerInfo: {
+        LoggerId: string
+        Name: string
+        Latitude: string
+        Longitude: string
+        SimNo: string
+        Type: string
+        Visibility: string
+        VoltageLimit?: string
+        FlowLimit?: string
+        PressureLimit?: string
+    }
+}
+
+function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: LoggerDialogProps) {
+    const [loggerConfig, setLoggerConfig] = useState<LoggerConfigInput>({})
     const [loadingConfigChange, setloadingConfigChange] = useState(false)
     const [activeTab, setActiveTab] = useState<"config" | "limits" | "history">("config")
-    const [configLogs, setConfigLogs] = useState([])
+    const [configLogs, setConfigLogs] = useState<ConfigLog[]>([])
     const [visibility, setVisibility] = useState({
         map: false,
         table: false
     })
 
     const { user } = useAuth()
-    const { fetchData }  = useLogData()
+    const { fetchData } = useLogData()
 
     const fetchConfigLogs = async () => {
         const configLogResponse = await axios.get(`${import.meta.env.VITE_API}/auth/config-log?loggerId=${loggerInfo.LoggerId}`, { withCredentials: true })
@@ -100,7 +160,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                         </div>
                                         <div>
                                             <Label htmlFor="loggerName" className="text-slate-600">Logger Name</Label>
-                                            <Input id={"loggerName"} placeholder={loggerInfo.Name?.split('_').slice(2)} disabled />
+                                            <Input id={"loggerName"} placeholder={parseLoggerName(loggerInfo.Name)} disabled />
                                         </div>
                                         <div>
                                             <Label htmlFor="loggerID" className="text-slate-600">Logger ID</Label>
@@ -109,12 +169,12 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                                         <div>
                                             <Label htmlFor="loggerLat" className="text-slate-600">Latitude</Label>
                                             <Input id={"loggerLat"} placeholder={loggerInfo.Latitude}
-                                                onChange={(e) => setLoggerConfig({ ...loggerConfig, Latitude: e.target.value })} />
+                                                onChange={(e) => setLoggerConfig((prev) => ({ ...prev, Latitude: e.target.value }))} />
                                         </div>
                                         <div>
                                             <Label htmlFor="loggerLong" className="text-slate-600">Longitude</Label>
                                             <Input id={"loggerLong"} placeholder={loggerInfo.Longitude}
-                                                onChange={(e) => setLoggerConfig({ ...loggerConfig, Longitude: e.target.value })} />
+                                                onChange={(e) => setLoggerConfig((prev) => ({ ...prev, Longitude: e.target.value }))} />
                                         </div>
                                         <div>
                                             <Label className="text-slate-600">Parameters</Label><br />
@@ -201,19 +261,24 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }) {
                 {!loadingConfigChange ?
                     <Button className="bg-green-500" onClick={async () => {
                         setloadingConfigChange(true)
-                        const _loggerLimits = {}
-                        const _loggerConfig = {}
+                        const _loggerLimits: LoggerLimits = {}
+                        const _loggerConfig: LoggerConfig = {}
                         if (loggerConfig.VoltageLow && loggerConfig.VoltageHigh) {
                             _loggerLimits.VoltageLimit = loggerConfig.VoltageLow + ',' + loggerConfig.VoltageHigh
+                            // Include old logger config values
+                            _loggerLimits.PrevVoltageLimit = loggerInfo.VoltageLimit
                         }
                         if (loggerConfig.FlowLow && loggerConfig.FlowHigh) {
                             _loggerLimits.FlowLimit = loggerConfig.FlowLow + ',' + loggerConfig.FlowHigh
+                            _loggerLimits.PrevFlowLimit = loggerInfo.FlowLimit
                         }
                         if (loggerConfig.PressureLow && loggerConfig.PressureHigh) {
                             _loggerLimits.PressureLimit = loggerConfig.PressureLow + ',' + loggerConfig.PressureHigh
+                            _loggerLimits.PrevPressureLimit = loggerInfo.PressureLimit
                         }
                         if (loggerConfig.Latitude && loggerConfig.Longitude) {
                             _loggerConfig.Coordinates = loggerConfig.Latitude + ',' + loggerConfig.Longitude
+                            _loggerConfig.PrevCoordinates = loggerInfo.Latitude + ',' + loggerInfo.Longitude
                         }
                         _loggerConfig.Visibility = `${visibility.map ? 'map' : ''}${visibility.map && visibility.table ? ',table' : visibility.table ? 'table' : ''}`
                         // Update logger config

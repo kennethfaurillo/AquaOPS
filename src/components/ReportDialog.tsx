@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth"
-import { generateReport, jsonToCSV } from "@/lib/utils"
+import { generateReport, jsonToCSV, parseLoggerName } from "@/lib/utils"
 import axios from "axios"
 import { addDays, format } from "date-fns"
 import { CalendarIcon, FileImageIcon, FileJsonIcon, FileSpreadsheetIcon, FileTypeIcon, Loader2Icon, SheetIcon } from "lucide-react"
@@ -102,7 +102,7 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle className="text-piwad-blue-500">Datalog Report Generation</DialogTitle>
-                        {loggerInfo ? <DialogDescription>For {loggerInfo.Name?.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)} Logger</DialogDescription> : null}
+                        {loggerInfo ? <DialogDescription>For {parseLoggerName(loggerInfo.Name)} Logger</DialogDescription> : null}
                     </DialogHeader>
                     {loggerInfo ?
                         <div className="text-center">

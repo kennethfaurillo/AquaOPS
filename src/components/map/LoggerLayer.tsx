@@ -6,6 +6,7 @@ import icLogger from '../../assets/meter.png';
 import { LoggerLog } from '../Types';
 import { Tooltip as HoverTooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { Basemap, checkVoltage, pressureDisplay, voltageIconMap } from './utils';
+import { parseLoggerName } from '@/lib/utils';
 
 
 export const loggerIcon = new Icon({
@@ -64,8 +65,8 @@ export const LoggerLayer = React.memo(({ loggersLatestData, basemap, onMarkerCli
                                 </Marker>
                                 <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={new DivIcon({ iconSize: [0, 0] })}>
                                     {basemap?.name == "stdDark" ?
-                                        <div><Tooltip permanent direction='bottom' className='logger-label-dark'>{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip></div> :
-                                        <Tooltip permanent direction='bottom'>{loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2)}</Tooltip>
+                                        <div><Tooltip permanent direction='bottom' className='logger-label-dark'>{parseLoggerName(loggerData.Name)}</Tooltip></div> :
+                                        <Tooltip permanent direction='bottom'>{parseLoggerName(loggerData.Name)}</Tooltip>
                                     }
                                 </Marker>
                             </div>

@@ -31,6 +31,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Separator } from './ui/separator'
 import { Tooltip as HoverTooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 import { useMapContext } from '@/hooks/useMapContext'
+import { parseLoggerName } from '@/lib/utils'
 
 // Extend Leaflet.Map type to include toggleFullscreen (possible typo)
 type LeafletMap = LMap & { toggleFullscreen: () => void }
@@ -279,7 +280,7 @@ function LoggerMap() {
                               <div className='w-[14ch] font-semibold cursor-pointer text-xs sm:text-sm text-slate-800 font-sans'
                                 onClick={() => map.flyTo([loggerData.Latitude, loggerData.Longitude])}
                                 onDoubleClick={() => map.flyTo([loggerData.Latitude, loggerData.Longitude], 20)}>
-                                {loggerData.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').at(-1)}
+                                  {parseLoggerName(loggerData.Name)}
                               </div>
                               <div className='text-right w-[10ch] font-sans text-slate-800'>
                                 {loggerData.CurrentPressure ? <div>{loggerData.CurrentPressure} <em>psi</em></div> : null}

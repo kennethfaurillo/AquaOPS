@@ -1,6 +1,7 @@
 import useIsFirstRender from "@/hooks/useIsFirstRender"
 import { useLogData } from "@/hooks/useLogData"
 import { useSharedStateContext } from "@/hooks/useSharedStateContext"
+import { parseLoggerName } from "@/lib/utils"
 import { ColumnDef, SortingState } from "@tanstack/react-table"
 import { ArrowDownIcon, ArrowUpIcon, CircleGaugeIcon, Clock4Icon, RouterIcon, WavesIcon } from "lucide-react"
 import moment from "moment"
@@ -52,8 +53,7 @@ function LoggerTable() {
         )
       },
       cell: ({ row }) => {
-        const nameSplit = (row.getValue("Name") as string).split('_')
-        const name = nameSplit.slice(2).toString().replace(/-/g, ' ').replace(/=/g, '-')
+        const name = parseLoggerName(row.getValue("Name") as string)
         return (
           <>
             <Button variant={"link"} onClick={() => {
