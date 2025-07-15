@@ -182,8 +182,11 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
             _loggerLimits.PrevPressureLimit = loggerInfo.PressureLimit
         }
         // Logger Visibility
-        _loggerConfig.Visibility = `${visibility.map ? 'map' : ''}${visibility.map && visibility.table ? ',table' : visibility.table ? 'table' : ''}`
-
+        // "new" Visibility
+        const loggerVisibility = `${visibility.map ? 'map' : ''}${visibility.map && visibility.table ? ',table' : visibility.table ? 'table' : ''}`
+        if (loggerVisibility !== loggerInfo.Visibility) {
+            _loggerConfig.Visibility = `${visibility.map ? 'map' : ''}${visibility.map && visibility.table ? ',table' : visibility.table ? 'table' : ''}`
+        }
         try {
             if (Object.keys(_loggerLimits).length) {
                 toast.loading("Updating Limits")
