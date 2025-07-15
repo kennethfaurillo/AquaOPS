@@ -18,7 +18,7 @@ function LoggerTable() {
     desc: false, // Adjust the sorting order if needed
   }])
 
-  const { setLogger, setChartDrawerOpen, setLoggerDialogOpen, setLoggerInfo, fetchLoggerInfo } = useSharedStateContext()
+  const { setLogger, setChartDrawerOpen } = useSharedStateContext()
   const { latestLogsData, loggersData } = useLogData()
   const isFirstRender = useIsFirstRender()
 

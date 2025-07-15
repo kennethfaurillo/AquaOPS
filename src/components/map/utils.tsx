@@ -38,7 +38,7 @@ export const voltageIconMap = {
 };
 
 export function checkVoltage(voltage: number, voltageLimit: string): 'critical' | 'low' | 'medium' | 'high' | 'full' {
-    let [min, max] = voltageLimit.split(',')
+    let [min, max] = voltageLimit.split(',').map(Number)
     const perc = lerp(min, max, voltage)
     if (perc >= 83) {
         return 'full'

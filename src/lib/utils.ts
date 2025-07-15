@@ -1,7 +1,7 @@
 import { Sample } from "@/components/Types"
 import axios from "axios"
 import { type ClassValue, clsx } from "clsx"
-import { addDays } from "date-fns"
+import { addDays, isValid } from "date-fns"
 import moment from "moment"
 import { twMerge } from "tailwind-merge"
 
@@ -11,7 +11,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /**Capitalize a string */
 export function capitalize(str: string) {
-  if(!str) return str
+  if (!str) return str
   const strList = str.split(' ')
   return strList.map((val) => val.at(0).toUpperCase() + val.slice(1).toLowerCase()).join(' ')
 }
@@ -135,24 +135,97 @@ export function dateDiff(date: Date, unit: 'ms' | 's' | 'm' | 'h' | 'd') {
  * @returns true if the sample is within the range, false otherwise
  */
 export function testSample(sample: Sample | undefined) {
-    if (!sample) return false
-    const { clType } = sample
-    const range = {
-        clo2: [0.2, 0.4],
-        cl: [0.3, 1.5]
-    }
-    if (clType === 'clo2' || clType === 'cl') {
-        return sample.value >= range[clType][0] && sample.value <= range[clType][1]
-    }
-    return false
+  if (!sample) return false
+  const { clType } = sample
+  const range = {
+    clo2: [0.2, 0.4],
+    cl: [0.3, 1.5]
+  }
+  if (clType === 'clo2' || clType === 'cl') {
+    return sample.value >= range[clType][0] && sample.value <= range[clType][1]
+  }
+  return false
 }
 
 export function parseLoggerName(name: string) {
-    return name.replaceAll('-', ' ').replaceAll('=', '-').split('_').at(2) ?? "Logger Name"
+  return name.replaceAll('-', ' ').replaceAll('=', '-').split('_').at(2) ?? "Logger Name"
 }
 
-export function formatLoggerName(displayName: string, loggerName: string) {
-    const replaced = displayName.replaceAll('-', '=').replaceAll(' ', '-');
-    const prefix = loggerName.split('_').slice(0, 2).join('_')
-    return `${prefix}_${replaced}`;
+export function formatLoggerName(displayName: string, prevLoggerName: string) {
+  const replaced = displayName.replaceAll('-', '=').replaceAll(' ', '-');
+  const prefix = prevLoggerName.split('_').slice(0, 2).join('_')
+  return `${prefix}_${replaced}`;
+}
+// VALIDATIONS
+const VOLTAGE_UPPER_LIMIT = 4.5
+const VOLTAGE_LOWER_LIMIT = 2.0
+const LATITUDE_LOWER_LIMIT = 13.456072
+const LATITUDE_UPPER_LIMIT = 13.696173
+const LONGITUDE_LOWER_LIMIT = 123.111745
+const LONGITUDE_UPPER_LIMIT = 123.456730
+
+const isValidNumber = (value: string): boolean => {
+  return !isNaN(Number(value)) && value.trim() !== ''
+}
+
+export const isValidLatitude = (lat: string): boolean => {
+  const num = parseFloat(lat)
+  return isValidNumber(lat) && num >= LATITUDE_LOWER_LIMIT && num <= LATITUDE_UPPER_LIMIT
+}
+
+export const isValidLongitude = (lng: string): boolean => {
+  const num = parseFloat(lng)
+  return isValidNumber(lng) && num >= LONGITUDE_LOWER_LIMIT && num <= LONGITUDE_UPPER_LIMIT
+}
+
+export const isValidVoltageLimit = (vLow: string, vHigh: string): boolean => {
+  if(!isValidNumber(vLow) || !isValidNumber(vHigh)) {
+    return false
+  }
+  const low = parseFloat(vLow)
+  const high = parseFloat(vHigh)
+  if(high < low) {
+    return false
+  }
+  if(low < VOLTAGE_LOWER_LIMIT || high > VOLTAGE_UPPER_LIMIT) {
+    return false
+  }
+  return true
+}
+
+export const isValidFlowLimit = (fLow: string, fHigh: string): boolean => {
+  if(!isValidNumber(fLow) || !isValidNumber(fHigh)) {
+    return false
+  }
+  const low = parseFloat(fLow)
+  const high = parseFloat(fHigh)
+  if(high < low) {
+    return false
+  }
+  // Assuming flow limits are not defined, we can skip the range check
+  return true
+}
+
+export const isValidPressureLimit = (pLow: string, pHigh: string): boolean => {
+  if(!isValidNumber(pLow) || !isValidNumber(pHigh)) {
+    return false
+  }
+  const low = parseFloat(pLow)
+  const high = parseFloat(pHigh)
+  if(high < low) {
+    return false
+  }
+  // Assuming pressure limits are not defined, we can skip the range check
+  return true
+}
+
+export const isValidSimCardNumber = (sim: string): boolean => {
+  // Sim No should be a 10-digit number starting with '9'
+  if (!/^\d{10}$/.test(sim)) {
+    return false
+  }
+  if (!sim.startsWith('9')) {
+    return false
+  }
+  return true
 }

@@ -1,10 +1,10 @@
 import { useAuth } from "@/hooks/useAuth"
 import { useLogData } from "@/hooks/useLogData"
-import { parseLoggerName } from "@/lib/utils"
+import { formatLoggerName, isValidFlowLimit, isValidLatitude, isValidLongitude, isValidPressureLimit, isValidSimCardNumber, isValidVoltageLimit, parseLoggerName } from "@/lib/utils"
 import axios from "axios"
 import { Loader2Icon } from "lucide-react"
 import moment from "moment"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
@@ -18,6 +18,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group"
 
 type LoggerConfigInput = {
+    LoggerName?: string
+    LoggerId?: string
     Latitude?: string
     Longitude?: string
     SIM?: string
@@ -88,7 +90,145 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
     })
 
     const { user } = useAuth()
+    const isAdmin = (user && user.Type === 'admin') ?? false
     const { fetchData } = useLogData()
+
+    const abortConfigSave = useCallback((error: string, description: string) => {
+        setloadingConfigChange(false)
+        toast.error(error, { description })
+    }, [])
+
+    const handleConfigSave = useCallback(async () => {
+        setloadingConfigChange(true)
+        // loggerInfo - current logger info from server
+        // loggerConfig - input from user
+        // _loggerLimits/_loggerConfig - data to be sent to server
+        const _loggerLimits: LoggerLimits = {}
+        const _loggerConfig: LoggerConfig = {}
+        // Logger info
+        // Validate Logger Name: at least 3 characters, alphanumeric, no special characters except -
+        if (loggerConfig.LoggerName) {
+            if (loggerConfig.LoggerName.length < 3) {
+                setloadingConfigChange(false)
+                toast.error("Invalid Logger Name!", { description: "Logger name must be at least 3 characters long." })
+                return
+            }
+            if (/[_=]/.test(loggerConfig.LoggerName)) {
+                setloadingConfigChange(false)
+                toast.error("Invalid Logger Name!", { description: "Logger name cannot contain underscores or equal signs." })
+                return
+            }
+            _loggerConfig.LoggerName = formatLoggerName(loggerConfig.LoggerName, loggerInfo.Name)
+            // Include old logger config values
+            _loggerConfig.PrevLoggerName = loggerInfo.Name
+        }
+        // Validate Latitude and Longitude
+        if (loggerConfig.Latitude || loggerConfig.Longitude) {
+            // only validate if at least one is provided
+            if (!loggerConfig.Latitude || !loggerConfig.Longitude) {
+                // if either is missing (xor)
+                return abortConfigSave("Invalid Coordinates", "Both Latitude and Longitude must be provided.")
+            }
+            if (!isValidLatitude(loggerConfig.Latitude) || !isValidLongitude(loggerConfig.Longitude)) {
+                // Check if Latitude and Longitude validity
+                return abortConfigSave("Invalid Coordinates", "Coordinates must be valid and within the Pili area")
+            }
+            // Coordinates are valid, set them
+            _loggerConfig.Coordinates = Number(loggerConfig.Latitude).toFixed(5) + ',' + Number(loggerConfig.Longitude).toFixed(5)
+            _loggerConfig.PrevCoordinates = loggerInfo.Latitude + ',' + loggerInfo.Longitude
+        }
+        // Validate Simcard Number
+        if (loggerConfig.SIM) {
+            if (!isValidSimCardNumber(loggerConfig.SIM)) {
+                return abortConfigSave("Invalid SIM Card Number", "SIM Card Number must be 10 digits long and start with a '9'.")
+            }
+        }
+        // Logger Limits
+        if (loggerConfig.VoltageLow || loggerConfig.VoltageHigh) {
+            if (!loggerConfig.VoltageLow || !loggerConfig.VoltageHigh) {
+                return abortConfigSave("Invalid Voltage Limits", "Both Voltage Low and High must be provided.")
+            }
+            if (!isValidVoltageLimit(loggerConfig.VoltageLow, loggerConfig.VoltageHigh)) {
+                return abortConfigSave("Invalid Voltage Limits", "Voltage limits must be between 2.0V and 4.5V, and Low must be less than High.")
+            }
+        }
+        if (loggerConfig.FlowLow || loggerConfig.FlowHigh) {
+            if (!loggerConfig.FlowLow || !loggerConfig.FlowHigh) {
+                return abortConfigSave("Invalid Flow Limits", "Both Flow Low and High must be provided.")
+            }
+            if (!isValidFlowLimit(loggerConfig.FlowLow, loggerConfig.FlowHigh)) {
+                return abortConfigSave("Invalid Flow Limits", "Invalid Flow limits.")
+            }
+        }
+        if (loggerConfig.PressureLow || loggerConfig.PressureHigh) {
+            if (!loggerConfig.PressureLow || !loggerConfig.PressureHigh) {
+                return abortConfigSave("Invalid Pressure Limits", "Both Pressure Low and High must be provided.")
+            }
+            // Pressure limits are not validated here, assuming they are valid
+            if (!isValidPressureLimit(loggerConfig.PressureLow, loggerConfig.PressureHigh)) {
+                return abortConfigSave("Invalid Pressure Limits", "Invalid Pressure limits.")
+            }
+        }
+        if (loggerConfig.VoltageLow && loggerConfig.VoltageHigh) {
+            _loggerLimits.VoltageLimit = loggerConfig.VoltageLow + ',' + loggerConfig.VoltageHigh
+            _loggerLimits.PrevVoltageLimit = loggerInfo.VoltageLimit
+        }
+        if (loggerConfig.FlowLow && loggerConfig.FlowHigh) {
+            _loggerLimits.FlowLimit = loggerConfig.FlowLow + ',' + loggerConfig.FlowHigh
+            _loggerLimits.PrevFlowLimit = loggerInfo.FlowLimit
+        }
+        if (loggerConfig.PressureLow && loggerConfig.PressureHigh) {
+            _loggerLimits.PressureLimit = loggerConfig.PressureLow + ',' + loggerConfig.PressureHigh
+            _loggerLimits.PrevPressureLimit = loggerInfo.PressureLimit
+        }
+        // Logger Visibility
+        _loggerConfig.Visibility = `${visibility.map ? 'map' : ''}${visibility.map && visibility.table ? ',table' : visibility.table ? 'table' : ''}`
+
+        try {
+            if (Object.keys(_loggerLimits).length) {
+                toast.loading("Updating Limits")
+                const changeConfigResponse = await axios.patch(`${import.meta.env.VITE_API}/api/logger_limits/${loggerInfo.LoggerId}`, {
+                    ..._loggerLimits,
+                    user
+                }, { withCredentials: true })
+                setTimeout(() => {
+                    toast.dismiss()
+                    toast.success("Limits Changed!", { description: "The logger alarm limits have been successfully updated." })
+                    setloadingConfigChange(false)
+                    setLoggerDialogOpen(false)
+                }, 500)
+            } else if (Object.keys(_loggerConfig).length) {
+                toast.loading("Updating Config")
+                const changeConfigResponse = await axios.patch(`${import.meta.env.VITE_API}/api/logger_config/${loggerInfo.LoggerId}`, {
+                    ..._loggerConfig,
+                    user
+                }, { withCredentials: true })
+                setTimeout(() => {
+                    toast.dismiss()
+                    toast.success("Config Changed!", { description: "The logger configuration has been successfully updated." })
+                    setloadingConfigChange(false)
+                    setLoggerDialogOpen(false)
+                }, 500)
+            } else {
+                setTimeout(() => {
+                    toast.dismiss()
+                    toast.success("Config Unchanged!", { description: "No change has been done to the logger configuration." })
+                    setloadingConfigChange(false)
+                    setLoggerDialogOpen(false)
+                }, 125)
+            }
+        } catch (e: any) {
+            console.log(e)
+            setTimeout(() => {
+                toast.dismiss()
+                toast.error(e?.response?.data ?? "Invalid Config!", { description: "There was an error updating the logger configuration. Please check the values and try again." })
+                setloadingConfigChange(false)
+                setLoggerDialogOpen(false)
+            }, 500)
+        }
+        // Force refresh map and logger table
+        fetchData()
+    }, [loggerConfig, visibility, loggerInfo, user, fetchData, setLoggerDialogOpen])
 
     const fetchConfigLogs = async () => {
         const configLogResponse = await axios.get(`${import.meta.env.VITE_API}/auth/config-log?loggerId=${loggerInfo.LoggerId}`, { withCredentials: true })
@@ -126,7 +266,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
             <DialogContent>
                 <DialogTitle className="text-piwad-blue-500">Logger Configuration</DialogTitle>
                 <DialogDescription hidden>View and edit logger Information and Configuration</DialogDescription>
-                <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
+                <Tabs defaultValue={activeTab} value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)}>
                     <TabsList className="grid grid-cols-3 mx-2 ">
                         <TabsTrigger value="config" >Information</TabsTrigger>
                         <TabsTrigger value="limits" >Alarms</TabsTrigger>
@@ -160,20 +300,27 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
                                         </div>
                                         <div>
                                             <Label htmlFor="loggerName" className="text-slate-600">Logger Name</Label>
-                                            <Input id={"loggerName"} placeholder={parseLoggerName(loggerInfo.Name)} disabled />
+                                            <Input id={"loggerName"} placeholder={parseLoggerName(loggerInfo.Name)} className="uppercase"
+                                                value={loggerConfig.LoggerName ?? ''}
+                                                onChange={(e) => setLoggerConfig((prev) => ({ ...prev, LoggerName: e.target.value.toUpperCase() }))} />
                                         </div>
                                         <div>
                                             <Label htmlFor="loggerID" className="text-slate-600">Logger ID</Label>
-                                            <Input id={"loggerID"} placeholder={loggerInfo.LoggerId} disabled />
+                                            <Input id={"loggerID"} placeholder={loggerInfo.LoggerId} type="number"
+                                                value={loggerConfig.LoggerId ?? ''} disabled
+                                                onChange={(e) => setLoggerConfig((prev) => ({ ...prev, LoggerId: e.target.value }))}
+                                            />
                                         </div>
                                         <div>
                                             <Label htmlFor="loggerLat" className="text-slate-600">Latitude</Label>
                                             <Input id={"loggerLat"} placeholder={loggerInfo.Latitude}
+                                                value={loggerConfig.Latitude ?? ''}
                                                 onChange={(e) => setLoggerConfig((prev) => ({ ...prev, Latitude: e.target.value }))} />
                                         </div>
                                         <div>
                                             <Label htmlFor="loggerLong" className="text-slate-600">Longitude</Label>
                                             <Input id={"loggerLong"} placeholder={loggerInfo.Longitude}
+                                                value={loggerConfig.Longitude ?? ''}
                                                 onChange={(e) => setLoggerConfig((prev) => ({ ...prev, Longitude: e.target.value }))} />
                                         </div>
                                         <div>
@@ -187,7 +334,8 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
                                         <div>
                                             <Label htmlFor="simNo" className="text-slate-600">Sim Card No.</Label>
                                             <Input id={"simNo"} placeholder={loggerInfo.SimNo}
-                                                onChange={(e) => setLoggerConfig({ ...loggerConfig, SIM: e.target.value })} disabled />
+                                                value={loggerConfig.SIM ?? ''}
+                                                onChange={(e) => setLoggerConfig({ ...loggerConfig, SIM: e.target.value })} />
                                         </div>
                                     </div>
                                 </CardContent>
@@ -205,28 +353,34 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
                                     <div className="text-md font-medium">Voltage</div>
                                     <div className="flex items-center space-x-2 mt-1">
                                         <Label htmlFor="voltageLow" className="text-slate-600">Lower Limit</Label>
-                                        <Input id={"voltageLow"} placeholder={loggerInfo?.VoltageLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.VoltageLimit || user.Type != 'admin'}
+                                        <Input id={"voltageLow"} placeholder={loggerInfo?.VoltageLimit?.split(',')[0] ?? "N/A"} disabled={!loggerInfo?.VoltageLimit || !isAdmin}
+                                            value={loggerConfig.VoltageLow ?? ''}
                                             onChange={(e) => setLoggerConfig({ ...loggerConfig, VoltageLow: e.target.value })} />
                                         <Label htmlFor="voltageHigh" className="text-slate-600">Upper Limit</Label>
-                                        <Input id={"voltageHigh"} placeholder={loggerInfo?.VoltageLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.VoltageLimit || user.Type != 'admin'}
+                                        <Input id={"voltageHigh"} placeholder={loggerInfo?.VoltageLimit?.split(',')[1] ?? "N/A"} disabled={!loggerInfo?.VoltageLimit || !isAdmin}
+                                            value={loggerConfig.VoltageHigh ?? ''}
                                             onChange={(e) => setLoggerConfig({ ...loggerConfig, VoltageHigh: e.target.value })} />
                                     </div>
                                     <div className="text-md font-medium mt-1">Flow</div>
                                     <div className="flex items-center space-x-2 mt-1">
                                         <Label htmlFor="flowLow" className="text-slate-600">Lower Limit</Label>
-                                        <Input id={"flowLow"} placeholder={loggerInfo?.FlowLimit?.split(',')[0] ?? "N/A"} disabled={user.Type != 'admin'}
+                                        <Input id={"flowLow"} placeholder={loggerInfo?.FlowLimit?.split(',')[0] ?? "N/A"} disabled={!isAdmin}
+                                            value={loggerConfig.FlowLow ?? ''}
                                             onChange={(e) => setLoggerConfig({ ...loggerConfig, FlowLow: e.target.value })} />
                                         <Label htmlFor="flowHigh" className="text-slate-600">Upper Limit</Label>
-                                        <Input id={"flowHigh"} placeholder={loggerInfo?.FlowLimit?.split(',')[1] ?? "N/A"} disabled={user.Type != 'admin'}
+                                        <Input id={"flowHigh"} placeholder={loggerInfo?.FlowLimit?.split(',')[1] ?? "N/A"} disabled={!isAdmin}
+                                            value={loggerConfig.FlowHigh ?? ''}
                                             onChange={(e) => setLoggerConfig({ ...loggerConfig, FlowHigh: e.target.value })} />
                                     </div>
                                     <div className="text-md font-medium mt-1">Pressure</div>
                                     <div className="flex items-center space-x-2 mt-1">
                                         <Label htmlFor="pressureLow" className="text-slate-600">Lower Limit</Label>
-                                        <Input id={"pressureLow"} placeholder={loggerInfo?.PressureLimit?.split(',')[0] ?? "N/A"} disabled={user.Type != 'admin'}
+                                        <Input id={"pressureLow"} placeholder={loggerInfo?.PressureLimit?.split(',')[0] ?? "N/A"} disabled={!isAdmin}
+                                            value={loggerConfig.PressureLow ?? ''}
                                             onChange={(e) => setLoggerConfig({ ...loggerConfig, PressureLow: e.target.value })} />
                                         <Label htmlFor="pressureHigh" className="text-slate-600">Upper Limit</Label>
-                                        <Input id={"pressureHigh"} placeholder={loggerInfo?.PressureLimit?.split(',')[1] ?? "N/A"} disabled={user.Type != 'admin'}
+                                        <Input id={"pressureHigh"} placeholder={loggerInfo?.PressureLimit?.split(',')[1] ?? "N/A"} disabled={!isAdmin}
+                                            value={loggerConfig.PressureHigh ?? ''}
                                             onChange={(e) => setLoggerConfig({ ...loggerConfig, PressureHigh: e.target.value })} />
                                     </div>
                                 </CardContent>
@@ -259,77 +413,9 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
                 </Tabs>
                 <DialogClose asChild><Button>Close</Button></DialogClose>
                 {!loadingConfigChange ?
-                    <Button className="bg-green-500" onClick={async () => {
-                        setloadingConfigChange(true)
-                        const _loggerLimits: LoggerLimits = {}
-                        const _loggerConfig: LoggerConfig = {}
-                        if (loggerConfig.VoltageLow && loggerConfig.VoltageHigh) {
-                            _loggerLimits.VoltageLimit = loggerConfig.VoltageLow + ',' + loggerConfig.VoltageHigh
-                            // Include old logger config values
-                            _loggerLimits.PrevVoltageLimit = loggerInfo.VoltageLimit
-                        }
-                        if (loggerConfig.FlowLow && loggerConfig.FlowHigh) {
-                            _loggerLimits.FlowLimit = loggerConfig.FlowLow + ',' + loggerConfig.FlowHigh
-                            _loggerLimits.PrevFlowLimit = loggerInfo.FlowLimit
-                        }
-                        if (loggerConfig.PressureLow && loggerConfig.PressureHigh) {
-                            _loggerLimits.PressureLimit = loggerConfig.PressureLow + ',' + loggerConfig.PressureHigh
-                            _loggerLimits.PrevPressureLimit = loggerInfo.PressureLimit
-                        }
-                        if (loggerConfig.Latitude && loggerConfig.Longitude) {
-                            _loggerConfig.Coordinates = loggerConfig.Latitude + ',' + loggerConfig.Longitude
-                            _loggerConfig.PrevCoordinates = loggerInfo.Latitude + ',' + loggerInfo.Longitude
-                        }
-                        _loggerConfig.Visibility = `${visibility.map ? 'map' : ''}${visibility.map && visibility.table ? ',table' : visibility.table ? 'table' : ''}`
-                        // Update logger config
-                        try {
-                            if (Object.keys(_loggerLimits).length) {
-                                toast.loading("Updating Limits")
-                                const changeConfigResponse = await axios.patch(`${import.meta.env.VITE_API}/api/logger_limits/${loggerInfo.LoggerId}`, {
-                                    ..._loggerLimits,
-                                    user
-                                }, { withCredentials: true })
-                                setTimeout(() => {
-                                    toast.dismiss()
-                                    toast.success("Limits Changed!", { description: "The logger alarm limits have been successfully updated." })
-                                    setloadingConfigChange(false)
-                                    setLoggerDialogOpen(false)
-                                }, 500)
-                            } else if (Object.keys(_loggerConfig).length) {
-                                toast.loading("Updating Config")
-                                const changeConfigResponse = await axios.patch(`${import.meta.env.VITE_API}/api/logger_config/${loggerInfo.LoggerId}`, {
-                                    ..._loggerConfig,
-                                    user
-                                }, { withCredentials: true })
-                                setTimeout(() => {
-                                    toast.dismiss()
-                                    toast.success("Config Changed!", { description: "The logger configuration has been successfully updated." })
-                                    setloadingConfigChange(false)
-                                    setLoggerDialogOpen(false)
-                                }, 500)
-                            } else {
-                                setTimeout(() => {
-                                    toast.dismiss()
-                                    toast.success("Config Unchanged!", { description: "No change has been done to the logger configuration." })
-                                    setloadingConfigChange(false)
-                                    setLoggerDialogOpen(false)
-                                }, 125)
-                            }
-                        } catch (e) {
-                            console.log(e)
-                            setTimeout(() => {
-                                toast.dismiss()
-                                toast.error(e?.response?.data ?? "Invalid Config!", { description: "There was an error updating the logger configuration. Please check the values and try again." })
-                                setloadingConfigChange(false)
-                                setLoggerDialogOpen(false)
-                            }, 500)
-                        }
-                        // Force refresh map and logger table
-                        fetchData()
-                    }} disabled={loadingConfigChange}>Save</Button>
+                    <Button className="bg-green-500" type='submit' onClick={handleConfigSave} disabled={loadingConfigChange}>Save</Button>
                     : <Button className="bg-green-500"> <Loader2Icon className="animate-spin" /></Button>
                 }
-
             </DialogContent>
         </Dialog>
     </>
