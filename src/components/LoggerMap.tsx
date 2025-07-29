@@ -127,8 +127,8 @@ function LoggerMap() {
             }}
             className='cursor-crosshair size-full'
             center={[13.589451, 123.2871642]}
-            ref={(instance) => {
-              setMap(instance as LeafletMap)
+            ref={(instance: LeafletMap) => {
+              setMap(instance)
             }}
             fullscreenControl={true} fullscreenControlOptions={{ position: 'bottomleft' }} zoomControl={false}
             scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}

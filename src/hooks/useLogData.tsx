@@ -26,25 +26,26 @@ export const LogDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     const { loggersStatus, loggersLatest }: { loggersStatus: { Active: number; Delayed: number; Inactive: number; Disabled: number }, loggersLatest: Map<string, LoggerLog> } = useMemo(() => {
         const loggersStatus = { Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 }
         let loggersLatest = new Map()
+        let latestLogsMap = new Map<string, LatestLog>(latestLogsData.map((latestLog: LatestLog) => [latestLog.LoggerId, latestLog]))
         loggersData.map((logger: Datalogger) => {
-            latestLogsData.map((log: LatestLog) => {
-                if (logger.LoggerId == log.LoggerId) {
-                    if (!logger.Enabled) {
-                        loggersStatus.Disabled++
-                        return
-                    }
-                    // Count as Active if last log within 30m, Delayed: 3h, Inactive: beyond 3h
-                    const logTime = new Date(log.LogTime.slice(0, -1))
-                    if (logTime > addMinutes(new Date(), -30)) {
-                        loggersStatus.Active++
-                    } else if (logTime > addMinutes(new Date(), -180)) {
-                        loggersStatus.Delayed++
-                    } else {
-                        loggersStatus.Inactive++
-                    }
-                    loggersLatest.set(log.LoggerId, { ...logger, ...log })
-                }
-            })
+            const latestLog = latestLogsMap.get(logger.LoggerId)
+            if (latestLog == null) {
+                return
+            }
+            if(!logger.Enabled){
+                loggersStatus.Disabled++
+                return
+            }
+            // Count as Active if last log within 30m, Delayed: 3h, Inactive: beyond 3h
+            const logTime = new Date(latestLog.LogTime.slice(0, -1))
+            if (logTime > addMinutes(new Date(), -30)) {
+                loggersStatus.Active++
+            } else if (logTime > addMinutes(new Date(), -180)) {
+                loggersStatus.Delayed++
+            } else {
+                loggersStatus.Inactive++
+            }
+            loggersLatest.set(latestLog.LoggerId, { ...logger, ...latestLog })
         })
         return {
             loggersStatus,

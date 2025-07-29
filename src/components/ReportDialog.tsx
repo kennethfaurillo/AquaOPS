@@ -418,7 +418,8 @@ function ReportDialog({ reportDialogOpen, setReportDialogOpen, loggerInfo, allow
                             } catch (error) {
                                 setLoadingReport(false)
                                 toast.dismiss()
-                                toast.error(String(error))
+                                const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+                                toast.error(errorMessage);
                             }
                         }}>Generate Report</Button> :
                         (loadingReport ?

@@ -39,7 +39,7 @@ export type PressureLog = {
 }
 // DataLog type for latest log
 export type LatestLog = {
-    LogId: number,
+    LogId: string,
     Name: string,
     Timestamp: Date,
     LoggerId: string,
