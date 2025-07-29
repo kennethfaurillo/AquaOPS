@@ -45,8 +45,8 @@ type LoggerConfig = {
     PrevLoggerName?: string
     LoggerId?: string
     PrevLoggerId?: string
-    SimCard?: string
-    PrevSimCard?: string
+    SimNo?: string
+    PrevSimNo?: string
     Coordinates?: string
     PrevCoordinates?: string
     Visibility?: string
@@ -137,10 +137,14 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
             _loggerConfig.Coordinates = Number(loggerConfig.Latitude).toFixed(5) + ',' + Number(loggerConfig.Longitude).toFixed(5)
             _loggerConfig.PrevCoordinates = loggerInfo.Latitude + ',' + loggerInfo.Longitude
         }
-        // Validate Simcard Number
+        // Simcard Number
         if (loggerConfig.SIM) {
             if (!isValidSimCardNumber(loggerConfig.SIM)) {
                 return abortConfigSave("Invalid SIM Card Number", "SIM Card Number must be 10 digits long and start with a '9'.")
+            }
+            if (loggerConfig.SIM !== loggerInfo.SimNo) {
+                _loggerConfig.SimNo = loggerConfig.SIM
+                _loggerConfig.PrevSimNo = loggerInfo.SimNo
             }
         }
         // Logger Limits
@@ -164,7 +168,6 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
             if (!loggerConfig.PressureLow || !loggerConfig.PressureHigh) {
                 return abortConfigSave("Invalid Pressure Limits", "Both Pressure Low and High must be provided.")
             }
-            // Pressure limits are not validated here, assuming they are valid
             if (!isValidPressureLimit(loggerConfig.PressureLow, loggerConfig.PressureHigh)) {
                 return abortConfigSave("Invalid Pressure Limits", "Invalid Pressure limits.")
             }
@@ -182,7 +185,6 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
             _loggerLimits.PrevPressureLimit = loggerInfo.PressureLimit
         }
         // Logger Visibility
-        // "new" Visibility
         const loggerVisibility = `${visibility.map ? 'map' : ''}${visibility.map && visibility.table ? ',table' : visibility.table ? 'table' : ''}`
         if (loggerVisibility !== loggerInfo.Visibility) {
             _loggerConfig.Visibility = `${visibility.map ? 'map' : ''}${visibility.map && visibility.table ? ',table' : visibility.table ? 'table' : ''}`

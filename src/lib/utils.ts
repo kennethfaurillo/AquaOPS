@@ -1,8 +1,9 @@
-import { Sample } from "@/components/Types"
+import { Datalogger, ReportParameters, Sample, UserInfo } from "@/components/Types"
 import axios from "axios"
 import { type ClassValue, clsx } from "clsx"
 import { addDays, isValid } from "date-fns"
 import moment from "moment"
+import { DateRange } from "react-day-picker"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -16,17 +17,14 @@ export function capitalize(str: string) {
   return strList.map((val) => val.at(0).toUpperCase() + val.slice(1).toLowerCase()).join(' ')
 }
 
-export async function generateReport(loggerInfo, fields, dateRange, user) {
+export async function generateReport(loggerInfo: Datalogger, fields: ReportParameters, dateRange: DateRange, user: UserInfo| null) {
   const loggerId = loggerInfo.LoggerId
   let logTable = ''
   let data = []
+  // If fields.param, report is raw pressure/flow/voltage log data
   if (fields.param) {
     logTable = fields.param == "flow" ? "flow_log" : "pressure_log"
-    if (fields.averaging) {
-      console.log("Averaging", fields.averaging)
-    }
     const response = await axios.get(`${import.meta.env.VITE_API}/api/${logTable}/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}&averaged=${fields.averaging}`, { withCredentials: true })
-    console.log(response.data)
     data = response.data ?? []
   }
   else {
@@ -56,7 +54,7 @@ export async function generateReport(loggerInfo, fields, dateRange, user) {
       return newData
     } else {
       const newData = data.reduce((newData, currentLog) => {
-        let newLog: { Date: any; NetVolume?: number; ForwardVolume?: number; ReverseVolume?: number } = {
+        let newLog: { Date: string; NetVolume?: number; ForwardVolume?: number; ReverseVolume?: number } = {
           Date: currentLog.Date
         }
         for (const [field, includeField] of Object.entries(fields)) {
@@ -74,16 +72,14 @@ export async function generateReport(loggerInfo, fields, dateRange, user) {
         newData.push(newLog)
         return newData
       }, [])
-      console.log(newData)
       return newData
     }
   } else {
-    console.log("NO DATA!")
+    console.log("No Data")
   }
 }
 
 export function jsonToCSV(jsonArr, header) {
-  console.log(jsonArr[0])
   let csv = header + '\n'
   let delim = ';'
   csv += Object.keys(jsonArr[0]).join(delim) + '\n'
@@ -164,6 +160,12 @@ const LATITUDE_UPPER_LIMIT = 13.696173
 const LONGITUDE_LOWER_LIMIT = 123.111745
 const LONGITUDE_UPPER_LIMIT = 123.456730
 
+const isValidLoggerName = (name: string): boolean => {
+  // Logger name should be alphanumeric, underscores, and hyphens only
+  const regex = /^[a-zA-Z0-9_-]+$/
+  return regex.test(name) && name.length >= 3 && name.length <= 50
+}
+
 const isValidNumber = (value: string): boolean => {
   return !isNaN(Number(value)) && value.trim() !== ''
 }
@@ -205,7 +207,7 @@ export const isValidFlowLimit = (fLow: string, fHigh: string): boolean => {
   // Assuming flow limits are not defined, we can skip the range check
   return true
 }
-
+// TODO: add absolute min/max values
 export const isValidPressureLimit = (pLow: string, pHigh: string): boolean => {
   if(!isValidNumber(pLow) || !isValidNumber(pHigh)) {
     return false

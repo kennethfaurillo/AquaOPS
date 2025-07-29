@@ -1,5 +1,6 @@
+// Datalogger Model
 export type Datalogger = {
-    LoggerId: number,
+    LoggerId: string,
     Name: string,
     Model: string,
     Type: string,
@@ -36,15 +37,16 @@ export type PressureLog = {
     AverageVoltage: number,
     CurrentPressure: number,
 }
-
-export type DataLog = {
+// DataLog type for latest log
+export type LatestLog = {
     LogId: number,
+    Name: string,
     Timestamp: Date,
-    LoggerId: number,
+    LoggerId: string,
     LogTime: string,
     AverageVoltage: number,
-    CurrentPressure: number,
-    CurrentFlow: number
+    CurrentFlow: number,
+    CurrentPressure: number
 }
 
 export type Source = {
@@ -61,11 +63,13 @@ export type Source = {
     Location: number,
 }
 
+// Logger Log type for complete logger info with latest log
 export type LoggerLog = {
-    LoggerId: number,
+    LoggerId: string,
     Name: string,
     Model: string,
     Type: string,
+    Enabled: boolean,
     FwVersion: string,
     Latitude: number,
     Longitude: number,
@@ -103,7 +107,15 @@ export type DashboardPrefs = {
     showLoggerList: boolean,
     showLoggerMap: boolean,
 }
+export type Averaging = 'none' | 'hourly' 
 
+export type ReportParameters = {
+    param: 'flow' | 'pressure' | 'voltage' | null // Selected parameter for report
+    averaging: Averaging
+    totalizerNet: boolean
+    totalizerPositive: boolean
+    totalizerNegative: boolean
+}
 // RCMS Types
 export type Sample = {
     id: string,

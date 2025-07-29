@@ -78,6 +78,6 @@ export const LoggerLayer = React.memo(({ loggersLatestData, basemap, onMarkerCli
         </Overlay>
     )
 }, (prevProps, nextProps) => {
-    return prevProps.basemap?.name === nextProps.basemap?.name && prevProps.loggersLatestData.size === nextProps.loggersLatestData.size &&
+    return prevProps.basemap?.name === nextProps.basemap?.name && prevProps.loggersLatestData === nextProps.loggersLatestData &&
         prevProps.onMarkerClick === nextProps.onMarkerClick;
 });

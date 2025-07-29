@@ -1,12 +1,13 @@
 import { useLogData } from '@/hooks/useLogData'
+import { useMapContext } from '@/hooks/useMapContext'
 import { useSharedStateContext } from '@/hooks/useSharedStateContext'
+import { parseLoggerName } from '@/lib/utils'
 import ResetViewControl from '@20tab/react-leaflet-resetview'
-import { addMinutes } from 'date-fns'
 import { LatLng, Map as LMap } from 'leaflet'
 import 'leaflet.fullscreen/Control.FullScreen.css'
 import 'leaflet.fullscreen/Control.FullScreen.js'
 import { FoldVerticalIcon, MapIcon, MoonIcon, SunIcon, UnfoldVerticalIcon } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { LayersControl, MapContainer, TileLayer, useMapEvents, ZoomControl } from 'react-leaflet'
 import logoMain from '../assets/logo-main.png'
 import logoPiwad from '../assets/piwad-logo.png'
@@ -25,13 +26,11 @@ import {
   Basemap, basemaps
 } from './map/utils'
 import Time from './Time'
-import { Datalogger, LoggerLog } from './Types'
+import { LoggerLog } from './Types'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Separator } from './ui/separator'
 import { Tooltip as HoverTooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
-import { useMapContext } from '@/hooks/useMapContext'
-import { parseLoggerName } from '@/lib/utils'
 
 // Extend Leaflet.Map type to include toggleFullscreen (possible typo)
 type LeafletMap = LMap & { toggleFullscreen: () => void }
@@ -46,38 +45,9 @@ function LoggerMap() {
   const [expandMapTable, setExpandMapTable] = useState<boolean>(false)
 
   const { setChartDrawerOpen, setLogger } = useSharedStateContext()
-  const { loggersData, latestLogsData } = useLogData()
+  const { loggersStatus, loggersLatest } = useLogData()
   const { BaseLayer } = LayersControl
   const scaleFactor = 1
-
-  const { loggersStatus, loggersLatest }: { loggersStatus: { Active: number; Delayed: number; Inactive: number; Disabled: number }, loggersLatest: Map<string, LoggerLog> } = useMemo(() => {
-    const loggersStatus = { Active: 0, Delayed: 0, Inactive: 0, Disabled: 0 }
-    let loggersLatest = new Map()
-    loggersData.map((logger: Datalogger) => {
-      latestLogsData.map((log: LoggerLog) => {
-        if (logger.LoggerId == log.LoggerId) {
-          if (!logger.Enabled) {
-            loggersStatus.Disabled++
-            return
-          }
-          // Count as Active if last log within 30m, Delayed: 3h, Inactive: beyond 3h
-          const logTime = new Date(log.LogTime.slice(0, -1))
-          if (logTime > addMinutes(new Date(), -30)) {
-            loggersStatus.Active++
-          } else if (logTime > addMinutes(new Date(), -180)) {
-            loggersStatus.Delayed++
-          } else {
-            loggersStatus.Inactive++
-          }
-          loggersLatest.set(log.LoggerId, { ...logger, ...log })
-        }
-      })
-    })
-    return {
-      loggersStatus,
-      loggersLatest
-    }
-  }, [loggersData, latestLogsData])
 
   const updateWeight = useCallback(() => {
     if (!map) {

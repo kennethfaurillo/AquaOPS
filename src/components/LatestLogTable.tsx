@@ -6,12 +6,11 @@ import { ColumnDef, SortingState } from "@tanstack/react-table"
 import { ArrowDownIcon, ArrowUpIcon, CircleGaugeIcon, Clock4Icon, RouterIcon, WavesIcon } from "lucide-react"
 import moment from "moment"
 import { useEffect, useState } from "react"
-import { DataLog, Datalogger, } from "./Types"
+import { Datalogger } from "./Types"
 import { Button } from "./ui/button"
 import { DataTable } from "./ui/data-table"
 
 function LoggerTable() {
-  const [loggerData, setLoggerData] = useState([])
   const [loading, setLoading] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([{
     id: "Name",
@@ -19,7 +18,7 @@ function LoggerTable() {
   }])
 
   const { setLogger, setChartDrawerOpen } = useSharedStateContext()
-  const { latestLogsData, loggersData } = useLogData()
+  const { loggersLatest } = useLogData()
   const isFirstRender = useIsFirstRender()
 
   const latestLogsColumns: ColumnDef<Datalogger>[] = [
@@ -165,37 +164,13 @@ function LoggerTable() {
       }
     },
   ]
+  const loggerData = Array.from(loggersLatest.values()).filter((loggerLog) => loggerLog.Enabled)
 
   useEffect(() => {
     if (isFirstRender) {
       return
     }
-    if (loggersData.length && latestLogsData.length) {
-      fetchLatestLogsInfo()
-    }
-  }, [loggersData, latestLogsData])
-
-  async function fetchLatestLogsInfo() {
-    setLoading(true)
-    try {
-      let tempLoggersLatest: {}[] = []
-      loggersData.map((logger: Datalogger) => {
-        latestLogsData.map((log: DataLog) => {
-          if (!logger.Visibility.split(',').includes('table')) {
-            return
-          }
-          if (logger.LoggerId == log.LoggerId) {
-            tempLoggersLatest.push({ ...logger, ...log })
-          }
-        })
-      })
-      setLoggerData(tempLoggersLatest.filter((logger) => logger.Enabled))
-      setLoading(false)
-    }
-    catch (error) {
-      console.log(error)
-    }
-  }
+  }, [])
 
   const initialState = {
     columnVisibility: {
