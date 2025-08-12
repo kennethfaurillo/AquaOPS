@@ -1,0 +1,42 @@
+name: Deploy Project (Test)
+
+on:
+    push:
+        branches: [route-change]
+env:
+    SSH_KEY: ${{secrets.SSH_TEST_PRIV_KEY}}
+    SSH_HOST: ${{secrets.SSH_TEST_HOST}}
+    SSH_USER: ${{secrets.SSH_USER}}
+    VITE_API: ${{secrets.VITE_API}}
+    VITE_SSE: ${{secrets.VITE_SSE}}
+    VITE_WS: ${{secrets.VITE_WS}}
+    VITE_PB: ${{secrets.VITE_PB}}
+    
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                node-version: 20
+            - name: Setup SSH Key
+              run: |
+                mkdir -p ~/.ssh
+                echo "$SSH_KEY" > ~/.ssh/id_rsa
+                chmod 600 ~/.ssh/id_rsa
+                ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
+            - name: Download GeoJSON files
+              run: scp -i ~/.ssh/id_rsa $SSH_USER@$SSH_HOST:/home/$SSH_USER/buckets/aquaops/* src/assets/
+            - name: Install Dependencies
+              run: npm ci
+            - name: Build Vite app
+              run: npm run build
+            - name: Clear remote temp build folder
+              run: ssh -i ~/.ssh/id_rsa $SSH_USER@$SSH_HOST "sudo rm -rf ~/aquaops_test_deploy/*"
+            - name: Copy new build to remote temp build folder
+              run: scp -i ~/.ssh/id_rsa -r dist/* $SSH_USER@$SSH_HOST:/home/$SSH_USER/aquaops_test_deploy/
+            - name: Deploy to production directory
+              run: ssh -i ~/.ssh/id_rsa $SSH_USER@$SSH_HOST "sudo rm -rf /var/www/test-aquaops/* && sudo mkdir -p /var/www/test-aquaops && sudo cp -r ~/aquaops_test_deploy/* /var/www/test-aquaops"

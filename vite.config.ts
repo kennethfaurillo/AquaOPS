@@ -16,13 +16,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     }
   },
-  server: {
+  server: process.env.NODE_ENV === 'development' ? {
     https: {
       key: fs.readFileSync('./certs/key.pem'),
       cert: fs.readFileSync('./certs/cert.pem'),
     },
     host: true,
     open: true
-  },
-  base: '/aquaops'
+  } : {},
+  base: '/'
 })
