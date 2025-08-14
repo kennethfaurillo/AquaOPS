@@ -26,7 +26,7 @@ export const LoggerLayer = React.memo(({ loggersLatestData, basemap, onMarkerCli
                             <div key={loggerId}>
                                 <Marker position={[loggerData.Latitude, loggerData.Longitude]} icon={loggerIcon} eventHandlers={{
                                     click: () => onMarkerClick(loggerData)
-                                }}>
+                                }} draggable>
                                     {!(loggerData?.Visibility.split(',').includes('map')) ? null : <Tooltip permanent direction={'top'} interactive={true}>
                                         <div className='text-slate-600 font-light text-[.55rem] drop-shadow-xl text-right'>
                                             {loggerData.LogTime ? <>{moment(loggerData.LogTime.replace('Z', ''), true).format('MMM D h:mm a')}<br /></> : null}

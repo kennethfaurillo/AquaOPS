@@ -26,9 +26,9 @@ function App() {
               <TooltipProvider>
                 <EnvironmentBanner/>
                 <Routes >
-                  <Route path="/aquaops/login" element={<LoginPage />} />
+                  <Route path="/login" element={<LoginPage />} />
                   <Route element={<ProtectedRoutes />}>
-                    <Route path="/aquaops/*" element={
+                    <Route path="/*" element={
                       <LogDataProvider>
                         <DashboardPage />
                       </LogDataProvider>

@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | undefined>(undefined)
     const navigate = useNavigate()
 
-    // Set userInfo navigate to dashboard
+    // Set userInfo and navigate to dashboard
     const completeLogin = (userInfo: UserInfo) => {
         setUser(userInfo);
         setIsAuthenticated(true);

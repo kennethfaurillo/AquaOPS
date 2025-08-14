@@ -14,7 +14,6 @@ const LoginCard = React.memo(({ setAlertOpen }: { setAlertOpen: (open: boolean) 
     const [username, setUsername] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [password, setPassword] = useState("")
-    // const [alertOpen, setAlertOpen] = useState(false)
     const { login } = useAuth()
 
     const handleLogin = async (event: React.FormEvent) => {
@@ -68,6 +67,7 @@ const LoginCard = React.memo(({ setAlertOpen }: { setAlertOpen: (open: boolean) 
         </div>
     )
 })
+
 export const LoginPage = () => {
     const [alertOpen, setAlertOpen] = useState(false)
 
@@ -83,7 +83,6 @@ export const LoginPage = () => {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        {/* <AlertDialogCancel >Cancel</AlertDialogCancel> */}
                         <AlertDialogAction className="bg-piwad-lightyellow-500 text-black hover:bg-accent">OK</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
