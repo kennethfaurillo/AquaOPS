@@ -2,7 +2,7 @@ name: Deploy Project (Test)
 
 on:
     push:
-        branches: [route-change]
+        branches: [master]
 env:
     SSH_KEY: ${{secrets.SSH_TEST_PRIV_KEY}}
     SSH_HOST: ${{secrets.SSH_TEST_HOST}}
