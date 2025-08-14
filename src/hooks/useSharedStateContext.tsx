@@ -1,3 +1,4 @@
+import { Datalogger, LoggerLog } from "@/components/Types"
 import axios from "axios"
 import { createContext, useContext, useMemo, useState } from "react"
 
@@ -8,11 +9,11 @@ type SharedStateContextType = {
     setLoggerDialogOpen: (open: boolean) => void
     reportDialogOpen: boolean
     setReportDialogOpen: (open: boolean) => void
-    logger: any
-    setLogger: (logger: any) => void
-    loggerInfo: any
-    setLoggerInfo: (loggerInfo: any) => void
-    fetchLoggerInfo: (loggerId: string) => Promise<any>
+    logger: LoggerLog
+    setLogger: (logger: LoggerLog) => void
+    loggerInfo: Datalogger
+    setLoggerInfo: (loggerInfo: Datalogger) => void
+    fetchLoggerInfo: (loggerId: string) => Promise<Datalogger>
 }
 
 const SharedStateContext = createContext<SharedStateContextType | null>(null)

@@ -1,7 +1,9 @@
+// Datalogger Model
 export type Datalogger = {
-    LoggerId: number,
+    LoggerId: string,
     Name: string,
     Model: string,
+    Type: string,
     Enabled: boolean,
     FwVersion: string,
     Latitude: number,
@@ -35,15 +37,16 @@ export type PressureLog = {
     AverageVoltage: number,
     CurrentPressure: number,
 }
-
-export type DataLog = {
-    LogId: number,
+// DataLog type for latest log
+export type LatestLog = {
+    LogId: string,
+    Name: string,
     Timestamp: Date,
-    LoggerId: number,
-    LogTime: Date,
+    LoggerId: string,
+    LogTime: string,
     AverageVoltage: number,
-    CurrentPressure: number,
-    CurrentFlow: number
+    CurrentFlow: number,
+    CurrentPressure: number
 }
 
 export type Source = {
@@ -60,10 +63,13 @@ export type Source = {
     Location: number,
 }
 
+// Logger Log type for complete logger info with latest log
 export type LoggerLog = {
-    LoggerId: number,
+    LoggerId: string,
     Name: string,
     Model: string,
+    Type: string,
+    Enabled: boolean,
     FwVersion: string,
     Latitude: number,
     Longitude: number,
@@ -72,9 +78,10 @@ export type LoggerLog = {
     FlowLimit: string,
     Imei: number,
     Sim: number,
+    Visibility: string,
     LogId: number,
     Timestamp: Date,
-    LogTime: Date,
+    LogTime: string,
     AverageVoltage: number,
     CurrentPressure: number,
     CurrentFlow: number
@@ -100,7 +107,15 @@ export type DashboardPrefs = {
     showLoggerList: boolean,
     showLoggerMap: boolean,
 }
+export type Averaging = 'none' | 'hourly' 
 
+export type ReportParameters = {
+    param: 'flow' | 'pressure' | 'voltage' | null // Selected parameter for report
+    averaging: Averaging
+    totalizerNet: boolean
+    totalizerPositive: boolean
+    totalizerNegative: boolean
+}
 // RCMS Types
 export type Sample = {
     id: string,
@@ -165,5 +180,5 @@ export type Notification = {
     Timestamp: Date,
     Type: 'info' | 'warning' | 'error' | 'sample-pass' | 'sample-resample' | 'sample-fail',
     Priority: 1 | 2 | 3,
-    Source: 'aquaops' | 'crms' 
+    Source: 'aquaops' | 'crms'
 }

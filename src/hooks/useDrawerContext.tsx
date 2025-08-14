@@ -1,6 +1,6 @@
 import LoggerDialog from "@/components/LoggerDialog";
 import { Separator } from "@/components/ui/separator";
-import { dateDiff } from "@/lib/utils";
+import { dateDiff, parseLoggerName } from "@/lib/utils";
 import axios from "axios";
 import { Loader2Icon, SettingsIcon } from "lucide-react";
 import { createContext, lazy, Suspense, useContext, useMemo, useState } from "react";
@@ -8,6 +8,7 @@ import { Button } from "../components/ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "../components/ui/drawer";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useSharedStateContext } from "./useSharedStateContext";
+import { Datalogger, LoggerLog } from "@/components/Types";
 const ReportDialog = lazy(() => import('@/components/ReportDialog'));
 const LogLineChart = lazy(() => import('@/components/LogLineChart'));
 
@@ -16,7 +17,7 @@ type DrawerContextType = {
     setChartTimeRange: (timeRange: string) => void
     allowedDates: string[]
     setAllowedDates: (dates: string[]) => void
-    fetchLoggerInfo: (loggerId: string) => Promise<any>
+    fetchLoggerInfo: (loggerId: string) => Promise<Datalogger>
     fetchLoggerDates: (loggerId: string, loggerType?: string) => Promise<any>
     LoggerStatus: (props: { logger: any }) => JSX.Element
 }
@@ -31,7 +32,7 @@ export function DrawerProvider({ children }: { children: React.ReactNode }) {
     const { chartDrawerOpen, setChartDrawerOpen, loggerDialogOpen, setLoggerDialogOpen, reportDialogOpen, setReportDialogOpen,
         logger, setLogger, loggerInfo, setLoggerInfo } = useSharedStateContext()
 
-    const fetchLoggerInfo = async (loggerId: string) => {
+    const fetchLoggerInfo = async (loggerId: string): Promise<Datalogger> => {
         const loggerResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/${loggerId}`, { withCredentials: true })
         return loggerResponse.data[0]
     }
@@ -48,11 +49,10 @@ export function DrawerProvider({ children }: { children: React.ReactNode }) {
     const value = useMemo(() => ({
     }), [])
 
-    const LoggerStatus = (props) => {
-        const _logger = props.logger
+    function LoggerStatus({ logger }: { logger: LoggerLog }) {
         let timeUnit = 's'
-        let lastUpdated = dateDiff(new Date(_logger?.LogTime.replace('Z', '')), 's')
-        const loggerStatus = _logger.Disabled ? 'Disabled' : lastUpdated <= 21600 ? 'Active' : 'Inactive'
+        let lastUpdated = dateDiff(new Date(logger?.LogTime.replace('Z', '')), 's')
+        const loggerStatus = lastUpdated <= 21600 ? 'Active' : 'Inactive'
         const statusColor = {
             'Active': 'text-green-500',
             'Inactive': 'text-orange-500',
@@ -70,7 +70,7 @@ export function DrawerProvider({ children }: { children: React.ReactNode }) {
         }
         return (
             <div className="flex gap-x-1 text-sm text-muted-foreground">
-                Logger ID: {_logger?.LoggerId ?? "#########"} <Separator orientation="vertical" className="h-5" /> Last Updated: {Math.round(lastUpdated)} <em>{timeUnit}</em> ago
+                Logger ID: {logger?.LoggerId ?? "#########"} <Separator orientation="vertical" className="h-5" /> Last Updated: {Math.round(lastUpdated)} <em>{timeUnit}</em> ago
                 <Separator orientation="vertical" className="h-5" /> <div className="flex gap-x-1"> Status: <div className={'font-semibold ' + statusColor[loggerStatus]}> {loggerStatus} </div> </div>
             </div>
         )
@@ -83,7 +83,7 @@ export function DrawerProvider({ children }: { children: React.ReactNode }) {
                 <DrawerContent className="w-full lg:w-[1024px] mx-auto">
                     <DrawerHeader className="relative">
                         <DrawerTitle className="text-piwad-lightblue-500 text-3xl inline-flex">
-                            {logger?.Name.replaceAll('-', ' ').replaceAll('=', '-').split('_').slice(2) ?? "Unnamed"}
+                            {(logger && parseLoggerName(logger.Name)) ?? "Unnamed"}
                             <Button variant="ghost" className="mx-1 px-1" onClick={async () => {
                                 if (logger) {
                                     await fetchLoggerInfo(logger.LoggerId).then((response) => {
