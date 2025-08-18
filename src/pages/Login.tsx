@@ -27,7 +27,7 @@ const LoginCard = React.memo(({ setAlertOpen }: { setAlertOpen: (open: boolean) 
     return (
         <div className="grid grid-cols-12">
             <div className="col-span-12 my-16 mx-12 justify-center ">
-                <div className="mx-auto w-fit border-4 shadow-xl border-piwad-blue-400 rounded-lg p-5 space-y-2">
+                <div className="mx-auto w-fit shadow-xl bg-white  rounded-lg p-5 space-y-2">
                     <div className="text-center">
                         <h1 className="text-3xl font-bold">Login</h1>
                         <p className="text-balance text-muted-foreground">Enter your account details below to login to your account</p>
@@ -72,7 +72,7 @@ export const LoginPage = () => {
     const [alertOpen, setAlertOpen] = useState(false)
 
     return (
-        <>
+        <div className="h-dvh bg-gradient-to-br from-piwad-lightyellow-50 to-piwad-lightblue-200">
             <AlertDialog open={alertOpen} onOpenChange={setAlertOpen} >
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -90,12 +90,11 @@ export const LoginPage = () => {
 
             <Header />
             <LoginCard setAlertOpen={setAlertOpen} />
-            <div className="w-full h-screen">
-
-                <div className="absolute bottom-2 right-4 text-xs text-slate-500">
+            <div className="w-full">
+                <div className="absolute bottom-2 right-4 text-xs text-slate-50">
                     {__BUILD_VERSION__}
                 </div>
             </div>
-        </>
+        </div>
     )
 }
