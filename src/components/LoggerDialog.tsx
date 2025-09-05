@@ -402,13 +402,18 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
                                 <CardContent>
                                     <ScrollArea className="h-[300px] w-full rounded-md border">
                                         <div className="p-4">
-                                            {configLogs.length ? configLogs.map((log, index) => (
-                                                <div key={index}>
-                                                    <h4 className="text-sm font-medium">{moment(log.Timestamp).format('YYYY-MM-DD h:mm A')}</h4>
-                                                    <p className="text-sm text-muted-foreground">[{log.Username}]: changed {log.Parameter} ({log.ChangedValues})</p>
-                                                    {index < configLogs.length - 1 && <Separator className="my-2" />}
-                                                </div>
-                                            )) : null}
+                                            {configLogs.length ? configLogs.map((log, index) => {
+                                                if (log.ChangedValues.search(';') !== -1) {
+                                                    log.ChangedValues = log.ChangedValues.replaceAll('(', '').split(';').join(' to ')
+                                                }
+                                                return (
+                                                    <div key={index}>
+                                                        <h4 className="text-sm font-medium">{moment(log.Timestamp).format('YYYY-MM-DD h:mm A')}</h4>
+                                                        <p className="break-all text-sm  text-muted-foreground ch">[<strong>{log.Username}</strong>] changed {log.Parameter}: {log.ChangedValues}</p>
+                                                        {index < configLogs.length - 1 && <Separator className="my-2" />}
+                                                    </div>
+                                                )
+                                            }) : null}
                                         </div>
                                     </ScrollArea>
                                 </CardContent>
