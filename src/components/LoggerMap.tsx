@@ -22,6 +22,7 @@ import { PipelineLayer } from './map/PipelineLayer'
 import ProposedSiteLayer from './map/ProposedSiteLayer'
 import { SampleLayer } from './map/SampleLayer'
 import { SourceLayer } from './map/SourceLayer'
+import { ServiceConnectionsLayer } from './map/ServiceConnectionsLayer'
 import {
   Basemap, basemaps
 } from './map/utils'
@@ -158,6 +159,7 @@ function LoggerMap() {
               <LoggerLayer basemap={basemap} loggersLatestData={loggersLatest}
                 onMarkerClick={handleLoggerClick} />
               <SampleLayer />
+              <ServiceConnectionsLayer />
             </LayersControl>
             <MapEvents />
             {/* Logger Status Indicator */}
