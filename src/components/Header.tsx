@@ -68,7 +68,7 @@ function Header(props: HeaderProps) {
             <EventLogsDialog eventlogsDialogOpen={eventlogsDialogOpen} setEventlogsDialogOpen={setEventlogsDialogOpen} eventLogs={eventLogs} />
             <NewUserDialog newUserDialogOpen={newUserDialogOpen} setNewUserDialogOpen={setNewUserDialogOpen} />
             <header className='flex gap-4 sticky top-0 max-h-14 max-w-dvw bg-slate-50/80 backdrop-blur drop-shadow-xl z-10 h-12 sm:h-16 overflow-hidden'>
-                <a href="/aquaops">
+                <a href="/">
                     <img src={logoHorizontal} className="h-full p-2" />
                 </a>
                 <div className="flex ml-auto">

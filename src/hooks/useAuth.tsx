@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const completeLogin = (userInfo: UserInfo) => {
         setUser(userInfo);
         setIsAuthenticated(true);
-        navigate("/aquaops")
+        navigate("/")
     };
 
     // Attempt to login
