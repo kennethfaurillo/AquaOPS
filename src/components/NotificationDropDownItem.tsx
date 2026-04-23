@@ -37,7 +37,7 @@ const NotificationDropDownItem = React.memo(({ notification, onClick }: Notifica
                 <div className="flex-col mr-1">
                     <div className="text-sm text-black font-semibold">{notification.Title}</div>
                     <div className="text-xs text-gray-600">{notification.Message}</div>
-                    <div className="text-xs text-gray-400">{new Date(notification.Timestamp).toLocaleString()}</div>
+                    <div className="text-xs text-gray-400">{new Date(notification.Timestamp.replace('Z','')).toLocaleString()}</div>
                 </div>
             </div>
         </div>

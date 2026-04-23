@@ -177,7 +177,7 @@ export type Notification = {
     Data: string,
     UserId: number,
     IsRead: boolean,
-    Timestamp: Date,
+    Timestamp: string,
     Type: 'info' | 'warning' | 'error' | 'sample-pass' | 'sample-resample' | 'sample-fail',
     Priority: 1 | 2 | 3,
     Source: 'aquaops' | 'crms'

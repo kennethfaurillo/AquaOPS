@@ -192,7 +192,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
         try {
             if (Object.keys(_loggerLimits).length) {
                 toast.loading("Updating Limits")
-                const changeConfigResponse = await axios.patch(`${import.meta.env.VITE_API}/api/logger_limits/${loggerInfo.LoggerId}`, {
+                await axios.patch(`${import.meta.env.VITE_API}/api/logger_limits/${loggerInfo.LoggerId}`, {
                     ..._loggerLimits,
                     user
                 }, { withCredentials: true })
@@ -204,7 +204,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
                 }, 500)
             } else if (Object.keys(_loggerConfig).length) {
                 toast.loading("Updating Config")
-                const changeConfigResponse = await axios.patch(`${import.meta.env.VITE_API}/api/logger_config/${loggerInfo.LoggerId}`, {
+                await axios.patch(`${import.meta.env.VITE_API}/api/logger_config/${loggerInfo.LoggerId}`, {
                     ..._loggerConfig,
                     user
                 }, { withCredentials: true })
@@ -272,7 +272,7 @@ function LoggerDialog({ loggerDialogOpen, setLoggerDialogOpen, loggerInfo }: Log
                 <DialogTitle className="text-piwad-blue-500">Logger Configuration</DialogTitle>
                 <DialogDescription hidden>View and edit logger Information and Configuration</DialogDescription>
                 <Tabs defaultValue={activeTab} value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)}>
-                    <TabsList className="grid grid-cols-3 mx-2 ">
+                    <TabsList className="grid grid-cols-3 md:w-[360px]">
                         <TabsTrigger value="config" >Information</TabsTrigger>
                         <TabsTrigger value="limits" >Alarms</TabsTrigger>
                         <TabsTrigger value="history">History</TabsTrigger>

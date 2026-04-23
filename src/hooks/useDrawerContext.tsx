@@ -1,4 +1,5 @@
 import LoggerDialog from "@/components/LoggerDialog";
+import PressureDashboard from "@/components/PressureDashboard";
 import { Separator } from "@/components/ui/separator";
 import { dateDiff, parseLoggerName } from "@/lib/utils";
 import axios from "axios";
@@ -28,9 +29,9 @@ export function DrawerProvider({ children }: { children: React.ReactNode }) {
     // // Time interval for chart display
     const [chartTimeRange, setChartTimeRange] = useState("12")
     // Allowed dates for report generation
-    const [allowedDates, setAllowedDates] = useState([])
+    const [allowedDates, setAllowedDates] = useState<string[]>([])
     const { chartDrawerOpen, setChartDrawerOpen, loggerDialogOpen, setLoggerDialogOpen, reportDialogOpen, setReportDialogOpen,
-        logger, setLogger, loggerInfo, setLoggerInfo } = useSharedStateContext()
+        logger, loggerInfo, setLoggerInfo } = useSharedStateContext()
 
     const fetchLoggerInfo = async (loggerId: string): Promise<Datalogger> => {
         const loggerResponse = await axios.get(`${import.meta.env.VITE_API}/api/logger/${loggerId}`, { withCredentials: true })
@@ -45,9 +46,15 @@ export function DrawerProvider({ children }: { children: React.ReactNode }) {
         return logDatesResponse.data
     }
 
-
     const value = useMemo(() => ({
-    }), [])
+        chartTimeRange,
+        setChartTimeRange,
+        allowedDates,
+        setAllowedDates,
+        fetchLoggerInfo,
+        fetchLoggerDates,
+        LoggerStatus,
+    }), [allowedDates, chartTimeRange])
 
     function LoggerStatus({ logger }: { logger: LoggerLog }) {
         let timeUnit = 's'
@@ -100,7 +107,7 @@ export function DrawerProvider({ children }: { children: React.ReactNode }) {
                         <LogLineChart logger={logger} timeRange={chartTimeRange} />
                     </Suspense> :
                         <Loader2Icon className="animate-spin self-center size-12 my-5" />}
-                    <DrawerFooter className="flex-row justify-center">
+                    <DrawerFooter className="flex-col justify-center gap-2 sm:flex-row">
                         <Select value={chartTimeRange} onValueChange={(value) => setChartTimeRange(value)} >
                             <SelectTrigger className="w-[150px]">
                                 <SelectValue placeholder="Time Range" />
@@ -120,20 +127,17 @@ export function DrawerProvider({ children }: { children: React.ReactNode }) {
                             const tempLoggerInfo = await fetchLoggerInfo(logger.LoggerId)
                             setLoggerInfo(tempLoggerInfo)
                             setReportDialogOpen(true)
-                            let latestLogs = []
-                            const defaultDaysRange = 3
                             if (tempLoggerInfo.Type.includes("flow")) {
                                 await fetchLoggerDates(logger.LoggerId, "flow").then((response) => {
                                     setAllowedDates(response)
-                                    latestLogs = response.slice(-defaultDaysRange)
                                 })
                             } else if (tempLoggerInfo.Type.includes("pressure")) {
                                 await fetchLoggerDates(logger.LoggerId, "pressure").then((response) => {
                                     setAllowedDates(response)
-                                    latestLogs = response.slice(-defaultDaysRange)
                                 })
                             }
                         }}>Generate Report</Button>
+                        {logger?.Type.includes('pressure') ? <PressureDashboard loggerInfo={logger} triggerClassName="w-full sm:w-auto" /> : null}
                         <DrawerClose asChild>
                             <Button>Close</Button>
                         </DrawerClose>
@@ -141,7 +145,18 @@ export function DrawerProvider({ children }: { children: React.ReactNode }) {
                 </DrawerContent>
             </Drawer>
             {/* Logger Info and Config Dialog */}
-            <LoggerDialog loggerDialogOpen={loggerDialogOpen} setLoggerDialogOpen={setLoggerDialogOpen} loggerInfo={loggerInfo} />
+            <LoggerDialog loggerDialogOpen={loggerDialogOpen} setLoggerDialogOpen={setLoggerDialogOpen} loggerInfo={{
+                LoggerId: loggerInfo?.LoggerId ?? '',
+                Name: loggerInfo?.Name ?? '',
+                Latitude: String(loggerInfo?.Latitude ?? ''),
+                Longitude: String(loggerInfo?.Longitude ?? ''),
+                SimNo: String(loggerInfo?.Sim ?? ''),
+                Type: loggerInfo?.Type ?? '',
+                Visibility: loggerInfo?.Visibility ?? '',
+                VoltageLimit: loggerInfo?.VoltageLimit,
+                FlowLimit: loggerInfo?.FlowLimit,
+                PressureLimit: loggerInfo?.PressureLimit,
+            }} />
             {/* Report Generation Dialog */}
             <Suspense>
                 <ReportDialog reportDialogOpen={reportDialogOpen} setReportDialogOpen={setReportDialogOpen} loggerInfo={loggerInfo} allowedDates={allowedDates} />

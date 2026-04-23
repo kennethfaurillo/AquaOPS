@@ -1,7 +1,7 @@
 import { Datalogger, ReportParameters, Sample, UserInfo } from "@/components/Types"
 import axios from "axios"
 import { type ClassValue, clsx } from "clsx"
-import { addDays, isValid } from "date-fns"
+import { addDays } from "date-fns"
 import moment from "moment"
 import { DateRange } from "react-day-picker"
 import { twMerge } from "tailwind-merge"
@@ -14,21 +14,30 @@ export function cn(...inputs: ClassValue[]) {
 export function capitalize(str: string) {
   if (!str) return str
   const strList = str.split(' ')
-  return strList.map((val) => val.at(0).toUpperCase() + val.slice(1).toLowerCase()).join(' ')
+  return strList.map((val) => val.charAt(0).toUpperCase() + val.slice(1).toLowerCase()).join(' ')
 }
 
-export async function generateReport(loggerInfo: Datalogger, fields: ReportParameters, dateRange: DateRange, user: UserInfo| null) {
+type ReportLogRow = Record<string, string | number | null | undefined>
+
+export async function generateReport(loggerInfo: Pick<Datalogger, 'LoggerId'>, fields: ReportParameters, dateRange: DateRange | undefined, user: UserInfo | null) {
+  if (!dateRange?.from || !dateRange?.to) {
+    throw new Error("A complete date range is required to generate a report.")
+  }
+  if (!user) {
+    throw new Error("You must be signed in to generate a report.")
+  }
+
   const loggerId = loggerInfo.LoggerId
   let logTable = ''
-  let data = []
+  let data: ReportLogRow[] = []
   // If fields.param, report is raw pressure/flow/voltage log data
   if (fields.param) {
     logTable = fields.param == "flow" ? "flow_log" : "pressure_log"
-    const response = await axios.get(`${import.meta.env.VITE_API}/api/${logTable}/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}&averaged=${fields.averaging}`, { withCredentials: true })
+    const response = await axios.get(`${import.meta.env.VITE_API}/api/${logTable}/${loggerId}?timeStart=${dateRange.from}&timeEnd=${addDays(dateRange.to, 1)}&username=${user.Username}&averaged=${fields.averaging}`, { withCredentials: true })
     data = response.data ?? []
   }
   else {
-    const response = await axios.get(`${import.meta.env.VITE_API}/api/totalizer/${loggerId}?timeStart=${dateRange?.from}&timeEnd=${addDays(dateRange?.to, 1)}&username=${user.Username}`, { withCredentials: true })
+    const response = await axios.get(`${import.meta.env.VITE_API}/api/totalizer/${loggerId}?timeStart=${dateRange.from}&timeEnd=${addDays(dateRange.to, 1)}&username=${user.Username}`, { withCredentials: true })
     data = response.data ?? []
   }
   if (!data || data.length == 0) {
@@ -36,16 +45,18 @@ export async function generateReport(loggerInfo: Datalogger, fields: ReportParam
   }
   if (data.length) {
     if (fields.param) {
-      const newData = data.reduce((newData, currentLog) => {
+      const newData = data.reduce<Array<Record<string, string | number | null | undefined>>>((newData, currentLog) => {
         let key = ''
         let timeKey = 'LogTime'
         if (fields.averaging == 'hourly') timeKey = 'LogHour'
-        else if (fields.averaging == 'daily') timeKey = 'LogDate'
         if (fields.param == "flow") key = (!fields || fields.averaging != 'none') ? "AverageFlow" : "CurrentFlow"
         else if (fields.param == "pressure") key = (!fields || fields.averaging != 'none') ? "AveragePressure" : "CurrentPressure"
         else if (fields.param == "voltage") key = "AverageVoltage"
+        const timeValue = currentLog[timeKey]
         let newLog = {
-          LogTime: timeKey == 'LogTime' ? moment(currentLog[timeKey].replace('Z', '')).format('YYYY-MM-DD HH:mm:ss') : currentLog[timeKey],
+          LogTime: timeKey == 'LogTime' && typeof timeValue === 'string'
+            ? moment(timeValue.replace('Z', '')).format('YYYY-MM-DD HH:mm:ss')
+            : timeValue,
           [key]: currentLog[key]
         }
         newData.push(newLog)
@@ -53,20 +64,20 @@ export async function generateReport(loggerInfo: Datalogger, fields: ReportParam
       }, [])
       return newData
     } else {
-      const newData = data.reduce((newData, currentLog) => {
+      const newData = data.reduce<Array<{ Date: string; NetVolume?: number; ForwardVolume?: number; ReverseVolume?: number }>>((newData, currentLog) => {
         let newLog: { Date: string; NetVolume?: number; ForwardVolume?: number; ReverseVolume?: number } = {
-          Date: currentLog.Date
+          Date: String(currentLog.Date)
         }
         for (const [field, includeField] of Object.entries(fields)) {
           if (!includeField) continue
           if (field == "totalizerNet") {
-            newLog = { ...newLog, NetVolume: currentLog.DailyFlowPositive - currentLog.DailyFlowNegative }
+            newLog = { ...newLog, NetVolume: Number(currentLog.DailyFlowPositive) - Number(currentLog.DailyFlowNegative) }
           }
           else if (field == "totalizerPositive") {
-            newLog = { ...newLog, ForwardVolume: currentLog.DailyFlowPositive }
+            newLog = { ...newLog, ForwardVolume: Number(currentLog.DailyFlowPositive) }
           }
           else if (field == "totalizerNegative") {
-            newLog = { ...newLog, ReverseVolume: currentLog.DailyFlowNegative }
+            newLog = { ...newLog, ReverseVolume: Number(currentLog.DailyFlowNegative) }
           }
         }
         newData.push(newLog)
@@ -79,14 +90,40 @@ export async function generateReport(loggerInfo: Datalogger, fields: ReportParam
   }
 }
 
-export function jsonToCSV(jsonArr, header) {
+type PressureBaselineRow = {
+  LogTime: string
+  CurrentPressure?: number
+  AveragePressure?: number
+}
+
+export function pressureReportToBaselinePoints(rows: PressureBaselineRow[]) {
+  return rows.reduce<Array<{ day: string; hour: number; pressure: number }>>((points, row) => {
+    const timestamp = moment(row.LogTime, 'YYYY-MM-DD HH:mm:ss', true)
+    const pressure = Number(row.CurrentPressure ?? row.AveragePressure)
+
+    if (!timestamp.isValid() || Number.isNaN(pressure)) {
+      return points
+    }
+
+    points.push({
+      day: timestamp.format('dddd'),
+      hour: timestamp.hour(),
+      pressure
+    })
+
+    return points
+  }, [])
+}
+
+export function jsonToCSV(jsonArr: Array<Record<string, string | number | null | undefined>>, header: string) {
   let csv = header + '\n'
   let delim = ';'
   csv += Object.keys(jsonArr[0]).join(delim) + '\n'
-  jsonArr.forEach(obj => {
+  jsonArr.forEach((obj) => {
     csv += Object.values(obj).join(delim) + '\n'
   });
-  const filename = header.split(' ')[0] + '_' + (jsonArr[0].LogTime?.split(',')[0] ?? jsonArr[0].Date)
+  const logTime = typeof jsonArr[0].LogTime === 'string' ? jsonArr[0].LogTime.split(',')[0] : undefined
+  const filename = header.split(' ')[0] + '_' + (logTime ?? String(jsonArr[0].Date))
   const extension = "csv"
   const _blob = new Blob([csv], { type: "text/plain" })
   const url = URL.createObjectURL(_blob)
@@ -119,7 +156,7 @@ export function dateDiff(date: Date, unit: 'ms' | 's' | 'm' | 'h' | 'd') {
   }
 
   const now = new Date()
-  const diffInMs = now - new Date(date)
+  const diffInMs = now.getTime() - new Date(date).getTime()
 
   return diffInMs / (unitDividers[unit] || 1)
 }
@@ -160,12 +197,6 @@ const LATITUDE_UPPER_LIMIT = 13.696173
 const LONGITUDE_LOWER_LIMIT = 123.111745
 const LONGITUDE_UPPER_LIMIT = 123.456730
 
-const isValidLoggerName = (name: string): boolean => {
-  // Logger name should be alphanumeric, underscores, and hyphens only
-  const regex = /^[a-zA-Z0-9_-]+$/
-  return regex.test(name) && name.length >= 3 && name.length <= 50
-}
-
 const isValidNumber = (value: string): boolean => {
   return !isNaN(Number(value)) && value.trim() !== ''
 }
@@ -181,27 +212,27 @@ export const isValidLongitude = (lng: string): boolean => {
 }
 
 export const isValidVoltageLimit = (vLow: string, vHigh: string): boolean => {
-  if(!isValidNumber(vLow) || !isValidNumber(vHigh)) {
+  if (!isValidNumber(vLow) || !isValidNumber(vHigh)) {
     return false
   }
   const low = parseFloat(vLow)
   const high = parseFloat(vHigh)
-  if(high < low) {
+  if (high < low) {
     return false
   }
-  if(low < VOLTAGE_LOWER_LIMIT || high > VOLTAGE_UPPER_LIMIT) {
+  if (low < VOLTAGE_LOWER_LIMIT || high > VOLTAGE_UPPER_LIMIT) {
     return false
   }
   return true
 }
 
 export const isValidFlowLimit = (fLow: string, fHigh: string): boolean => {
-  if(!isValidNumber(fLow) || !isValidNumber(fHigh)) {
+  if (!isValidNumber(fLow) || !isValidNumber(fHigh)) {
     return false
   }
   const low = parseFloat(fLow)
   const high = parseFloat(fHigh)
-  if(high < low) {
+  if (high < low) {
     return false
   }
   // Assuming flow limits are not defined, we can skip the range check
@@ -209,12 +240,12 @@ export const isValidFlowLimit = (fLow: string, fHigh: string): boolean => {
 }
 // TODO: add absolute min/max values
 export const isValidPressureLimit = (pLow: string, pHigh: string): boolean => {
-  if(!isValidNumber(pLow) || !isValidNumber(pHigh)) {
+  if (!isValidNumber(pLow) || !isValidNumber(pHigh)) {
     return false
   }
   const low = parseFloat(pLow)
   const high = parseFloat(pHigh)
-  if(high < low) {
+  if (high < low) {
     return false
   }
   // Assuming pressure limits are not defined, we can skip the range check
@@ -231,3 +262,37 @@ export const isValidSimCardNumber = (sim: string): boolean => {
   }
   return true
 }
+
+export const toFiniteNumber = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsedValue = Number(value);
+    return Number.isFinite(parsedValue) ? parsedValue : undefined;
+  }
+
+  return undefined;
+};
+
+export const toBoolean = (value: unknown): boolean | undefined => {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'number') {
+    return value !== 0;
+  }
+
+  if (typeof value === 'string') {
+    if (value.toLowerCase() === 'true') {
+      return true;
+    }
+    if (value.toLowerCase() === 'false') {
+      return false;
+    }
+  }
+
+  return undefined;
+};

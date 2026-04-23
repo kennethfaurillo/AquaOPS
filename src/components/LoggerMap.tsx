@@ -1,12 +1,13 @@
 import { useLogData } from '@/hooks/useLogData'
 import { useMapContext } from '@/hooks/useMapContext'
 import { useSharedStateContext } from '@/hooks/useSharedStateContext'
+import { useWebSocket } from '@/hooks/useWebSocket'
 import { parseLoggerName } from '@/lib/utils'
 import ResetViewControl from '@20tab/react-leaflet-resetview'
 import { LatLng, Map as LMap } from 'leaflet'
 import 'leaflet.fullscreen/Control.FullScreen.css'
 import 'leaflet.fullscreen/Control.FullScreen.js'
-import { FoldVerticalIcon, MapIcon, MoonIcon, SunIcon, UnfoldVerticalIcon } from 'lucide-react'
+import { AlertTriangleIcon, FoldVerticalIcon, MapIcon, MoonIcon, SirenIcon, SunIcon, UnfoldVerticalIcon } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { LayersControl, MapContainer, TileLayer, useMapEvents, ZoomControl } from 'react-leaflet'
 import logoMain from '../assets/logo-main.png'
@@ -32,9 +33,27 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Separator } from './ui/separator'
 import { Tooltip as HoverTooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
+import axios from 'axios'
 
 // Extend Leaflet.Map type to include toggleFullscreen (possible typo)
 type LeafletMap = LMap & { toggleFullscreen: () => void }
+
+type LoggerAlarmStatus = {
+  Id: number
+  LoggerId: string
+  AlarmLevel: 'WARNING' | 'CRITICAL'
+  StartTime: string
+  LatestValue: number
+  ThresholdValue: number
+  IsAcknowledged?: boolean
+  Count?: number
+  LastNotifyTime?: string
+}
+
+const fullscreenPluginProps = {
+  fullscreenControl: true,
+  fullscreenControlOptions: { position: 'bottomleft' },
+} as const
 
 function LoggerMap() {
   const { map, setMap } = useMapContext();
@@ -44,11 +63,24 @@ function LoggerMap() {
   const [fullscreenMap, setFullscreenMap] = useState<boolean>(false)
   const [expandLoggerStatus, setExpandLoggerStatus] = useState<boolean>(false)
   const [expandMapTable, setExpandMapTable] = useState<boolean>(false)
+  const [expandAlarmOverlay, setExpandAlarmOverlay] = useState<boolean>(true)
+  const [alarmStatuses, setAlarmStatuses] = useState<LoggerAlarmStatus[]>([])
 
   const { setChartDrawerOpen, setLogger } = useSharedStateContext()
+  const { triggerFetchAlarmStatus } = useWebSocket()
   const { loggersStatus, loggersLatest } = useLogData()
   const { BaseLayer } = LayersControl
   const scaleFactor = 1
+
+  const fetchAlarmStatuses = useCallback(async (signal?: AbortSignal) => {
+    const response = await axios.get(`${import.meta.env.VITE_API}/api/alarm_status`, {
+      withCredentials: true,
+      signal,
+    })
+    const alarmRows = response.data as LoggerAlarmStatus[]
+
+    setAlarmStatuses(alarmRows.filter((alarm) => alarm.AlarmLevel === 'WARNING' || alarm.AlarmLevel === 'CRITICAL'))
+  }, [])
 
   const updateWeight = useCallback(() => {
     if (!map) {
@@ -76,6 +108,38 @@ function LoggerMap() {
       map.off('enterFullscreen exitFullscreen');
     };
   }, [map]);
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    fetchAlarmStatuses(controller.signal).catch((error) => {
+      if (!axios.isCancel(error) && error.name !== 'CanceledError') {
+        setAlarmStatuses([])
+      }
+    })
+
+    return () => {
+      controller.abort()
+    }
+  }, [fetchAlarmStatuses])
+
+  useEffect(() => {
+    if (triggerFetchAlarmStatus == null) {
+      return
+    }
+
+    const controller = new AbortController()
+
+    fetchAlarmStatuses(controller.signal).catch((error) => {
+      if (!axios.isCancel(error) && error.name !== 'CanceledError') {
+        setAlarmStatuses([])
+      }
+    })
+
+    return () => {
+      controller.abort()
+    }
+  }, [fetchAlarmStatuses, triggerFetchAlarmStatus])
 
   const themeToggleOnclick = () => {
     const newBasemap = basemaps.find((bmap) => bmap.name != basemap.name)
@@ -114,6 +178,19 @@ function LoggerMap() {
     return null
   }
 
+  const activeAlarmStatuses = alarmStatuses
+    .map((alarm) => {
+      const loggerData = loggersLatest.get(alarm.LoggerId)
+      return {
+        ...alarm,
+        loggerData,
+      }
+    })
+    .filter((alarm) => alarm.loggerData)
+
+  const warningAlarmCount = activeAlarmStatuses.filter((alarm) => alarm.AlarmLevel === 'WARNING').length
+  const criticalAlarmCount = activeAlarmStatuses.filter((alarm) => alarm.AlarmLevel === 'CRITICAL').length
+
   return (
     <>
       <div className='col-span-full xl:col-span-9 z-0 drop-shadow-xl h-full'>
@@ -131,7 +208,7 @@ function LoggerMap() {
             ref={(instance: LeafletMap) => {
               setMap(instance)
             }}
-            fullscreenControl={true} fullscreenControlOptions={{ position: 'bottomleft' }} zoomControl={false}
+            {...(fullscreenPluginProps as unknown as Record<string, unknown>)} zoomControl={false}
             scrollWheelZoom={true} zoom={13.5} maxZoom={18} minZoom={12} doubleClickZoom={false}
             maxBounds={[[13.696173, 123.111745], [13.456072, 123.456730]]}>
             <ZoomControl position='bottomleft' />
@@ -212,6 +289,68 @@ function LoggerMap() {
                 </TooltipContent>
               </HoverTooltip>
             </div>
+            <Card className='absolute bottom-24 left-1/2 z-[400] w-[22rem] max-w-[calc(100%-3rem)] -translate-x-1/2 bg-white/90 backdrop-blur-[2px] outline outline-2 outline-black/20 sm:bottom-8 sm:max-w-[calc(100%-8rem)]'>
+              <CardHeader className='space-y-1 px-3 py-2'>
+                <CardTitle className='flex items-center justify-between gap-2 text-sm text-piwad-lightblue-500'>
+                  <span className='inline-flex items-center gap-2'>
+                    <SirenIcon className='h-4 w-4' /> Alarms
+                  </span>
+                  <div className='flex items-center gap-2 text-xs font-medium'>
+                    <span className='inline-flex items-center gap-1 text-amber-600'>
+                      <span className='size-2 rounded-full bg-amber-400' /> {warningAlarmCount}
+                    </span>
+                    <span className='inline-flex items-center gap-1 text-red-600'>
+                      <span className='size-2 rounded-full bg-red-500' /> {criticalAlarmCount}
+                    </span>
+                    {expandAlarmOverlay ?
+                      <FoldVerticalIcon cursor={'pointer'} size={16} onClick={() => setExpandAlarmOverlay(false)} />
+                      : <UnfoldVerticalIcon cursor={'pointer'} size={16} onClick={() => setExpandAlarmOverlay(true)} />
+                    }
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              {expandAlarmOverlay ? <CardContent className='px-3 pb-3 pt-0'>
+                {activeAlarmStatuses.length ? <div className='max-h-[16rem] space-y-2 overflow-y-auto pr-1'>
+                  {activeAlarmStatuses.map((alarm) => (
+                    <button
+                      key={alarm.Id}
+                      type='button'
+                      className='flex w-full items-start justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-colors hover:bg-slate-100'
+                      onClick={() => {
+                        if (alarm.loggerData && map) {
+                          map.flyTo([alarm.loggerData.Latitude, alarm.loggerData.Longitude], Math.max(map.getZoom(), 16))
+                        }
+                      }}
+                    >
+                      <div className='min-w-0'>
+                        <div className='flex items-center gap-2'>
+                          <span className='truncate text-xs font-semibold text-slate-800'>
+                            {alarm.loggerData ? parseLoggerName(alarm.loggerData.Name) : alarm.LoggerId}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 rounded-full px-1 py-0.5 text-[10px] font-semibold ${alarm.AlarmLevel === 'CRITICAL' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                            <AlertTriangleIcon className='h-3 w-3' /> {alarm.AlarmLevel}
+                          </span>
+                        </div>
+                        <div className='mt-1 text-xs text-slate-600'>
+                          Current: {alarm.LatestValue.toFixed(2)} psi • Threshold: {alarm.ThresholdValue.toFixed(2)} psi
+                        </div>
+                        <div className='mt-1 text-[11px] text-slate-500'>
+                          Since: {new Date(alarm.StartTime.replace('Z', '')).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                        </div>
+                      </div>
+                      <div className='ml-3 shrink-0 text-right text-[11px] text-slate-500'>
+                        <div>{alarm.Count ?? 0} hits</div>
+                        {alarm.IsAcknowledged ? <div className='text-green-600'>Ack</div> : <div className='text-red-500'>Live</div>}
+                      </div>
+                    </button>
+                  ))}
+                </div> : (
+                  <div className='rounded-md border border-dashed border-slate-200 bg-slate-50 px-3 py-4 text-center text-xs text-slate-500'>
+                    No warning or critical alarms to display.
+                  </div>
+                )}
+              </CardContent> : null}
+            </Card>
             {basemap ?
               basemap.name == "osmLight" ?
                 <Button className='absolute bottom-8 right-4 z-[401] size-12 p-0 rounded-full opacity-80' onClick={themeToggleOnclick}><MoonIcon /></Button>
@@ -252,7 +391,7 @@ function LoggerMap() {
                               <div className='w-[14ch] font-semibold cursor-pointer text-xs sm:text-sm text-slate-800 font-sans'
                                 onClick={() => map.flyTo([loggerData.Latitude, loggerData.Longitude])}
                                 onDoubleClick={() => map.flyTo([loggerData.Latitude, loggerData.Longitude], 20)}>
-                                  {parseLoggerName(loggerData.Name)}
+                                {parseLoggerName(loggerData.Name)}
                               </div>
                               <div className='text-right w-[10ch] font-sans text-slate-800'>
                                 {loggerData.CurrentPressure ? <div>{loggerData.CurrentPressure} <em>psi</em></div> : null}
